@@ -1,3 +1,4 @@
+'use client';
 // src/components/EventCreator/EventCreator.jsx
 import { useState, useEffect } from 'react'
 import { useEventContext } from '@/contexts/EventContext'

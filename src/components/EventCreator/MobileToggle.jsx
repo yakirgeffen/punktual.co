@@ -1,5 +1,6 @@
+'use client';
 // src/components/EventCreator/MobileToggle.jsx
-import { FormIcon, EyeIcon } from 'lucide-react'
+import { FileTextIcon, EyeIcon } from 'lucide-react'
 
 export default function MobileToggle({ showPreview, onToggle }) {
   return (
@@ -12,7 +13,7 @@ export default function MobileToggle({ showPreview, onToggle }) {
             : 'text-gray-500 hover:text-gray-700'
         }`}
       >
-        <FormIcon className="w-4 h-4 inline-block mr-2" />
+        <FileTextIcon className="w-4 h-4 inline-block mr-2" />
         Form
       </button>
       <button

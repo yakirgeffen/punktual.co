@@ -1,4 +1,5 @@
-// src/components/EventCreator/LivePreview.jsx (continued)
+'use client';
+// src/components/EventCreator/LivePreview.jsx
 import { useEventContext } from '@/contexts/EventContext'
 import ButtonPreview from '../Preview/ButtonPreview'
 import CodeOutput from '../Preview/CodeOutput'
