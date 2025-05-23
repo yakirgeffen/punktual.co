@@ -1,10 +1,10 @@
-'use client';
 // src/components/EventCreator/EventCreator.jsx
+'use client';
+
 import { useState, useEffect } from 'react'
 import { useEventContext } from '@/contexts/EventContext'
 import EventForm from './EventForm'
 import LivePreview from './LivePreview'
-import MobileToggle from './MobileToggle'
 
 export default function EventCreator() {
   const [isMobile, setIsMobile] = useState(false)
@@ -36,10 +36,24 @@ export default function EventCreator() {
 
       {isMobile ? (
         <div className="space-y-4">
-          <MobileToggle 
-            showPreview={showPreview}
-            onToggle={() => setShowPreview(!showPreview)}
-          />
+          <div className="flex bg-gray-100 rounded-lg p-1 mb-4">
+            <button
+              onClick={() => setShowPreview(false)}
+              className={`flex-1 px-4 py-2 rounded-md ${
+                !showPreview ? 'bg-white shadow-sm' : ''
+              }`}
+            >
+              Form
+            </button>
+            <button
+              onClick={() => setShowPreview(true)}
+              className={`flex-1 px-4 py-2 rounded-md ${
+                showPreview ? 'bg-white shadow-sm' : ''
+              }`}
+            >
+              Preview
+            </button>
+          </div>
           {showPreview ? <LivePreview /> : <EventForm />}
         </div>
       ) : (

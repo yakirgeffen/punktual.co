@@ -1,53 +1,76 @@
+// src/components/EventCreator/EventForm.jsx
 'use client';
-// src/components/EventCreator/EventCreator.jsx
-import { useState, useEffect } from 'react'
+
 import { useEventContext } from '@/contexts/EventContext'
-import EventForm from './EventForm'
-import LivePreview from './LivePreview'
-import MobileToggle from './MobileToggle'
 
-export default function EventCreator() {
-  const [isMobile, setIsMobile] = useState(false)
-  const [showPreview, setShowPreview] = useState(false)
-  const { eventData, isLoading } = useEventContext()
+export default function EventForm() {
+  const { eventData, updateEvent } = useEventContext()
 
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-64">Loading...</div>
-  }
+  const handleChange = (field, value) => {
+    updateEvent({ [field]: value });
+  };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Create Calendar Button</h1>
-        <p className="mt-2 text-gray-600">
-          Generate "Add to Calendar" buttons for your events in seconds
-        </p>
-      </div>
-
-      {isMobile ? (
+    <div className="space-y-6">
+      {/* Basic Details Card */}
+      <div className="bg-white rounded-lg shadow-sm border p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Basic Details</h3>
+        
         <div className="space-y-4">
-          <MobileToggle 
-            showPreview={showPreview}
-            onToggle={() => setShowPreview(!showPreview)}
-          />
-          {showPreview ? <LivePreview /> : <EventForm />}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Event Title *
+            </label>
+            <input
+              type="text"
+              value={eventData.title}
+              onChange={(e) => handleChange('title', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="Enter event title"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Start Date *
+              </label>
+              <input
+                type="date"
+                value={eventData.startDate}
+                onChange={(e) => handleChange('startDate', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Start Time
+              </label>
+              <input
+                type="time"
+                value={eventData.startTime}
+                onChange={(e) => handleChange('startTime', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                disabled={eventData.isAllDay}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="isAllDay"
+              checked={eventData.isAllDay}
+              onChange={(e) => handleChange('isAllDay', e.target.checked)}
+              className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+            />
+            <label htmlFor="isAllDay" className="ml-2 block text-sm text-gray-700">
+              All-day event
+            </label>
+          </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <EventForm />
-          <LivePreview />
-        </div>
-      )}
+      </div>
     </div>
   )
 }

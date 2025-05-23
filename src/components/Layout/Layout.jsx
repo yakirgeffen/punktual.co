@@ -1,6 +1,5 @@
 'use client';
 // src/components/Layout/Layout.jsx
-import { Toaster } from 'react-hot-toast'
 import Navbar from './Navbar'
 import Footer from './Footer'
 
@@ -12,7 +11,6 @@ export default function Layout({ children }) {
         {children}
       </main>
       <Footer />
-      <Toaster position="top-right" />
     </div>
   )
 }

@@ -1,60 +1,48 @@
+// src/contexts/EventContext.jsx
 'use client';
-import { createContext, useContext, useReducer } from 'react';
+
+import { createContext, useContext, useState } from 'react';
 
 const EventContext = createContext();
 
-const initialState = {
-  eventData: {
+export function EventContextProvider({ children }) {
+  const [eventData, setEventData] = useState({
     title: '',
     description: '',
     location: '',
     startDate: '',
-    startTime: '',
+    startTime: '10:00',
     endDate: '',
-    endTime: '',
+    endTime: '11:00',
     isAllDay: false
-  },
-  buttonData: {
+  });
+
+  const [buttonData, setButtonData] = useState({
     buttonStyle: 'standard',
     buttonSize: 'medium',
     colorScheme: '#4D90FF',
-    textColor: '#FFFFFF',
     selectedPlatforms: {
       google: true,
       apple: true,
       outlook: true
     }
-  },
-  generatedCode: '',
-  isLoading: false
-};
-
-function eventReducer(state, action) {
-  switch (action.type) {
-    case 'UPDATE_EVENT':
-      return { ...state, eventData: { ...state.eventData, ...action.payload } };
-    case 'UPDATE_BUTTON':
-      return { ...state, buttonData: { ...state.buttonData, ...action.payload } };
-    default:
-      return state;
-  }
-}
-
-export function EventContextProvider({ children }) {
-  const [state, dispatch] = useReducer(eventReducer, initialState);
+  });
 
   const updateEvent = (data) => {
-    dispatch({ type: 'UPDATE_EVENT', payload: data });
+    setEventData(prev => ({ ...prev, ...data }));
   };
 
   const updateButton = (data) => {
-    dispatch({ type: 'UPDATE_BUTTON', payload: data });
+    setButtonData(prev => ({ ...prev, ...data }));
   };
 
   const value = {
-    ...state,
+    eventData,
+    buttonData,
     updateEvent,
-    updateButton
+    updateButton,
+    isLoading: false,
+    generatedCode: ''
   };
 
   return (
