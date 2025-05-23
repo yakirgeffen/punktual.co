@@ -1,27 +1,24 @@
 // src/components/FormSections/EventDetails.jsx
+'use client';
+
 import { useEventContext } from '@/contexts/EventContext'
-import { useForm } from 'react-hook-form'
 
 export default function EventDetails() {
   const { eventData, updateEvent } = useEventContext()
   
-  const { register, handleSubmit } = useForm({
-    defaultValues: eventData,
-    mode: 'onChange'
-  })
-
-  const onSubmit = (data) => {
-    updateEvent(data)
-  }
+  const handleFieldChange = (field, value) => {
+    updateEvent({ [field]: value });
+  };
 
   return (
-    <form onChange={handleSubmit(onSubmit)} className="space-y-4">
+    <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Description
         </label>
         <textarea
-          {...register('description')}
+          value={eventData.description || ''}
+          onChange={(e) => handleFieldChange('description', e.target.value)}
           rows="4"
           className="input-field"
           placeholder="Enter event description..."
@@ -33,7 +30,8 @@ export default function EventDetails() {
           Location
         </label>
         <input
-          {...register('location')}
+          value={eventData.location || ''}
+          onChange={(e) => handleFieldChange('location', e.target.value)}
           type="text"
           className="input-field"
           placeholder="Physical address or virtual meeting link"
@@ -45,12 +43,13 @@ export default function EventDetails() {
           Organizer
         </label>
         <input
-          {...register('organizer')}
+          value={eventData.organizer || ''}
+          onChange={(e) => handleFieldChange('organizer', e.target.value)}
           type="text"
           className="input-field"
           placeholder="Your name or organization"
         />
       </div>
-    </form>
+    </div>
   )
 }
