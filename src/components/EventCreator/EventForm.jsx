@@ -5,6 +5,7 @@ import { useEventContext } from '@/contexts/EventContext'
 import BasicDetails from '../FormSections/BasicDetails'
 import EventDetails from '../FormSections/EventDetails'
 import CollapsibleSection from '../UI/CollapsibleSection'
+import PlatformSelector from '../UI/PlatformSelector'
 
 export default function EventForm() {
   const { eventData, updateEvent } = useEventContext()
@@ -20,6 +21,11 @@ export default function EventForm() {
       <div className="card">
         <h3 className="section-title">Event Details</h3>
         <EventDetails />
+      </div>
+
+      {/* Calendar Platform Selection */}
+      <div className="card">
+        <PlatformSelector />
       </div>
     </div>
   )
