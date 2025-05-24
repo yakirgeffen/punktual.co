@@ -1,5 +1,5 @@
-import EventCreator from '@/components/EventCreator/EventCreator'
-import { EventContextProvider } from '@/contexts/EventContext'
+import EventCreator from '../../components/EventCreator/EventCreator'
+import { EventContextProvider } from '../../contexts/EventContext.jsx'
 
 export default function CreatePage() {
   return (
