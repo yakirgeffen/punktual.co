@@ -6,385 +6,319 @@ import { useEventContext } from '@/contexts/EventContext';
 
 const PlatformSelector = () => {
   const { buttonData, updateButton } = useEventContext();
-
+  
+  // Platform information with local brand logos
   const platforms = [
-    // ... same platforms array as above ...
-    {
-      id: 'google',
-      name: 'Google Calendar',
+    { 
+      id: 'google', 
+      name: 'Google Calendar', 
       shortName: 'Google',
-      icon: (
-        <img 
-          src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/googlecalendar.svg" 
-          alt="Google Calendar"
-          className="w-full h-full"
-          style={{ filter: 'brightness(0) invert(1)' }} 
-        />
-      ),
-      iconColor: '#4285F4',
-      originalColor: '#4285F4',
-      customColor: '#4D90FF',
-      description: 'Most popular calendar platform'
+      color: '#4285F4',
+      logo: '/icons/platforms/icon-google.svg'
     },
-    {
-      id: 'apple',
-      name: 'Apple Calendar',
+    { 
+      id: 'apple', 
+      name: 'Apple Calendar', 
       shortName: 'Apple',
-      icon: (
-        <img 
-          src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/apple.svg" 
-          alt="Apple Calendar"
-          className="w-full h-full"
-          style={{ filter: 'brightness(0) invert(1)' }}
-        />
-      ),
-      iconColor: '#000000',
-      originalColor: '#A2AAAD',
-      customColor: '#6B7280',
-      description: 'iOS and macOS users'
+      color: '#000000',
+      logo: '/icons/platforms/icon-apple.svg'
     },
-    {
-      id: 'outlook',
-      name: 'Outlook',
+    { 
+      id: 'outlook', 
+      name: 'Microsoft Outlook', 
       shortName: 'Outlook',
-      icon: (
-        <img 
-          src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/microsoftoutlook.svg" 
-          alt="Microsoft Outlook"
-          className="w-full h-full"
-          style={{ filter: 'brightness(0) invert(1)' }}
-        />
-      ),
-      iconColor: '#0078D4',
-      originalColor: '#0078D4',
-      customColor: '#3B82F6',
-      description: 'Microsoft Outlook desktop'
+      color: '#0078D4',
+      logo: '/icons/platforms/icon-outlook.svg'
     },
-    {
-      id: 'office365',
-      name: 'Office 365',
-      shortName: 'Office365',
-      icon: (
-        <img 
-          src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/microsoft.svg" 
-          alt="Microsoft Office 365"
-          className="w-full h-full"
-          style={{ filter: 'brightness(0) invert(1)' }}
-        />
-      ),
-      iconColor: '#D83B01',
-      originalColor: '#D83B01',
-      customColor: '#EF4444',
-      description: 'Microsoft online calendar'
+    { 
+      id: 'office365', 
+      name: 'Office 365', 
+      shortName: 'Office 365',
+      color: '#D83B01',
+      logo: '/icons/platforms/icon-office365.svg'
     },
-    {
-      id: 'yahoo',
-      name: 'Yahoo Calendar',
+    { 
+      id: 'outlookcom', 
+      name: 'Outlook.com', 
+      shortName: 'Outlook.com',
+      color: '#0078D4',
+      logo: '/icons/platforms/icon-outlookcom.svg'
+    },
+    { 
+      id: 'yahoo', 
+      name: 'Yahoo Calendar', 
       shortName: 'Yahoo',
-      icon: (
-        <img 
-          src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/yahoo.svg" 
-          alt="Yahoo Calendar"
-          className="w-full h-full"
-          style={{ filter: 'brightness(0) invert(1)' }}
-        />
-      ),
-      iconColor: '#6001D2',
-      originalColor: '#6001D2',
-      customColor: '#8B5CF6',
-      description: 'Yahoo Mail users'
+      color: '#6001D2',
+      logo: '/icons/platforms/icon-yahoo.svg'
     }
   ];
 
-  const [displayOptions, setDisplayOptions] = useState({
-    showLogos: true,
-    showNames: false,
-    shape: 'rounded', // 'pill', 'rounded', 'squared'
-    size: 44, // 36-56px
-    style: 'original', // 'original', 'custom', 'textual'
+  // Customization state
+  const [showCustomization, setShowCustomization] = useState(false);
+  const [customization, setCustomization] = useState({
+    display: 'logos',
+    shape: 'rounded',
+    size: '44px',
+    style: 'original'
   });
 
+  // Ensure selectedPlatforms always has boolean values
+  const selectedPlatforms = buttonData?.selectedPlatforms || {};
+  const getSelectedCount = () => {
+    return platforms.filter(p => selectedPlatforms[p.id] === true).length;
+  };
+
+  // Handle platform toggle
   const togglePlatform = (platformId) => {
+    const currentValue = selectedPlatforms[platformId] || false;
     const updatedPlatforms = {
-      ...buttonData.selectedPlatforms,
-      [platformId]: !buttonData.selectedPlatforms[platformId]
+      ...selectedPlatforms,
+      [platformId]: !currentValue
     };
     updateButton({ selectedPlatforms: updatedPlatforms });
   };
 
-  const updateDisplayOptions = (updates) => {
-    setDisplayOptions(prev => ({ ...prev, ...updates }));
-  };
-
-  const getPlatformColor = (platform) => {
-    return displayOptions.style === 'original'
-      ? platform.originalColor
-      : platform.customColor;
-  };
-
-  const getShapeClass = () => {
-    switch (displayOptions.shape) {
-      case 'pill': return 'rounded-full';
-      case 'squared': return 'rounded-none';
-      default: return 'rounded-lg';
-    }
-  };
-
-  const selectedCount = Object.values(buttonData.selectedPlatforms).filter(Boolean).length;
-
-  const renderPreviewButton = (platform) => {
-    const isSelected = buttonData.selectedPlatforms[platform.id];
-    if (!isSelected) return null;
-
-    if (displayOptions.style === 'textual') {
-      return (
-        <a
-          key={platform.id}
-          href="#"
-          className="text-blue-600 hover:text-blue-700 underline text-sm font-medium mr-2"
-          style={{ fontSize: `${Math.max(displayOptions.size - 20, 12)}px` }}
-        >
-          Add to {platform.shortName}
-        </a>
-      );
-    }
-
-    const buttonStyle = {
-      width: `${displayOptions.size}px`,
-      height: `${displayOptions.size}px`,
-      backgroundColor: displayOptions.style === 'original'
-        ? platform.originalColor
-        : getPlatformColor(platform),
-      fontSize: `${Math.max(displayOptions.size / 3, 10)}px`
-    };
-
-    return (
-      <button
-        key={platform.id}
-        className={`${getShapeClass()} text-white font-bold flex items-center justify-center hover:opacity-90 transition-opacity p-2 mr-2`}
-        style={buttonStyle}
-        title={`Add to ${platform.name}`}
-      >
-        {displayOptions.showLogos && (
-          <div className="w-full h-full flex items-center justify-center text-white">
-            {platform.icon}
-          </div>
-        )}
-        {displayOptions.showNames && (
-          <span className="ml-2 text-xs font-medium">{platform.shortName}</span>
-        )}
-      </button>
-    );
-  };
-
+  // Quick select actions
   const selectAll = () => {
     const allSelected = {};
-    platforms.forEach(platform => {
-      allSelected[platform.id] = true;
-    });
+    platforms.forEach(p => allSelected[p.id] = true);
     updateButton({ selectedPlatforms: allSelected });
   };
 
   const clearAll = () => {
     const noneSelected = {};
-    platforms.forEach(platform => {
-      noneSelected[platform.id] = false;
-    });
+    platforms.forEach(p => noneSelected[p.id] = false);
     updateButton({ selectedPlatforms: noneSelected });
   };
 
+  // Get selected platforms
+  const getSelectedPlatforms = () => {
+    return platforms.filter(p => selectedPlatforms[p.id] === true);
+  };
+
+  // Update customization
+  const updateCustomization = (key, value) => {
+    setCustomization(prev => ({ ...prev, [key]: value }));
+  };
+
+  // Render preview based on current settings
+  const renderPreview = () => {
+    const selected = getSelectedPlatforms();
+    if (selected.length === 0) return <div className="text-gray-400 text-sm">Select platforms to see preview</div>;
+
+    if (customization.style === 'textual') {
+      return (
+        <div className="space-y-2">
+          {selected.map(platform => (
+            <a key={platform.id} href="#" className="flex items-center text-blue-600 hover:text-blue-700 text-sm">
+              <img src={platform.logo} alt={platform.name} className="w-4 h-4 mr-2" />
+              Add to {platform.shortName}
+            </a>
+          ))}
+        </div>
+      );
+    }
+
+    // Button style preview
+    const sizeValue = parseInt(customization.size);
+    const shapeClass = {
+      'pill': 'rounded-full',
+      'rounded': 'rounded-lg', 
+      'squared': 'rounded-none'
+    }[customization.shape];
+
+    return (
+      <div className="flex gap-3 flex-wrap">
+        {selected.map(platform => (
+          <div
+            key={platform.id}
+            className={`${shapeClass} flex items-center justify-center bg-white border-2 hover:shadow-md transition-all cursor-pointer`}
+            style={{
+              width: `${sizeValue}px`,
+              height: `${sizeValue}px`,
+              borderColor: platform.color
+            }}
+          >
+            {customization.display === 'logos' ? (
+              <img 
+                src={platform.logo} 
+                alt={platform.name}
+                className="p-2"
+                style={{ 
+                  width: `${sizeValue * 0.6}px`, 
+                  height: `${sizeValue * 0.6}px`,
+                  filter: 'none'
+                }}
+              />
+            ) : (
+              <span 
+                className="font-medium text-center px-1"
+                style={{ 
+                  fontSize: `${Math.max(sizeValue / 6, 8)}px`,
+                  color: platform.color
+                }}
+              >
+                {platform.shortName}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
-    <div className="space-y-6 border-t pt-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-900">Calendar Platforms</h3>
-        <p className="text-sm text-gray-500 mt-1">
-          Select platforms and customize how they appear ({selectedCount} selected)
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">Calendar Platforms</h3>
+          <p className="text-sm text-gray-500 mt-1">
+            Select platforms ({getSelectedCount()} selected)
+          </p>
+        </div>
+        <div className="flex gap-3 text-sm">
+          <button onClick={selectAll} className="text-blue-600 hover:text-blue-700 font-medium">
+            Select All
+          </button>
+          <span className="text-gray-300">•</span>
+          <button onClick={clearAll} className="text-gray-600 hover:text-gray-700 font-medium">
+            Clear All
+          </button>
+        </div>
       </div>
 
-      {/* Platform Selection */}
-      <div>
-        <div className="flex justify-between items-center mb-3">
-          <h4 className="text-sm font-medium text-gray-700">Select Platforms</h4>
-          <div className="flex space-x-2">
+      {/* Platform Selection - Minimal Icons (our final design) */}
+      <div className="flex gap-2 flex-wrap">
+        {platforms.map(platform => {
+          const isSelected = selectedPlatforms[platform.id] === true;
+          
+          return (
             <button
-              type="button"
-              onClick={selectAll}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              key={platform.id}
+              onClick={() => togglePlatform(platform.id)}
+              className={`
+                relative w-10 h-10 rounded-lg border-2 cursor-pointer transition-all duration-200 flex items-center justify-center
+                ${isSelected 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-200 bg-white hover:border-gray-300'
+                }
+              `}
             >
-              Select All
+              <img 
+                src={platform.logo} 
+                alt={platform.name}
+                className="w-5 h-5"
+              />
+              
+              {isSelected && (
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs leading-none">✓</span>
+                </div>
+              )}
             </button>
-            <span className="text-gray-300">|</span>
-            <button
-              type="button"
-              onClick={clearAll}
-              className="text-sm text-gray-600 hover:text-gray-700 font-medium"
-            >
-              Clear All
-            </button>
-          </div>
-        </div>
+          );
+        })}
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {platforms.map((platform) => {
-            const isSelected = buttonData.selectedPlatforms[platform.id];
-            return (
-              <div
-                key={platform.id}
-                onClick={() => togglePlatform(platform.id)}
-                className={`
-                  relative cursor-pointer rounded-lg border-2 p-3 transition-all duration-200
-                  ${isSelected 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-gray-200 bg-white hover:border-gray-300'
-                  }
-                `}
-              >
-                <div className="flex items-center">
-                  <div 
-                    className="w-8 h-8 rounded-full flex items-center justify-center p-1.5 mr-3"
-                    style={{ backgroundColor: platform.originalColor }}
+      {/* Customization Toggle */}
+      {getSelectedCount() > 0 && (
+        <div className="space-y-4">
+          <button
+            onClick={() => setShowCustomization(!showCustomization)}
+            className="flex items-center justify-between w-full p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+          >
+            <span className="font-medium text-gray-900">Customize Appearance</span>
+            <span className={`text-gray-500 transition-transform text-lg ${showCustomization ? 'rotate-180' : ''}`}>
+              ↓
+            </span>
+          </button>
+
+          {/* Customization Options - Collapsible */}
+          {showCustomization && (
+            <div className="bg-gray-50/50 rounded-xl p-6 space-y-6">
+              {/* Options Row */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {/* Display */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Display</label>
+                  <select
+                    value={customization.display}
+                    onChange={(e) => updateCustomization('display', e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                   >
-                    <div className="w-full h-full">
-                      {platform.icon}
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <div className={`font-medium text-sm ${isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
-                      {platform.shortName}
-                    </div>
-                  </div>
-                  <div className={`
-                    w-4 h-4 rounded-full border-2 flex items-center justify-center
-                    ${isSelected ? 'border-blue-500 bg-blue-500' : 'border-gray-300'}
-                  `}>
-                    {isSelected && (
-                      <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    )}
-                  </div>
+                    <option value="logos">Logos</option>
+                    <option value="names">Names</option>
+                  </select>
+                </div>
+
+                {/* Shape */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Shape</label>
+                  <select
+                    value={customization.shape}
+                    onChange={(e) => updateCustomization('shape', e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  >
+                    <option value="rounded">Rounded</option>
+                    <option value="pill">Pill</option>
+                    <option value="squared">Square</option>
+                  </select>
+                </div>
+
+                {/* Size */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Size</label>
+                  <select
+                    value={customization.size}
+                    onChange={(e) => updateCustomization('size', e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  >
+                    <option value="36px">Small (36px)</option>
+                    <option value="40px">Medium (40px)</option>
+                    <option value="44px">Large (44px)</option>
+                    <option value="48px">X-Large (48px)</option>
+                    <option value="52px">2X-Large (52px)</option>
+                    <option value="56px">3X-Large (56px)</option>
+                  </select>
+                </div>
+
+                {/* Style */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Style</label>
+                  <select
+                    value={customization.style}
+                    onChange={(e) => updateCustomization('style', e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  >
+                    <option value="original">Buttons</option>
+                    <option value="textual">Text Links</option>
+                  </select>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </div>
 
-      {/* Customization Options */}
-      {selectedCount > 0 && (
-        <div className="space-y-4">
-          <h4 className="text-sm font-medium text-gray-700">Customize Appearance</h4>
-          
-          {/* Display Options */}
-          <div>
-            <label className="text-xs font-medium text-gray-600 mb-2 block">Display</label>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => updateDisplayOptions({ showLogos: true, showNames: false })}
-                className={`px-3 py-1.5 text-xs rounded-md border ${
-                  displayOptions.showLogos && !displayOptions.showNames
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'border-gray-200 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                Logos Only
-              </button>
-              <button
-                onClick={() => updateDisplayOptions({ showLogos: false, showNames: true })}
-                className={`px-3 py-1.5 text-xs rounded-md border ${
-                  !displayOptions.showLogos && displayOptions.showNames
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'border-gray-200 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                Names Only
-              </button>
-              <button
-                onClick={() => updateDisplayOptions({ showLogos: true, showNames: true })}
-                className={`px-3 py-1.5 text-xs rounded-md border ${
-                  displayOptions.showLogos && displayOptions.showNames
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'border-gray-200 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                Logos + Names
-              </button>
+              {/* Preview */}
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-gray-700">Preview</label>
+                <div className="bg-white p-6 rounded-lg border border-gray-200 min-h-[80px] flex items-center">
+                  {renderPreview()}
+                </div>
+              </div>
             </div>
-          </div>
-
-          {/* Shape Options */}
-          <div>
-            <label className="text-xs font-medium text-gray-600 mb-2 block">Shape</label>
-            <div className="flex space-x-2">
-              {['pill', 'rounded', 'squared'].map(shape => (
-                <button
-                  key={shape}
-                  onClick={() => updateDisplayOptions({ shape })}
-                  className={`px-3 py-1.5 text-xs rounded-md border capitalize ${
-                    displayOptions.shape === shape
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  {shape}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Size Options */}
-          <div>
-            <label className="text-xs font-medium text-gray-600 mb-2 block">
-              Size: {displayOptions.size}px
-            </label>
-            <div className="flex space-x-1 overflow-x-auto pb-2">
-              {[36, 40, 44, 48, 52, 56].map(size => (
-                <button
-                  key={size}
-                  onClick={() => updateDisplayOptions({ size })}
-                  className={`px-3 py-1.5 text-xs rounded-md border ${
-                    displayOptions.size === size
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  {size}px
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Style Options */}
-          <div>
-            <label className="text-xs font-medium text-gray-600 mb-2 block">Style</label>
-            <div className="flex space-x-2">
-              {['original', 'custom', 'textual'].map(style => (
-                <button
-                  key={style}
-                  onClick={() => updateDisplayOptions({ style })}
-                  className={`px-3 py-1.5 text-xs rounded-md border capitalize ${
-                    displayOptions.style === style
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  {style}
-                </button>
-              ))}
-            </div>
-          </div>
+          )}
         </div>
       )}
 
-      {/* Preview */}
-      {selectedCount > 0 && (
-        <div>
-          <h4 className="text-sm font-medium text-gray-700 mt-6 mb-2">Preview</h4>
-          <div className="flex flex-wrap items-center gap-3 border rounded-lg bg-gray-50 p-4">
-            {platforms.map(renderPreviewButton)}
+      {/* Empty State */}
+      {getSelectedCount() === 0 && (
+        <div className="text-center py-8 text-gray-500">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <span className="text-2xl">📅</span>
           </div>
+          <h4 className="text-lg font-medium text-gray-900 mb-2">Select Calendar Platforms</h4>
+          <p className="text-sm text-gray-500">
+            Choose which calendar platforms your button should support.
+          </p>
         </div>
       )}
     </div>
