@@ -10,11 +10,10 @@ import { useState, useRef, useEffect } from 'react';
 
 const calculateDuration = (startTime, endTime, startDate, endDate) => {
   if (!startTime || !endTime || !startDate || !endDate) return '';
-  // Combine dates and times for accurate multi-day calculation
   const start = new Date(`${startDate}T${startTime}`);
   const end = new Date(`${endDate}T${endTime}`);
   let diffMs = end - start;
-  if (diffMs < 0) diffMs += 24 * 60 * 60 * 1000; // handle crossing midnight (same day end before start)
+  if (diffMs < 0) diffMs += 24 * 60 * 60 * 1000;
   const totalMinutes = Math.floor(diffMs / 60000);
   const days = Math.floor(totalMinutes / (60 * 24));
   const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
@@ -45,7 +44,6 @@ function TimeDropdown({ value, onChange, options, disabled, placeholder }) {
     if (open) document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
-  // Keyboard navigation
   useEffect(() => {
     if (!open) return;
     function onKeyDown(e) {
@@ -58,7 +56,7 @@ function TimeDropdown({ value, onChange, options, disabled, placeholder }) {
     <div className="relative max-w-xs" style={{ minWidth: 120 }} ref={ref}>
       <button
         type="button"
-        className={`input-field w-full text-left pr-8 min-h-[44px] flex items-center transition-all duration-150 ${disabled ? 'opacity-60 pointer-events-none' : ''}`}
+        className={`input-field w-full text-left pr-8 flex items-center transition-all duration-150 ${disabled ? 'opacity-60 pointer-events-none' : ''}`}
         onClick={() => !disabled && setOpen(o => !o)}
         disabled={disabled}
         tabIndex={0}
@@ -133,11 +131,10 @@ export default function BasicDetails() {
     }
   };
 
-  // Generate time options in 5-minute increments
   const generateTimeOptions = () => {
     const options = [];
     for (let hour = 0; hour < 24; hour++) {
-      for (let minute = 0; minute < 60; minute += 5) {
+      for (let minute = 0; minute < 60; minute += 15) {
         const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
         options.push(timeString);
       }
@@ -147,7 +144,7 @@ export default function BasicDetails() {
   const timeOptions = generateTimeOptions();
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Event Title */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -162,22 +159,23 @@ export default function BasicDetails() {
         />
         <ValidationError error={errors.title} />
       </div>
+      
       {/* Start Row: Date & Time */}
-      <div className="flex flex-col md:flex-row gap-4 items-start">
-        <div className="flex-1">
+      <div className="grid grid-cols-2 gap-3">
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Start Date *
           </label>
           <input
             {...register('startDate')}
             type="date"
-            className="input-field w-full min-h-[44px]"
+            className="input-field w-full"
             onChange={(e) => handleFieldChange('startDate', e.target.value)}
             value={startDate}
           />
           <ValidationError error={errors.startDate} />
         </div>
-        <div className={isAllDay ? 'flex-1 opacity-60 pointer-events-none' : 'flex-1'}>
+        <div className={isAllDay ? 'opacity-60 pointer-events-none' : ''}>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Start Time
           </label>
@@ -191,23 +189,24 @@ export default function BasicDetails() {
           <ValidationError error={errors.startTime} />
         </div>
       </div>
-      {/* End Row: Date & Time - single flex-row for perfect top alignment */}
-      <div className="flex flex-row gap-4 items-start">
-        <div className="flex-1">
+      
+      {/* End Row: Date & Time */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             End Date *
           </label>
           <input
             {...register('endDate')}
             type="date"
-            className="input-field w-full min-h-[44px]"
+            className="input-field w-full"
             min={startDate}
             onChange={(e) => handleFieldChange('endDate', e.target.value)}
             value={endDate}
           />
           <ValidationError error={errors.endDate} />
         </div>
-        <div className={isAllDay ? 'flex-1 opacity-60 pointer-events-none flex flex-col' : 'flex-1 flex flex-col'}>
+        <div className={isAllDay ? 'opacity-60 pointer-events-none' : ''}>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             End Time
           </label>
@@ -219,23 +218,24 @@ export default function BasicDetails() {
             placeholder="Select time"
           />
           <ValidationError error={errors.endTime} />
-          <div style={{ minHeight: 22, marginTop: 8, display: 'flex', alignItems: 'center' }}>
-            <span className={`text-xs text-gray-500 transition-opacity duration-200 ${startTime && endTime ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+          <div className="mt-1 h-4">
+            <span className={`text-xs text-gray-500 transition-opacity duration-200 ${startTime && endTime ? 'opacity-100' : 'opacity-0'}`}>
               Duration: {calculateDuration(startTime, endTime, startDate, endDate)}
             </span>
           </div>
         </div>
       </div>
+      
       {/* All Day */}
-      <div>
-        <label className="inline-flex items-center mt-2">
+      <div className="mt-2">
+        <label className="inline-flex items-center">
           <input
             type="checkbox"
             {...register('isAllDay')}
             onChange={e => handleFieldChange('isAllDay', e.target.checked)}
             className="mr-2"
           />
-          All Day
+          <span className="text-sm">All Day</span>
         </label>
       </div>
     </div>

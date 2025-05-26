@@ -1,7 +1,8 @@
-// src/contexts/EventContext.jsx
+// src/contexts/EventContext.jsx - FIXED VERSION
 'use client';
 
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { generateCalendarCode, generateCalendarLinks } from '@/utils/calendarGenerator';
 
 const EventContext = createContext();
 
@@ -38,9 +39,9 @@ export function EventContextProvider({ children }) {
   const currentTime = getRoundedNextTime();
   
   const [eventData, setEventData] = useState({
-    title: '',
-    description: '',
-    location: '',
+    title: 'Sample Product Launch',  // Add default for testing
+    description: 'Join us for an exciting product launch event!',
+    location: 'Online Event',
     organizer: '',
     startDate: currentDate,
     startTime: currentTime,
@@ -64,9 +65,34 @@ export function EventContextProvider({ children }) {
       apple: true,
       outlook: true,
       office365: false,
+      outlookcom: false,
       yahoo: false
     }
   });
+
+  const [outputType, setOutputType] = useState('links');
+  const [generatedCode, setGeneratedCode] = useState('');
+  const [calendarLinks, setCalendarLinks] = useState({});
+
+  // Generate code and links whenever data changes
+  useEffect(() => {
+    console.log('Generating calendar data...', { eventData, buttonData, outputType });
+    
+    try {
+      const code = generateCalendarCode(eventData, buttonData, outputType);
+      const links = generateCalendarLinks(eventData);
+      
+      console.log('Generated links:', links);
+      console.log('Generated code length:', code.length);
+      
+      setGeneratedCode(code);
+      setCalendarLinks(links);
+    } catch (error) {
+      console.error('Error generating calendar data:', error);
+      setGeneratedCode('<!-- Error generating calendar code -->');
+      setCalendarLinks({});
+    }
+  }, [eventData, buttonData, outputType]);
 
   const updateEvent = (data) => {
     console.log('Updating event data:', data);
@@ -97,13 +123,20 @@ export function EventContextProvider({ children }) {
     setButtonData(prev => ({ ...prev, ...data }));
   };
 
+  const setOutput = (type) => {
+    setOutputType(type);
+  };
+
   const value = {
     eventData,
     buttonData,
+    outputType,
+    generatedCode,
+    calendarLinks,
     updateEvent,
     updateButton,
-    isLoading: false,
-    generatedCode: ''
+    setOutput,
+    isLoading: false
   };
 
   return (

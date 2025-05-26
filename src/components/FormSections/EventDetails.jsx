@@ -11,7 +11,7 @@ export default function EventDetails() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Description
@@ -19,7 +19,7 @@ export default function EventDetails() {
         <textarea
           value={eventData.description || ''}
           onChange={(e) => handleFieldChange('description', e.target.value)}
-          rows="4"
+          rows="3"
           className="input-field"
           placeholder="Enter event description..."
         />
