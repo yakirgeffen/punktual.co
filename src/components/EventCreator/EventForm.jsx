@@ -1,4 +1,3 @@
-// src/components/EventCreator/EventForm.jsx
 'use client';
 
 import { useState } from 'react';
@@ -6,9 +5,9 @@ import { useEventContext } from '@/contexts/EventContext';
 
 export default function EventForm() {
   const { eventData, updateEvent, buttonData, updateButton } = useEventContext();
-  const [showOptional, setShowOptional] = useState(false);
+  const [openSections, setOpenSections] = useState(['event-info']);
 
-  // Progress tracking
+  // Validation helpers
   const hasTitle = !!eventData.title?.trim();
   const hasStartDate = !!eventData.startDate;
   const hasStartTime = !!eventData.startTime;
@@ -17,7 +16,6 @@ export default function EventForm() {
   const hasPlatforms = Object.values(buttonData.selectedPlatforms || {}).some(Boolean);
   
   const isComplete = hasTitle && hasStartDate && hasStartTime && hasEndDate && hasEndTime && hasPlatforms;
-  const completedCount = [hasTitle, hasStartDate, hasStartTime, hasEndDate, hasEndTime, hasPlatforms].filter(Boolean).length;
 
   // Handle field changes with smart defaults
   const handleFieldChange = (field, value) => {
@@ -35,211 +33,284 @@ export default function EventForm() {
     }
   };
 
-  // Platform data using your existing images
+  // Platform data
   const platforms = [
-    { id: 'google', name: 'Google', logo: '/icons/platforms/icon-google.svg' },
-    { id: 'apple', name: 'Apple', logo: '/icons/platforms/icon-apple.svg' },
-    { id: 'outlook', name: 'Outlook', logo: '/icons/platforms/icon-outlook.svg' },
-    { id: 'office365', name: 'O365', logo: '/icons/platforms/icon-office365.svg' },
-    { id: 'yahoo', name: 'Yahoo', logo: '/icons/platforms/icon-yahoo.svg' }
+    { id: 'google', name: 'Google Calendar' },
+    { id: 'apple', name: 'Apple Calendar' },
+    { id: 'outlook', name: 'Microsoft Outlook' },
+    { id: 'office365', name: 'Office 365' },
+    { id: 'yahoo', name: 'Yahoo Calendar' }
   ];
 
-  const togglePlatform = (platformId) => {
-    const current = buttonData.selectedPlatforms || {};
-    const updated = {
-      ...current,
-      [platformId]: !current[platformId]
-    };
-    updateButton({ selectedPlatforms: updated });
+  const handlePlatformChange = (selectedValues) => {
+    const selectedPlatforms = {};
+    platforms.forEach(platform => {
+      selectedPlatforms[platform.id] = selectedValues.includes(platform.name);
+    });
+    updateButton({ selectedPlatforms });
+  };
+
+  const getSelectedPlatforms = () => {
+    return platforms
+      .filter(platform => buttonData.selectedPlatforms?.[platform.id])
+      .map(platform => platform.name);
+  };
+
+  const toggleSection = (section) => {
+    setOpenSections(prev => 
+      prev.includes(section) 
+        ? prev.filter(s => s !== section)
+        : [...prev, section]
+    );
   };
 
   return (
     <div className="space-y-3">
-      {/* Progress Header */}
-      <div className="bg-white rounded-lg border p-3 shadow-sm">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-base font-semibold text-gray-900">Create Calendar Event</h2>
-            <p className="text-xs text-gray-500 mt-1">
-              {isComplete ? 'Ready to generate! 🎉' : `${completedCount}/6 fields complete`}
-            </p>
-          </div>
-          <div className="flex space-x-1">
-            {[hasTitle, hasStartDate, hasStartTime, hasEndDate, hasEndTime, hasPlatforms].map((completed, index) => (
-              <div
-                key={index}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  completed ? 'bg-green-500 shadow-sm' : 'bg-gray-300'
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Essential Fields */}
-      <div className="bg-white rounded-lg border p-3 shadow-sm">
+      {/* Compact Event Information */}
+      <div className="bg-white border rounded-lg p-4">
         <div className="space-y-3">
-          {/* Event Title */}
-          <div>
-            <div className="flex items-center mb-1">
-              <label className="text-sm font-medium text-gray-700">Event Title</label>
-              {hasTitle && <span className="ml-2 text-green-500 text-sm">✓</span>}
+          {/* Title Row */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Event Title *</label>
+              <input
+                type="text"
+                value={eventData.title || ''}
+                onChange={(e) => handleFieldChange('title', e.target.value)}
+                placeholder="Product Launch, Meeting..."
+                className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
             </div>
-            <input
-              type="text"
-              value={eventData.title || ''}
-              onChange={(e) => handleFieldChange('title', e.target.value)}
-              placeholder="Product Launch, Meeting, Webinar..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Location</label>
+              <input
+                type="text"
+                value={eventData.location || ''}
+                onChange={(e) => handleFieldChange('location', e.target.value)}
+                placeholder="Address or meeting link"
+                className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
+            <textarea
+              value={eventData.description || ''}
+              onChange={(e) => handleFieldChange('description', e.target.value)}
+              placeholder="Event details..."
+              rows={2}
+              className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
           {/* Date & Time Row */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-4 gap-2">
             <div>
-              <div className="flex items-center mb-1">
-                <label className="text-sm font-medium text-gray-700">Start</label>
-                {hasStartDate && hasStartTime && <span className="ml-2 text-green-500 text-sm">✓</span>}
-              </div>
-              <div className="space-y-2">
-                <input
-                  type="date"
-                  value={eventData.startDate || ''}
-                  onChange={(e) => handleFieldChange('startDate', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                  type="time"
-                  value={eventData.startTime || ''}
-                  onChange={(e) => handleFieldChange('startTime', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Start Date *</label>
+              <input
+                type="date"
+                value={eventData.startDate || ''}
+                onChange={(e) => handleFieldChange('startDate', e.target.value)}
+                className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
             </div>
-
             <div>
-              <div className="flex items-center mb-1">
-                <label className="text-sm font-medium text-gray-700">End</label>
-                {hasEndDate && hasEndTime && <span className="ml-2 text-green-500 text-sm">✓</span>}
-              </div>
-              <div className="space-y-2">
-                <input
-                  type="date"
-                  value={eventData.endDate || ''}
-                  onChange={(e) => handleFieldChange('endDate', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                  type="time"
-                  value={eventData.endTime || ''}
-                  onChange={(e) => handleFieldChange('endTime', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Start Time *</label>
+              <input
+                type="time"
+                value={eventData.startTime || ''}
+                onChange={(e) => handleFieldChange('startTime', e.target.value)}
+                className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">End Date *</label>
+              <input
+                type="date"
+                value={eventData.endDate || ''}
+                onChange={(e) => handleFieldChange('endDate', e.target.value)}
+                className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">End Time *</label>
+              <input
+                type="time"
+                value={eventData.endTime || ''}
+                onChange={(e) => handleFieldChange('endTime', e.target.value)}
+                className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
             </div>
           </div>
-
-          {/* Optional Fields Toggle */}
-          <button
-            type="button"
-            onClick={() => setShowOptional(!showOptional)}
-            className="w-full flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-sm"
-          >
-            <span className="font-medium text-gray-900">Add Description & Location</span>
-            <span className="text-gray-500">
-              {showOptional ? '▲' : '▼'}
-            </span>
-          </button>
-
-          {/* Optional Fields */}
-          {showOptional && (
-            <div className="space-y-3 pt-3 border-t border-gray-200">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea
-                  value={eventData.description || ''}
-                  onChange={(e) => handleFieldChange('description', e.target.value)}
-                  placeholder="Event details, agenda, or instructions..."
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                <input
-                  type="text"
-                  value={eventData.location || ''}
-                  onChange={(e) => handleFieldChange('location', e.target.value)}
-                  placeholder="Address or meeting link"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Platform Selection - Only show when event details are complete */}
-      {hasTitle && hasStartDate && hasStartTime && hasEndDate && hasEndTime && (
-        <div className="bg-white rounded-lg border p-3 shadow-sm">
-          <div className="flex items-center mb-3">
-            <h3 className="text-base font-semibold text-gray-900">Calendar Platforms</h3>
-            {hasPlatforms && <span className="ml-2 text-green-500 text-sm">✓</span>}
-          </div>
-          
-          <p className="text-xs text-gray-500 mb-3">
-            Choose which calendar platforms to support
-          </p>
-
-          <div className="grid grid-cols-5 gap-2">
-            {platforms.map(platform => {
-              const isSelected = buttonData.selectedPlatforms?.[platform.id];
-              return (
-                <button
-                  key={platform.id}
-                  onClick={() => togglePlatform(platform.id)}
-                  className={`p-2 rounded-lg border-2 text-center transition-all ${
-                    isSelected
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <img 
-                    src={platform.logo} 
-                    alt={platform.name}
-                    className="w-4 h-4 mx-auto mb-1"
-                  />
-                  <div className="text-xs font-medium text-gray-700">{platform.name}</div>
-                  {isSelected && (
-                    <div className="text-green-500 text-xs mt-1">✓</div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
+      {/* Compact Platform Selection */}
+      <div className="bg-white border rounded-lg p-3">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium text-gray-700">Calendar Platforms</label>
           {hasPlatforms && (
-            <div className="mt-2 pt-2 border-t border-gray-200">
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                {Object.values(buttonData.selectedPlatforms || {}).filter(Boolean).length} platforms selected
-              </span>
-            </div>
+            <span className="text-xs text-green-600 font-medium">
+              {Object.values(buttonData.selectedPlatforms || {}).filter(Boolean).length} selected
+            </span>
           )}
         </div>
-      )}
+        <div className="grid grid-cols-3 gap-2">
+          {platforms.map(platform => (
+            <label key={platform.id} className="flex items-center space-x-1.5 cursor-pointer text-xs">
+              <input
+                type="checkbox"
+                checked={buttonData.selectedPlatforms?.[platform.id] || false}
+                onChange={(e) => {
+                  const newPlatforms = { ...buttonData.selectedPlatforms };
+                  newPlatforms[platform.id] = e.target.checked;
+                  updateButton({ selectedPlatforms: newPlatforms });
+                }}
+                className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <img 
+                src={`/icons/platforms/icon-${platform.id}.svg`} 
+                alt={platform.name}
+                className="w-3 h-3"
+              />
+              <span className="text-gray-700">{platform.name}</span>
+            </label>
+          ))}
+        </div>
+      </div>
 
-      {/* Completion Status */}
-      {isComplete && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-          <div className="flex items-center">
-            <span className="text-green-600 mr-2">✓</span>
-            <div>
-              <p className="font-medium text-green-900">Event Ready!</p>
-              <p className="text-sm text-green-700">Your calendar button is ready to generate.</p>
+      {/* Ultra Compact Customization */}
+      <div className="bg-white border rounded-lg p-3">
+        <div className="space-y-3">
+          <label className="text-sm font-medium text-gray-700">Customization</label>
+          
+          {/* Button Layout - Horizontal */}
+          <div>
+            <label className="block text-xs text-gray-600 mb-1">Layout</label>
+            <div className="flex gap-2">
+              <label className="flex items-center space-x-1 cursor-pointer">
+                <input
+                  type="radio"
+                  name="buttonLayout"
+                  value="dropdown"
+                  checked={buttonData.buttonLayout !== 'individual'}
+                  onChange={(e) => updateButton({ buttonLayout: 'dropdown' })}
+                  className="h-3 w-3 text-blue-600"
+                />
+                <span className="text-xs">Dropdown</span>
+              </label>
+              <label className="flex items-center space-x-1 cursor-pointer">
+                <input
+                  type="radio"
+                  name="buttonLayout"
+                  value="individual"
+                  checked={buttonData.buttonLayout === 'individual'}
+                  onChange={(e) => updateButton({ buttonLayout: 'individual' })}
+                  className="h-3 w-3 text-blue-600"
+                />
+                <span className="text-xs">Individual (Popular)</span>
+              </label>
             </div>
           </div>
+
+          {/* Style & Size - Horizontal */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">Style</label>
+              <select
+                value={buttonData.buttonStyle || 'standard'}
+                onChange={(e) => updateButton({ buttonStyle: e.target.value })}
+                className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="standard">Standard</option>
+                <option value="outlined">Outlined</option>
+                <option value="minimal">Minimal</option>
+                <option value="pill">Pill</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">Size</label>
+              <select
+                value={buttonData.buttonSize || 'medium'}
+                onChange={(e) => updateButton({ buttonSize: e.target.value })}
+                className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Color Picker - Compact */}
+          <div>
+            <label className="block text-xs text-gray-600 mb-1">Color</label>
+            <div className="flex items-center gap-2">
+              {[
+                { value: '#4D90FF', name: 'Blue' },
+                { value: '#34C759', name: 'Green' },
+                { value: '#AF52DE', name: 'Purple' },
+                { value: '#FF9500', name: 'Orange' },
+                { value: '#FF3B30', name: 'Red' }
+              ].map((color) => (
+                <button
+                  key={color.value}
+                  onClick={() => updateButton({ colorScheme: color.value })}
+                  className={`w-6 h-6 rounded-full border-2 ${
+                    buttonData.colorScheme === color.value ? 'border-gray-800' : 'border-gray-300'
+                  }`}
+                  style={{ backgroundColor: color.value }}
+                  title={color.name}
+                />
+              ))}
+              <input
+                type="color"
+                value={buttonData.colorScheme || '#4D90FF'}
+                onChange={(e) => updateButton({ colorScheme: e.target.value })}
+                className="w-6 h-6 rounded border cursor-pointer"
+              />
+            </div>
+          </div>
+
+          {/* Options - Compact */}
+          <div className="flex flex-wrap gap-3 text-xs">
+            <label className="flex items-center space-x-1 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={buttonData.showIcons !== false}
+                onChange={(e) => updateButton({ showIcons: e.target.checked })}
+                className="h-3 w-3 text-blue-600"
+              />
+              <span>Icons</span>
+            </label>
+            <label className="flex items-center space-x-1 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={buttonData.responsive !== false}
+                onChange={(e) => updateButton({ responsive: e.target.checked })}
+                className="h-3 w-3 text-blue-600"
+              />
+              <span>Responsive</span>
+            </label>
+            <label className="flex items-center space-x-1 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={buttonData.openInNewTab !== false}
+                onChange={(e) => updateButton({ openInNewTab: e.target.checked })}
+                className="h-3 w-3 text-blue-600"
+              />
+              <span>New Tab</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Status */}
+      {isComplete && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-2">
+          <div className="text-xs text-green-800 font-medium">✓ Ready to generate!</div>
         </div>
       )}
     </div>
