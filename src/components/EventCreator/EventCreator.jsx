@@ -1,5 +1,4 @@
 'use client';
-
 import { useState } from 'react';
 import { useEventContext } from '@/contexts/EventContext';
 import EventForm from './EventForm';
@@ -84,7 +83,6 @@ export default function EventCreator() {
           <div className="col-span-2 overflow-y-auto">
             <DynamicPreview useCase={selectedUseCase} />
           </div>
-
         </div>
       </div>
     </div>
