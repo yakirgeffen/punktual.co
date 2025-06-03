@@ -1,7 +1,7 @@
 // src/contexts/EventContext.jsx - FIXED VERSION
 'use client';
 
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { generateCalendarCode, generateCalendarLinks } from '@/utils/calendarGenerator';
 
 const EventContext = createContext();
@@ -35,24 +35,27 @@ const getEndTime = (startTime) => {
 };
 
 export function EventContextProvider({ children }) {
-  const currentDate = getCurrentDate();
-  const currentTime = getRoundedNextTime();
-  
-  const [eventData, setEventData] = useState({
-    title: 'Sample Product Launch',  // Add default for testing
-    description: 'Join us for an exciting product launch event!',
-    location: 'Online Event',
-    organizer: '',
-    startDate: currentDate,
-    startTime: currentTime,
-    endDate: currentDate,
-    endTime: getEndTime(currentTime),
-    timezone: 'UTC',
-    isAllDay: false,
-    isRecurring: false,
-    recurrencePattern: 'weekly',
-    recurrenceEndDate: '',
-    recurrenceCount: 1
+  // Initialize state with proper default values - only run once
+  const [eventData, setEventData] = useState(() => {
+    const currentDate = getCurrentDate();
+    const currentTime = getRoundedNextTime();
+    
+    return {
+      title: 'Sample Product Launch',
+      description: 'Join us for an exciting product launch event!',
+      location: 'Online Event',
+      organizer: '',
+      startDate: currentDate,
+      startTime: currentTime,
+      endDate: currentDate,
+      endTime: getEndTime(currentTime),
+      timezone: 'UTC',
+      isAllDay: false,
+      isRecurring: false,
+      recurrencePattern: 'weekly',
+      recurrenceEndDate: '',
+      recurrenceCount: 1
+    };
   });
 
   const [buttonData, setButtonData] = useState({
@@ -74,6 +77,44 @@ export function EventContextProvider({ children }) {
   const [generatedCode, setGeneratedCode] = useState('');
   const [calendarLinks, setCalendarLinks] = useState({});
 
+  // Stable callback functions using useCallback
+  const updateEvent = useCallback((data) => {
+    console.log('Updating event data:', data);
+    
+    setEventData(prevEventData => {
+      // Smart date logic
+      let updatedData = { ...data };
+      
+      // If start date changes, update end date to match (if end date is before start date)
+      if (data.startDate && prevEventData.endDate < data.startDate) {
+        updatedData.endDate = data.startDate;
+      }
+      
+      // If start time changes and it's the same day, ensure end time is after start time
+      if (data.startTime && prevEventData.startDate === prevEventData.endDate) {
+        const startTime = data.startTime;
+        const [startHours, startMinutes] = startTime.split(':').map(Number);
+        const [endHours, endMinutes] = prevEventData.endTime.split(':').map(Number);
+        
+        if (startHours >= endHours && startMinutes >= endMinutes) {
+          updatedData.endTime = getEndTime(startTime);
+        }
+      }
+      
+      return { ...prevEventData, ...updatedData };
+    });
+  }, []); // Empty dependency array - function never changes
+
+  const updateButton = useCallback((data) => {
+    console.log('Updating button data:', data);
+    setButtonData(prev => ({ ...prev, ...data }));
+  }, []); // Empty dependency array - function never changes
+
+  const setOutput = useCallback((type) => {
+    console.log('Setting output type:', type);
+    setOutputType(type);
+  }, []); // Empty dependency array - function never changes
+
   // Generate code and links whenever data changes
   useEffect(() => {
     console.log('Generating calendar data...', { eventData, buttonData, outputType });
@@ -92,42 +133,10 @@ export function EventContextProvider({ children }) {
       setGeneratedCode('<!-- Error generating calendar code -->');
       setCalendarLinks({});
     }
-  }, [eventData, buttonData, outputType]);
+  }, [eventData, buttonData, outputType]); // These dependencies are fine since they're state values
 
-  const updateEvent = (data) => {
-    console.log('Updating event data:', data);
-    
-    // Smart date logic
-    let updatedData = { ...data };
-    
-    // If start date changes, update end date to match (if end date is before start date)
-    if (data.startDate && eventData.endDate < data.startDate) {
-      updatedData.endDate = data.startDate;
-    }
-    
-    // If start time changes and it's the same day, ensure end time is after start time
-    if (data.startTime && eventData.startDate === eventData.endDate) {
-      const startTime = data.startTime;
-      const [startHours, startMinutes] = startTime.split(':').map(Number);
-      const [endHours, endMinutes] = eventData.endTime.split(':').map(Number);
-      
-      if (startHours >= endHours && startMinutes >= endMinutes) {
-        updatedData.endTime = getEndTime(startTime);
-      }
-    }
-    
-    setEventData(prev => ({ ...prev, ...updatedData }));
-  };
-
-  const updateButton = (data) => {
-    setButtonData(prev => ({ ...prev, ...data }));
-  };
-
-  const setOutput = (type) => {
-    setOutputType(type);
-  };
-
-  const value = {
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
     eventData,
     buttonData,
     outputType,
@@ -137,10 +146,19 @@ export function EventContextProvider({ children }) {
     updateButton,
     setOutput,
     isLoading: false
-  };
+  }), [
+    eventData,
+    buttonData,
+    outputType,
+    generatedCode,
+    calendarLinks,
+    updateEvent,
+    updateButton,
+    setOutput
+  ]);
 
   return (
-    <EventContext.Provider value={value}>
+    <EventContext.Provider value={contextValue}>
       {children}
     </EventContext.Provider>
   );

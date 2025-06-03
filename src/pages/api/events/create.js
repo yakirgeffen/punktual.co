@@ -1,6 +1,6 @@
 // src/pages/api/events/create.js
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
-import { generateCalendarCode } from '@/lib/calendarGenerator'
+import { generateCalendarCode } from '@/utils/calendarGenerator'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

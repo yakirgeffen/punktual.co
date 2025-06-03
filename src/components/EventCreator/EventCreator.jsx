@@ -47,28 +47,7 @@ export default function EventCreator() {
         </div>
       </div>
 
-      {/* Compact Use Case Selection */}
-      <div className="max-w-7xl mx-auto px-6 pt-4">
-        <div className="flex items-center gap-4 bg-white rounded-lg border p-3">
-          <span className="font-medium text-gray-700 whitespace-nowrap">Integration Type:</span>
-          <div className="flex gap-2 flex-wrap">
-            {USE_CASES.map((useCase) => (
-              <button
-                key={useCase.id}
-                onClick={() => setSelectedUseCase(useCase.id)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  selectedUseCase === useCase.id
-                    ? 'bg-blue-100 text-blue-700 border border-blue-300'
-                    : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
-                }`}
-              >
-                <span className="text-xs">{useCase.icon}</span>
-                <span>{useCase.name}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+
 
       {/* Optimized Two-Panel Layout */}
       <div className="max-w-7xl mx-auto px-6 pb-6">
