@@ -95,8 +95,11 @@ export function EventContextProvider({ children }) {
         const startTime = data.startTime;
         const [startHours, startMinutes] = startTime.split(':').map(Number);
         const [endHours, endMinutes] = prevEventData.endTime.split(':').map(Number);
-        
-        if (startHours >= endHours && startMinutes >= endMinutes) {
+
+        const startTotal = startHours * 60 + startMinutes;
+        const endTotal = endHours * 60 + endMinutes;
+
+        if (startTotal >= endTotal) {
           updatedData.endTime = getEndTime(startTime);
         }
       }
