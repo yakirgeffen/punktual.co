@@ -3,10 +3,11 @@ import { useEventContext } from '@/contexts/EventContext';
 import { 
   roundToNext15Minutes, 
   formatTimeForInput, 
-  addHoursToTime, 
+  addHoursToTime,
   generateTimeOptions,
   getFilteredEndTimeOptions,
-  getMinEndDate 
+  getFilteredStartTimeOptions,
+  getMinEndDate
 } from '@/utils/timeUtils';
 
 /**
@@ -58,7 +59,11 @@ export const useEventFormLogic = () => {
 
   // Time options
   const fullTimeOptions = useMemo(() => generateTimeOptions(), []);
-  const filteredEndTimeOptions = useMemo(() => 
+  const filteredStartTimeOptions = useMemo(() =>
+    getFilteredStartTimeOptions(eventData.startDate, fullTimeOptions),
+    [eventData.startDate, fullTimeOptions]
+  );
+  const filteredEndTimeOptions = useMemo(() =>
     getFilteredEndTimeOptions(eventData.startTime, eventData.startDate, eventData.endDate, fullTimeOptions),
     [eventData.startTime, eventData.startDate, eventData.endDate, fullTimeOptions]
   );
@@ -147,6 +152,7 @@ export const useEventFormLogic = () => {
     
     // Time options
     fullTimeOptions,
+    filteredStartTimeOptions,
     filteredEndTimeOptions,
     
     // Handlers

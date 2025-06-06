@@ -1,19 +1,18 @@
 'use client';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Autocomplete, AutocompleteItem } from '@heroui/react';
 import { Clock, MapPin } from 'lucide-react';
 import { 
   getAllTimezones, 
   searchTimezonesAndCities, 
   getCurrentTimeInTimezone,
-  getTimezoneOffset 
+ getTimezoneOffset
 } from '@/utils/timezoneUtils';
 
 /**
  * Enhanced Timezone Selector with city search and smart suggestions
  * Features:
  * - City-based search (e.g., "Miami" → "New York (Eastern Time)")
- * - Current time display for selected timezone
  * - Smart geographic fallbacks
  * - Comprehensive city database
  */
@@ -26,7 +25,6 @@ export default function EnhancedTimezoneSelector({
 }) {
   const [timezoneSearch, setTimezoneSearch] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [currentTime, setCurrentTime] = useState('');
 
   // Get all timezones with enhanced data
   const allTimezones = useMemo(() => getAllTimezones(), []);
@@ -37,22 +35,6 @@ export default function EnhancedTimezoneSelector({
     [timezoneSearch, allTimezones]
   );
 
-  // Update current time for selected timezone
-  useEffect(() => {
-    if (value) {
-      const time = getCurrentTimeInTimezone(value);
-      setCurrentTime(time);
-      
-      // Update time every minute
-      const interval = setInterval(() => {
-        setCurrentTime(getCurrentTimeInTimezone(value));
-      }, 60000);
-      
-      return () => clearInterval(interval);
-    } else {
-      setCurrentTime('');
-    }
-  }, [value]);
 
   const handleSelectionChange = (key) => {
     if (key !== value) {
@@ -154,17 +136,6 @@ export default function EnhancedTimezoneSelector({
         ))}
       </Autocomplete>
       
-      {/* Current Time Display */}
-      {value && currentTime && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-green-600" />
-            <span className="text-sm text-green-800 font-medium">
-              Current time: {currentTime} ({getTimezoneOffset(value)})
-            </span>
-          </div>
-        </div>
-      )}
       
       {/* Event Time Preview */}
       {getTimezonePreview() && (

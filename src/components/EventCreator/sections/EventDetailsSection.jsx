@@ -1,5 +1,6 @@
 'use client';
 import { Input, Select, SelectItem, Switch } from '@heroui/react';
+import { useState } from 'react';
 import { useEventFormLogic } from '@/hooks/useEventFormLogic';
 import EnhancedTimezoneSelector from '../../forms/DateTime/EnhancedTimezoneSelector';
 
@@ -8,14 +9,18 @@ import EnhancedTimezoneSelector from '../../forms/DateTime/EnhancedTimezoneSelec
  * Handles date/time, timezone, recurring events, description, location, host info, and reminders
  */
 export default function EventDetailsSection() {
-  const { 
-    eventData, 
-    fullTimeOptions, 
-    filteredEndTimeOptions, 
+  const {
+    eventData,
+    fullTimeOptions,
+    filteredStartTimeOptions,
+    filteredEndTimeOptions,
     reminderOptions,
     handleFieldChange,
-    getMinEndDate 
+    getMinEndDate
   } = useEventFormLogic();
+
+  const [showTimezone, setShowTimezone] = useState(false);
+  const today = new Date().toISOString().split('T')[0];
 
   // Generate recurrence description
   const getRecurrenceDescription = () => {
@@ -85,6 +90,7 @@ export default function EventDetailsSection() {
             placeholder="Select start date"
             value={eventData.startDate || ''}
             onChange={(e) => handleFieldChange('startDate', e.target.value)}
+            min={today}
             isRequired
             radius="md"
             labelPlacement="outside"
@@ -108,7 +114,7 @@ export default function EventDetailsSection() {
                 trigger: "h-12"
               }}
             >
-              {fullTimeOptions.map((option) => (
+              {filteredStartTimeOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
@@ -181,14 +187,31 @@ export default function EventDetailsSection() {
             All day event
           </Switch>
         </div>
-        
-        <EnhancedTimezoneSelector
-          value={eventData.timezone || 'UTC'}
-          onChange={(timezone) => handleFieldChange('timezone', timezone)}
-          startDate={eventData.startDate}
-          startTime={eventData.startTime}
-          isAllDay={eventData.isAllDay}
-        />
+
+        <div className="pt-2">
+          <Switch
+            isSelected={showTimezone}
+            onValueChange={setShowTimezone}
+            size="md"
+            classNames={{
+              label: "text-sm font-medium text-gray-700"
+            }}
+          >
+            Timezone
+          </Switch>
+        </div>
+
+        {showTimezone && (
+          <div className="space-y-4 ml-6 pl-6 border-l-2 border-blue-200 bg-blue-50/30 rounded-r-lg py-4">
+            <EnhancedTimezoneSelector
+              value={eventData.timezone || 'UTC'}
+              onChange={(timezone) => handleFieldChange('timezone', timezone)}
+              startDate={eventData.startDate}
+              startTime={eventData.startTime}
+              isAllDay={eventData.isAllDay}
+            />
+          </div>
+        )}
       </div>
 
       {/* Recurring Event Section */}

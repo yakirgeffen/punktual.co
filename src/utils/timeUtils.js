@@ -92,8 +92,34 @@ export const getFilteredEndTimeOptions = (startTime, startDate, endDate, allTime
 };
 
 /**
+ * Filters start time options so past times cannot be selected
+ * @param {string} startDate - Selected start date
+ * @param {Array} allTimeOptions - All available time options
+ * @returns {Array} - Filtered time options
+ */
+export const getFilteredStartTimeOptions = (startDate, allTimeOptions) => {
+  const today = new Date().toISOString().split('T')[0];
+  if (startDate !== today) {
+    return allTimeOptions;
+  }
+
+  const now = new Date();
+  const currentTotal = now.getHours() * 60 + now.getMinutes();
+  return allTimeOptions.filter(option => {
+    const [optionHour, optionMin] = option.value.split(':').map(Number);
+    return optionHour * 60 + optionMin >= currentTotal;
+  });
+};
+
+/**
  * Gets the minimum end date based on start date
  * @param {string} startDate - Start date string
  * @returns {string} - Minimum end date
  */
-export const getMinEndDate = (startDate) => startDate || '';
+export const getMinEndDate = (startDate) => {
+  const today = new Date().toISOString().split('T')[0];
+  if (startDate) {
+    return startDate < today ? today : startDate;
+  }
+  return today;
+};
