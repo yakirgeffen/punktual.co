@@ -90,7 +90,7 @@ export default function TimezoneSelector({
     <div className="space-y-3">
       <Autocomplete
         label="Timezone"
-        placeholder={isDropdownOpen && !timezoneSearch ? "" : "Search for any city or timezone..."}
+        placeholder={isDropdownOpen && !timezoneSearch ? "" : "Search for city or timezone..."}
         selectedKey={value || 'UTC'}
         onSelectionChange={handleSelectionChange}
         onInputChange={setTimezoneSearch}

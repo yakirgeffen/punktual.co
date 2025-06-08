@@ -10,12 +10,79 @@ import EnhancedTimezoneSelector from '../../forms/DateTime/EnhancedTimezoneSelec
 export default function EventDetailsSection() {
   const { 
     eventData, 
-    fullTimeOptions, 
-    filteredEndTimeOptions, 
     reminderOptions,
     handleFieldChange,
     getMinEndDate 
   } = useEventFormLogic();
+
+  // Generate time options with 15-minute intervals and 12-hour display
+  const generateTimeOptions = (isStartTime = false) => {
+    const options = [];
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    
+    for (let hour = 0; hour < 24; hour++) {
+      ['00', '15', '30', '45'].forEach(minute => {
+        const timeValue = `${hour.toString().padStart(2, '0')}:${minute}`;
+        
+        // Skip past times if this is for start time and it's today
+        if (isStartTime && eventData.startDate === today) {
+          const timeMinutes = hour * 60 + parseInt(minute);
+          const nowMinutes = currentHour * 60 + currentMinute;
+          if (timeMinutes < nowMinutes) return;
+        }
+        
+        const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const timeLabel = `${displayHour.toString().padStart(2, '0')}:${minute} ${ampm}`;
+        options.push({ value: timeValue, label: timeLabel });
+      });
+    }
+    return options;
+  };
+
+  const startTimeOptions = generateTimeOptions(true);
+  const endTimeOptions = generateTimeOptions(false);
+
+  // Filter end time options
+  const getFilteredEndTimeOptions = () => {
+    if (!eventData.startTime || eventData.startDate !== eventData.endDate) {
+      return endTimeOptions;
+    }
+    
+    const [startHour, startMin] = eventData.startTime.split(':').map(Number);
+    const startTotalMin = startHour * 60 + startMin;
+    
+    return endTimeOptions.filter(option => {
+      const [optionHour, optionMin] = option.value.split(':').map(Number);
+      const optionTotalMin = optionHour * 60 + optionMin;
+      return optionTotalMin > startTotalMin;
+    });
+  };
+
+  // Calculate duration
+  const getDuration = () => {
+    if (!eventData.startTime || !eventData.endTime || eventData.startDate !== eventData.endDate) {
+      return '';
+    }
+    
+    const [startHour, startMin] = eventData.startTime.split(':').map(Number);
+    const [endHour, endMin] = eventData.endTime.split(':').map(Number);
+    const startTotalMin = startHour * 60 + startMin;
+    const endTotalMin = endHour * 60 + endMin;
+    const durationMin = endTotalMin - startTotalMin;
+    
+    if (durationMin <= 0) return '';
+    
+    const hours = Math.floor(durationMin / 60);
+    const minutes = durationMin % 60;
+    
+    if (hours === 0) return `${minutes}m`;
+    if (minutes === 0) return `${hours}h`;
+    return `${hours}h ${minutes}m`;
+  };
 
   // Generate recurrence description
   const getRecurrenceDescription = () => {
@@ -85,6 +152,7 @@ export default function EventDetailsSection() {
             placeholder="Select start date"
             value={eventData.startDate || ''}
             onChange={(e) => handleFieldChange('startDate', e.target.value)}
+            min={new Date().toISOString().split('T')[0]}
             isRequired
             radius="md"
             labelPlacement="outside"
@@ -108,7 +176,7 @@ export default function EventDetailsSection() {
                 trigger: "h-12"
               }}
             >
-              {fullTimeOptions.map((option) => (
+              {startTimeOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
@@ -129,7 +197,7 @@ export default function EventDetailsSection() {
             placeholder="Select end date"
             value={eventData.endDate || ''}
             onChange={(e) => handleFieldChange('endDate', e.target.value)}
-            min={getMinEndDate()}
+            min={eventData.startDate || new Date().toISOString().split('T')[0]}
             isRequired
             radius="md"
             labelPlacement="outside"
@@ -140,25 +208,34 @@ export default function EventDetailsSection() {
             }}
           />
           {!eventData.isAllDay && (
-            <Select
-              label="End Time"
-              placeholder="Select end time"
-              selectedKeys={eventData.endTime ? [eventData.endTime] : []}
-              onSelectionChange={(keys) => handleFieldChange('endTime', Array.from(keys)[0])}
-              isRequired={!eventData.isAllDay}
-              radius="md"
-              labelPlacement="outside"
-              classNames={{
-                label: "text-sm font-medium text-gray-700 pb-1",
-                trigger: "h-12"
-              }}
-            >
-              {filteredEndTimeOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </Select>
+            <div>
+              <Select
+                label="End Time"
+                placeholder="Select end time"
+                selectedKeys={eventData.endTime ? [eventData.endTime] : []}
+                onSelectionChange={(keys) => handleFieldChange('endTime', Array.from(keys)[0])}
+                isRequired={!eventData.isAllDay}
+                radius="md"
+                labelPlacement="outside"
+                classNames={{
+                  label: "text-sm font-medium text-gray-700 pb-1",
+                  trigger: "h-12"
+                }}
+              >
+                {getFilteredEndTimeOptions().map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </Select>
+              
+              {/* Duration indicator */}
+              {getDuration() && (
+                <div className="mt-2 text-xs text-gray-600">
+                  Duration: {getDuration()}
+                </div>
+              )}
+            </div>
           )}
           {eventData.isAllDay && (
             <div className="flex items-end">

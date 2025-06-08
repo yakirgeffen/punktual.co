@@ -4,8 +4,6 @@ import {
   roundToNext15Minutes, 
   formatTimeForInput, 
   addHoursToTime, 
-  generateTimeOptions,
-  getFilteredEndTimeOptions,
   getMinEndDate 
 } from '@/utils/timeUtils';
 
@@ -56,12 +54,91 @@ export const useEventFormLogic = () => {
   const hasPlatforms = Object.values(buttonData.selectedPlatforms || {}).some(Boolean);
   const isComplete = hasTitle && hasStartDate && hasStartTime && hasEndDate && hasEndTime && hasPlatforms;
 
-  // Time options
-  const fullTimeOptions = useMemo(() => generateTimeOptions(), []);
-  const filteredEndTimeOptions = useMemo(() => 
-    getFilteredEndTimeOptions(eventData.startTime, eventData.startDate, eventData.endDate, fullTimeOptions),
-    [eventData.startTime, eventData.startDate, eventData.endDate, fullTimeOptions]
+  // Time options for separate dropdowns
+  const hourOptions = useMemo(() => 
+    Array.from({ length: 24 }, (_, i) => ({
+      value: i.toString().padStart(2, '0'),
+      label: i.toString().padStart(2, '0')
+    })),
+    []
   );
+
+  const minuteOptions = useMemo(() => [
+    { value: '00', label: '00' },
+    { value: '15', label: '15' },
+    { value: '30', label: '30' },
+    { value: '45', label: '45' }
+  ], []);
+
+  // Filtered end time options
+  const filteredEndHours = useMemo(() => {
+    if (!eventData.startTime || eventData.startDate !== eventData.endDate) {
+      return hourOptions;
+    }
+    
+    const startHour = parseInt(eventData.startTime.split(':')[0]);
+    const startMinute = parseInt(eventData.startTime.split(':')[1]);
+    const currentEndMinute = eventData.endTime ? parseInt(eventData.endTime.split(':')[1]) : 0;
+    
+    return hourOptions.filter(option => {
+      const hour = parseInt(option.value);
+      if (hour > startHour) return true;
+      if (hour === startHour && currentEndMinute > startMinute) return true;
+      return false;
+    });
+  }, [eventData.startTime, eventData.startDate, eventData.endDate, eventData.endTime, hourOptions]);
+
+  const filteredEndMinutes = useMemo(() => {
+    if (!eventData.startTime || eventData.startDate !== eventData.endDate || !eventData.endTime) {
+      return minuteOptions;
+    }
+    
+    const startHour = parseInt(eventData.startTime.split(':')[0]);
+    const startMinute = parseInt(eventData.startTime.split(':')[1]);
+    const endHour = parseInt(eventData.endTime.split(':')[0]);
+    
+    if (endHour > startHour) return minuteOptions;
+    
+    if (endHour === startHour) {
+      return minuteOptions.filter(option => parseInt(option.value) > startMinute);
+    }
+    
+    return minuteOptions;
+  }, [eventData.startTime, eventData.startDate, eventData.endDate, eventData.endTime, minuteOptions]);
+
+  // Legacy time options for backward compatibility
+  const fullTimeOptions = useMemo(() => {
+    const options = [];
+    for (let hour = 1; hour <= 12; hour++) {
+      for (let minute = 0; minute < 60; minute += 15) {
+        const hourStr = hour.toString().padStart(2, '0');
+        const minuteStr = minute.toString().padStart(2, '0');
+        const amTime24 = hour === 12 ? `00:${minuteStr}` : `${hourStr}:${minuteStr}`;
+        const amLabel = `${hourStr}:${minuteStr} AM`;
+        options.push({ value: amTime24, label: amLabel });
+        const pmTime24 = hour === 12 ? `12:${minuteStr}` : `${(hour + 12).toString().padStart(2, '0')}:${minuteStr}`;
+        const pmLabel = `${hourStr}:${minuteStr} PM`;
+        options.push({ value: pmTime24, label: pmLabel });
+      }
+    }
+    return options.sort((a, b) => {
+      const [aHour, aMin] = a.value.split(':').map(Number);
+      const [bHour, bMin] = b.value.split(':').map(Number);
+      return aHour * 60 + aMin - (bHour * 60 + bMin);
+    });
+  }, []);
+
+  const filteredEndTimeOptions = useMemo(() => {
+    if (!eventData.startTime || eventData.startDate !== eventData.endDate) {
+      return fullTimeOptions;
+    }
+    const [startHour, startMin] = eventData.startTime.split(':').map(Number);
+    const startTotal = startHour * 60 + startMin;
+    return fullTimeOptions.filter(option => {
+      const [optionHour, optionMin] = option.value.split(':').map(Number);
+      return optionHour * 60 + optionMin > startTotal;
+    });
+  }, [eventData.startTime, eventData.startDate, eventData.endDate, fullTimeOptions]);
 
   // Field change handler with smart defaults
   const handleFieldChange = (field, value) => {
@@ -94,6 +171,27 @@ export const useEventFormLogic = () => {
         updateEvent({ startTime, endTime });
       }
     }
+  };
+
+  // Helper functions for time handling
+  const handleStartTimeChange = (field, value) => {
+    const currentTime = eventData.startTime || '09:00';
+    const [currentHour, currentMinute] = currentTime.split(':');
+    
+    const newHour = field === 'hour' ? value : currentHour;
+    const newMinute = field === 'minute' ? value : currentMinute;
+    
+    handleFieldChange('startTime', `${newHour}:${newMinute}`);
+  };
+
+  const handleEndTimeChange = (field, value) => {
+    const currentTime = eventData.endTime || '10:00';
+    const [currentHour, currentMinute] = currentTime.split(':');
+    
+    const newHour = field === 'hour' ? value : currentHour;
+    const newMinute = field === 'minute' ? value : currentMinute;
+    
+    handleFieldChange('endTime', `${newHour}:${newMinute}`);
   };
 
   // Platform selection logic
@@ -145,12 +243,20 @@ export const useEventFormLogic = () => {
     hasPlatforms,
     isComplete,
     
-    // Time options
+    // New separate time options
+    hourOptions,
+    minuteOptions,
+    filteredEndHours,
+    filteredEndMinutes,
+    
+    // Legacy time options (for backward compatibility)
     fullTimeOptions,
     filteredEndTimeOptions,
     
     // Handlers
     handleFieldChange,
+    handleStartTimeChange,
+    handleEndTimeChange,
     handlePlatformSelectionChange,
     
     // Platform data

@@ -11,37 +11,65 @@ export default function TimeInputs({
   endDate,
   isAllDay 
 }) {
-  const fullTimeOptions = useMemo(() => {
-    const options = [];
-    for (let hour = 1; hour <= 12; hour++) {
-      for (let minute = 0; minute < 60; minute += 15) {
-        const hourStr = hour.toString().padStart(2, '0');
-        const minuteStr = minute.toString().padStart(2, '0');
-        const amTime24 = hour === 12 ? `00:${minuteStr}` : `${hourStr}:${minuteStr}`;
-        const amLabel = `${hourStr}:${minuteStr} AM`;
-        options.push({ value: amTime24, label: amLabel });
-        const pmTime24 = hour === 12 ? `12:${minuteStr}` : `${(hour + 12).toString().padStart(2, '0')}:${minuteStr}`;
-        const pmLabel = `${hourStr}:${minuteStr} PM`;
-        options.push({ value: pmTime24, label: pmLabel });
-      }
-    }
-    return options.sort((a, b) => {
-      const [aHour, aMin] = a.value.split(':').map(Number);
-      const [bHour, bMin] = b.value.split(':').map(Number);
-      return aHour * 60 + aMin - (bHour * 60 + bMin);
-    });
+  const hourOptions = useMemo(() => {
+    return Array.from({ length: 24 }, (_, i) => ({
+      value: i.toString().padStart(2, '0'),
+      label: i.toString().padStart(2, '0')
+    }));
   }, []);
 
-  const getFilteredEndTimeOptions = () => {
-    if (!startTime || startDate !== endDate) {
-      return fullTimeOptions;
-    }
-    const [startHour, startMin] = startTime.split(':').map(Number);
-    const startTotal = startHour * 60 + startMin;
-    return fullTimeOptions.filter(option => {
-      const [optionHour, optionMin] = option.value.split(':').map(Number);
-      return optionHour * 60 + optionMin > startTotal;
+  const minuteOptions = useMemo(() => [
+    { value: '00', label: '00' },
+    { value: '15', label: '15' },
+    { value: '30', label: '30' },
+    { value: '45', label: '45' }
+  ], []);
+
+  const parseTime = (timeStr) => {
+    if (!timeStr) return { hour: '09', minute: '00' };
+    const [hour, minute] = timeStr.split(':');
+    return { hour, minute };
+  };
+
+  const formatTime = (hour, minute) => `${hour}:${minute}`;
+
+  const startParts = parseTime(startTime);
+  const endParts = parseTime(endTime);
+
+  const handleStartTimeChange = (field, value) => {
+    const newParts = { ...startParts, [field]: value };
+    onStartTimeChange(formatTime(newParts.hour, newParts.minute));
+  };
+
+  const handleEndTimeChange = (field, value) => {
+    const newParts = { ...endParts, [field]: value };
+    onEndTimeChange(formatTime(newParts.hour, newParts.minute));
+  };
+
+  const getFilteredEndHours = () => {
+    if (!startTime || startDate !== endDate) return hourOptions;
+    const startHour = parseInt(startParts.hour);
+    const startMinute = parseInt(startParts.minute);
+    
+    return hourOptions.filter(option => {
+      const optionHour = parseInt(option.value);
+      if (optionHour > startHour) return true;
+      if (optionHour === startHour && parseInt(endParts.minute) > startMinute) return true;
+      return false;
     });
+  };
+
+  const getFilteredEndMinutes = () => {
+    if (!startTime || startDate !== endDate) return minuteOptions;
+    const startHour = parseInt(startParts.hour);
+    const endHour = parseInt(endParts.hour);
+    
+    if (endHour > startHour) return minuteOptions;
+    if (endHour === startHour) {
+      const startMinute = parseInt(startParts.minute);
+      return minuteOptions.filter(option => parseInt(option.value) > startMinute);
+    }
+    return minuteOptions;
   };
 
   if (isAllDay) {
@@ -63,45 +91,73 @@ export default function TimeInputs({
 
   return (
     <div className="grid grid-cols-2 gap-4">
-      <Select
-        label="Start Time"
-        placeholder="Select start time"
-        selectedKeys={startTime ? [startTime] : []}
-        onSelectionChange={(keys) => onStartTimeChange(Array.from(keys)[0])}
-        isRequired
-        radius="md"
-        labelPlacement="outside"
-        classNames={{
-          label: "text-sm font-medium text-gray-700 pb-1",
-          trigger: "h-12"
-        }}
-      >
-        {fullTimeOptions.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
-            {option.label}
-          </SelectItem>
-        ))}
-      </Select>
+      {/* Start Time */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 pb-1 mb-2">Start Time</label>
+        <div className="grid grid-cols-2 gap-2">
+          <Select
+            placeholder="Hour"
+            selectedKeys={startParts.hour ? [startParts.hour] : []}
+            onSelectionChange={(keys) => handleStartTimeChange('hour', Array.from(keys)[0])}
+            radius="md"
+            classNames={{ trigger: "h-10" }}
+          >
+            {hourOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </Select>
+          
+          <Select
+            placeholder="Min"
+            selectedKeys={startParts.minute ? [startParts.minute] : []}
+            onSelectionChange={(keys) => handleStartTimeChange('minute', Array.from(keys)[0])}
+            radius="md"
+            classNames={{ trigger: "h-10" }}
+          >
+            {minuteOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </Select>
+        </div>
+      </div>
 
-      <Select
-        label="End Time"
-        placeholder="Select end time"
-        selectedKeys={endTime ? [endTime] : []}
-        onSelectionChange={(keys) => onEndTimeChange(Array.from(keys)[0])}
-        isRequired
-        radius="md"
-        labelPlacement="outside"
-        classNames={{
-          label: "text-sm font-medium text-gray-700 pb-1",
-          trigger: "h-12"
-        }}
-      >
-        {getFilteredEndTimeOptions().map((option) => (
-          <SelectItem key={option.value} value={option.value}>
-            {option.label}
-          </SelectItem>
-        ))}
-      </Select>
+      {/* End Time */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 pb-1 mb-2">End Time</label>
+        <div className="grid grid-cols-2 gap-2">
+          <Select
+            placeholder="Hour"
+            selectedKeys={endParts.hour ? [endParts.hour] : []}
+            onSelectionChange={(keys) => handleEndTimeChange('hour', Array.from(keys)[0])}
+            radius="md"
+            classNames={{ trigger: "h-10" }}
+          >
+            {getFilteredEndHours().map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </Select>
+          
+          <Select
+            placeholder="Min"
+            selectedKeys={endParts.minute ? [endParts.minute] : []}
+            onSelectionChange={(keys) => handleEndTimeChange('minute', Array.from(keys)[0])}
+            radius="md"
+            classNames={{ trigger: "h-10" }}
+          >
+            {getFilteredEndMinutes().map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </Select>
+        </div>
+      </div>
     </div>
   );
 }

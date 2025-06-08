@@ -86,7 +86,7 @@ export default function EnhancedTimezoneSelector({
       });
       const eventTzName = eventTimezone.split('/').pop()?.replace(/_/g, ' ') || eventTimezone;
       const userTzName = userTimezone.split('/').pop()?.replace(/_/g, ' ') || userTimezone;
-      return `${eventTime} ${eventTzName} • ${userTime} ${userTzName} (your time)`;
+      return `${eventTime} ${eventTzName} • ${userTime} ${userTzName} (local time)`;
     } catch {
       return null;
     }
@@ -108,7 +108,7 @@ export default function EnhancedTimezoneSelector({
     <div className="space-y-3">
       <Autocomplete
         label="Timezone"
-        placeholder={isDropdownOpen && !timezoneSearch ? "" : "Search for any city or timezone..."}
+        placeholder={isDropdownOpen && !timezoneSearch ? "" : "Search for city or timezone..."}
         selectedKey={value || 'UTC'}
         onSelectionChange={handleSelectionChange}
         onInputChange={setTimezoneSearch}
@@ -154,25 +154,13 @@ export default function EnhancedTimezoneSelector({
         ))}
       </Autocomplete>
       
-      {/* Current Time Display */}
-      {value && currentTime && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-green-600" />
-            <span className="text-sm text-green-800 font-medium">
-              Current time: {currentTime} ({getTimezoneOffset(value)})
-            </span>
-          </div>
-        </div>
-      )}
-      
       {/* Event Time Preview */}
       {getTimezonePreview() && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 text-blue-600" />
             <span className="text-sm text-blue-800 font-medium">
-              Event time: {getTimezonePreview()}
+              {getTimezonePreview()}
             </span>
           </div>
         </div>
