@@ -6,6 +6,7 @@
 @layer base {
   html {
     font-family: 'Nunito', sans-serif;
+    scroll-behavior: smooth; /* Added for smooth scrolling */
   }
   
   body {
@@ -35,6 +36,16 @@
   }
 }
 
+@layer utilities {
+  /* Added for homepage background decoration */
+  .bg-grid-pattern {
+    background-image: 
+      linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+}
+
 .text-primary-500 {
   @apply text-blue-500;
 }
@@ -49,4 +60,22 @@
 
 .focus\:ring-primary-500:focus {
   @apply ring-blue-500;
+}
+
+/* Added custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }

@@ -1,0 +1,151 @@
+'use client';
+
+import { useState } from 'react';
+import { Calendar, Zap, ArrowRight, Play, Check, Copy, Users, Star } from 'lucide-react';
+import Link from 'next/link';
+
+export default function Hero() {
+  const [copiedCode, setCopiedCode] = useState(false);
+
+  const handleCopyCode = () => {
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
+
+  return (
+    <section className="pt-16 pb-24 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+      <div className="absolute top-20 right-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse"></div>
+      <div className="absolute bottom-20 left-10 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse delay-1000"></div>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          
+          {/* Left Column - Copy */}
+          <div className="text-center lg:text-left">
+            <div className="inline-flex items-center bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <Zap className="w-4 h-4 mr-2" />
+              Finally, calendar buttons that work everywhere
+            </div>
+            
+            <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+              Your events deserve better than
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+                "please add this manually"
+              </span>
+            </h1>
+            
+            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+              One button. Every calendar platform. Zero friction.
+              <br />
+              <span className="text-gray-800 font-semibold">Stop losing attendees to forgotten events.</span>
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+              <Link
+                href="/create"
+                className="bg-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-blue-700 transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                Create Your First Button
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+              
+              <button className="border border-gray-300 text-gray-700 px-8 py-4 rounded-xl font-medium hover:bg-gray-50 transition-colors flex items-center justify-center">
+                <Play className="mr-2 h-5 w-5" />
+                Watch 2min demo
+              </button>
+            </div>
+            
+            <div className="flex items-center justify-center lg:justify-start space-x-6 text-sm text-gray-500">
+              <div className="flex items-center">
+                <Check className="w-4 h-4 text-green-500 mr-1" />
+                5 buttons free
+              </div>
+              <div className="flex items-center">
+                <Check className="w-4 h-4 text-green-500 mr-1" />
+                No credit card
+              </div>
+              <div className="flex items-center">
+                <Check className="w-4 h-4 text-green-500 mr-1" />
+                Works everywhere
+              </div>
+            </div>
+          </div>
+          
+          {/* Right Column - Visual */}
+          <div className="relative">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
+              <div className="space-y-6">
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-800">Product Launch Event</h3>
+                  <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
+                    Live Preview
+                  </div>
+                </div>
+                
+                {/* Event Details */}
+                <div className="space-y-3">
+                  <div className="flex items-center text-gray-600">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    <span className="text-sm">June 15, 2025 at 2:00 PM PST</span>
+                  </div>
+                  <div className="flex items-center text-gray-600">
+                    <Users className="w-4 h-4 mr-2" />
+                    <span className="text-sm">Virtual Event • Zoom Link Included</span>
+                  </div>
+                </div>
+                
+                {/* Calendar Button */}
+                <div className="border-t pt-6">
+                  <div className="relative group">
+                    <button className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center">
+                      <Calendar className="w-5 h-5 mr-2" />
+                      Add to Calendar
+                    </button>
+                    
+                    {/* Dropdown simulation */}
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                      <div className="p-2 space-y-1">
+                        {['Google Calendar', 'Apple Calendar', 'Outlook', 'Office 365', 'Yahoo'].map((platform, i) => (
+                          <div key={i} className="px-3 py-2 hover:bg-gray-50 rounded text-sm text-gray-700 cursor-pointer">
+                            {platform}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Code Preview */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-gray-500 font-medium">Generated HTML</span>
+                    <button 
+                      onClick={handleCopyCode}
+                      className="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded transition-colors flex items-center"
+                    >
+                      {copiedCode ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    </button>
+                  </div>
+                  <code className="text-xs text-gray-600 block">
+                    &lt;button class="easycal-btn"&gt;Add to Calendar&lt;/button&gt;
+                  </code>
+                </div>
+              </div>
+            </div>
+            
+            {/* Floating elements */}
+            <div className="absolute -top-4 -right-4 bg-green-500 text-white p-3 rounded-full shadow-lg">
+              <Check className="w-5 h-5" />
+            </div>
+            <div className="absolute -bottom-4 -left-4 bg-purple-500 text-white p-3 rounded-full shadow-lg">
+              <Star className="w-5 h-5" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
