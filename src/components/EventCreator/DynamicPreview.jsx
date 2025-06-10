@@ -1,37 +1,29 @@
 'use client';
 import { useState } from 'react';
-import { useEventContext } from '../../contexts/EventContext';
-import { generateCalendarCode } from '../../utils/calendarGenerator';
+import { useEventContext } from '@/contexts/EventContext';
+import { generateCalendarCode } from '@/utils/calendarGenerator';
 import toast from 'react-hot-toast';
 
 const DynamicPreview = () => {
+  // Get dynamic data from context (this was missing!)
   const { eventData, buttonData, calendarLinks } = useEventContext();
+  
+  const [selectedUseCase, setSelectedUseCase] = useState('email-links');
   const [copied, setCopied] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('button');
   const [isMinified, setIsMinified] = useState(false);
   const [codeFormat, setCodeFormat] = useState('html');
-  const [selectedUseCase, setSelectedUseCase] = useState('email-links');
   
-  // Use case options in new order
+  // Use case options
   const useCaseOptions = [
-    { id: 'email-links', label: 'Add to Calendar - Links' },
-    { id: 'button-widget', label: 'Add to Calendar - Button' },
+    { id: 'email-links', label: 'Email Links' },
+    { id: 'button-widget', label: 'Button Widget' },
     { id: 'direct-links', label: 'Direct Links' },
-    { id: 'event-page', label: 'Event Landing Page' }
+    { id: 'event-page', label: 'Event Page' }
   ];
-  
-  // Check if event is complete
-  const hasTitle = !!eventData.title?.trim();
-  const hasStartDate = !!eventData.startDate;
-  const hasStartTime = !!eventData.startTime;
-  const hasEndDate = !!eventData.endDate;
-  const hasEndTime = !!eventData.endTime;
-  const hasPlatforms = Object.values(buttonData.selectedPlatforms || {}).some(Boolean);
-  
-  const isComplete = hasTitle && hasStartDate && hasStartTime && hasEndDate && hasEndTime && hasPlatforms;
 
-  // Platform info
+  // Platform info (restored original structure)
   const platformInfo = {
     google: { name: 'Google Calendar', logo: '/icons/platforms/icon-google.svg' },
     apple: { name: 'Apple Calendar', logo: '/icons/platforms/icon-apple.svg' },
@@ -43,21 +35,17 @@ const DynamicPreview = () => {
   const selectedPlatforms = Object.keys(buttonData.selectedPlatforms || {})
     .filter(platform => buttonData.selectedPlatforms[platform]);
 
-  // Generate code based on current settings
-  const getGeneratedCode = () => {
-    if (!isComplete) return '<!-- Complete the form to generate code -->';
-    
-    const options = {
-      minified: isMinified,
-      format: codeFormat,
-      includeCss: true,
-      includeJs: true
-    };
-    
-    return generateCalendarCode(eventData, buttonData, 'button', options);
-  };
+  // Check if event is complete (restored from original)
+  const hasTitle = !!eventData.title?.trim();
+  const hasStartDate = !!eventData.startDate;
+  const hasStartTime = !!eventData.startTime;
+  const hasEndDate = !!eventData.endDate;
+  const hasEndTime = !!eventData.endTime;
+  const hasPlatforms = Object.values(buttonData.selectedPlatforms || {}).some(Boolean);
+  
+  const isComplete = hasTitle && hasStartDate && hasStartTime && hasEndDate && hasEndTime && hasPlatforms;
 
-  // Copy function
+  // Copy function (restored original functionality)
   const copyToClipboard = async (text, label = 'Content') => {
     try {
       await navigator.clipboard.writeText(text);
@@ -91,59 +79,87 @@ const DynamicPreview = () => {
     return `${dateStr} at ${timeStr}`;
   };
 
+  // Generate code based on current settings (restored original)
+  const getGeneratedCode = () => {
+    if (!isComplete) return '<!-- Complete the form to generate code -->';
+    
+    const options = {
+      minified: isMinified,
+      format: codeFormat,
+      includeCss: true,
+      includeJs: true
+    };
+    
+    return generateCalendarCode(eventData, buttonData, 'button', options);
+  };
+
   return (
-    <div className="h-full flex flex-col space-y-4">
-      {/* Event Summary */}
-      <div className="bg-white border rounded-lg p-3">
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <h3 className="text-sm font-medium text-gray-900">Live Preview</h3>
-            {isComplete && (
-              <span className="text-xs text-green-600 font-medium">Ready</span>
-            )}
-          </div>
-          
-          <div className="text-sm">
-            <div className="font-medium text-gray-900 truncate">
-              {eventData.title || 'Untitled Event'}
+    <div className="h-full">
+      {/* Unified Panel with Live Preview Header and Tabs */}
+      <div className="bg-white border rounded-lg h-full flex flex-col">
+        {/* Live Preview Header Section */}
+        <div className="bg-gray-50 border-b border-gray-200 p-4 rounded-t-lg">
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-900">Live Preview</h3>
+              {isComplete && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Ready
+                </span>
+              )}
             </div>
-            <div className="text-xs text-gray-600 flex items-center mt-1">
-              <span className="mr-1">📅</span>
-              <span>{formatDateTime()}</span>
-            </div>
-            {eventData.location && (
-              <div className="text-xs text-gray-600 flex items-center">
-                <span className="mr-1">📍</span>
-                <span className="truncate">{eventData.location}</span>
+            
+            <div className="bg-white rounded-lg p-3 border">
+              <div className="space-y-2">
+                <div className="font-medium text-gray-900 truncate">
+                  {eventData.title || 'Untitled Event'}
+                </div>
+                <div className="text-sm text-gray-600 flex items-center">
+                  <span className="mr-2">📅</span>
+                  <span>{formatDateTime()}</span>
+                </div>
+                {eventData.location && (
+                  <div className="text-sm text-gray-600 flex items-center">
+                    <span className="mr-2">📍</span>
+                    <span className="truncate">{eventData.location}</span>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Main Preview Panel */}
-      <div className="bg-white border rounded-lg flex-1 flex flex-col">
-        {/* Segmented Control Header */}
-        <div className="p-4 border-b">
-          <div className="bg-gray-100 rounded-lg p-1 flex">
-            {useCaseOptions.map((option) => (
-              <button
-                key={option.id}
-                onClick={() => setSelectedUseCase(option.id)}
-                className={`flex-1 px-3 py-2 text-xs font-medium rounded-md transition-all ${
-                  selectedUseCase === option.id
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {option.label}
-              </button>
+        {/* Tab Navigation - Now looks like actual tabs */}
+        <div className="border-b border-gray-200">
+          <nav className="flex">
+            {useCaseOptions.map((option, index) => (
+              <div key={option.id} className="flex">
+                <button
+                  onClick={() => setSelectedUseCase(option.id)}
+                  className={`px-4 py-3 text-sm font-medium transition-all relative ${
+                    selectedUseCase === option.id
+                      ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-500'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 border-b-2 border-transparent'
+                  }`}
+                >
+                  {option.label}
+                  
+                  {/* Active tab indicator */}
+                  {selectedUseCase === option.id && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"></div>
+                  )}
+                </button>
+                
+                {/* Tab separator - light vertical line */}
+                {index < useCaseOptions.length - 1 && (
+                  <div className="w-px bg-gray-200 my-2"></div>
+                )}
+              </div>
             ))}
-          </div>
+          </nav>
         </div>
 
         {/* Preview Content */}
-        <div className="p-4 flex-1">
+        <div className="p-4 flex-1 overflow-y-auto">
           {!isComplete ? (
             <div className="text-center py-12">
               <div className="text-gray-400 mb-4">
@@ -154,9 +170,12 @@ const DynamicPreview = () => {
             </div>
           ) : (
             <div>
-              {/* Add to Calendar - Links */}
+              {/* Email Links Tab */}
               {selectedUseCase === 'email-links' && (
                 <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Add to Calendar - Links</h3>
+                  <p className="text-sm text-gray-600 mb-4">Perfect for email campaigns and newsletters</p>
+                  
                   <div className="space-y-3">
                     {selectedPlatforms.map(platform => (
                       <div key={platform} className="p-4 bg-gray-50 rounded-lg border">
@@ -172,9 +191,9 @@ const DynamicPreview = () => {
                           
                           <button
                             onClick={() => copyToClipboard(calendarLinks[platform], platformInfo[platform].name)}
-                            className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50"
+                            className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
                           >
-                            Copy Link
+                            {copied ? 'Copied!' : 'Copy Link'}
                           </button>
                         </div>
                         
@@ -187,17 +206,20 @@ const DynamicPreview = () => {
                 </div>
               )}
 
-              {/* Add to Calendar - Button */}
+              {/* Button Widget Tab */}
               {selectedUseCase === 'button-widget' && (
-                <div>
-                  {/* Tabs */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Add to Calendar - Button</h3>
+                  <p className="text-sm text-gray-600 mb-4">Interactive dropdown button for websites</p>
+                  
+                  {/* Sub-tabs for button widget */}
                   <div className="border-b border-gray-200 mb-4">
                     <nav className="-mb-px flex space-x-8">
                       {['button', 'links', 'code'].map((tab) => (
                         <button
                           key={tab}
                           onClick={() => setActiveTab(tab)}
-                          className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                          className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                             activeTab === tab
                               ? 'border-blue-500 text-blue-600'
                               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -209,10 +231,10 @@ const DynamicPreview = () => {
                     </nav>
                   </div>
 
-                  {/* Button Tab */}
+                  {/* Button Preview */}
                   {activeTab === 'button' && (
                     <div className="space-y-4">
-                      <div className="bg-gray-50 rounded-lg p-6 border">
+                      <div className="bg-gray-50 rounded-lg p-8 border-2 border-dashed border-gray-200">
                         <div className="text-center">
                           <div className="relative inline-block">
                             <button
@@ -237,7 +259,7 @@ const DynamicPreview = () => {
                                       toast.success(`Opening ${platformInfo[platform].name}!`);
                                       setDropdownOpen(false);
                                     }}
-                                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
+                                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg transition-colors"
                                   >
                                     <img 
                                       src={platformInfo[platform].logo} 
@@ -252,54 +274,53 @@ const DynamicPreview = () => {
                           </div>
                         </div>
                       </div>
+                      <p className="text-xs text-gray-500 text-center">Click the button to see the dropdown</p>
                     </div>
                   )}
 
-                  {/* Links Tab */}
+                  {/* Links Sub-tab */}
                   {activeTab === 'links' && (
-                    <div className="space-y-4">
-                      <div className="space-y-3">
-                        {selectedPlatforms.map(platform => (
-                          <div key={platform} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
-                            <div className="flex items-center">
-                              <img 
-                                src={platformInfo[platform].logo} 
-                                alt={platformInfo[platform].name}
-                                className="w-5 h-5 mr-3"
-                              />
-                              <span className="font-medium text-gray-900">{platformInfo[platform].name}</span>
-                            </div>
-                            
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => copyToClipboard(calendarLinks[platform], platformInfo[platform].name)}
-                                className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50"
-                              >
-                                {copied ? 'Copied!' : 'Copy'}
-                              </button>
-                              <button
-                                onClick={() => window.open(calendarLinks[platform], '_blank')}
-                                className="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700"
-                              >
-                                Open
-                              </button>
-                            </div>
+                    <div className="space-y-3">
+                      {selectedPlatforms.map(platform => (
+                        <div key={platform} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                          <div className="flex items-center">
+                            <img 
+                              src={platformInfo[platform].logo} 
+                              alt={platformInfo[platform].name}
+                              className="w-5 h-5 mr-3"
+                            />
+                            <span className="font-medium text-gray-900">{platformInfo[platform].name}</span>
                           </div>
-                        ))}
-                      </div>
+                          
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => copyToClipboard(calendarLinks[platform], platformInfo[platform].name)}
+                              className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                            >
+                              {copied ? 'Copied!' : 'Copy'}
+                            </button>
+                            <button
+                              onClick={() => window.open(calendarLinks[platform], '_blank')}
+                              className="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
+                            >
+                              Open
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
 
-                  {/* Code Tab */}
+                  {/* Code Sub-tab */}
                   {activeTab === 'code' && (
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
-                        <h3 className="text-lg font-medium text-gray-900">Generated Code</h3>
+                        <h4 className="text-md font-medium text-gray-900">Generated Code</h4>
                         <div className="flex items-center gap-3">
                           <select
                             value={codeFormat}
                             onChange={(e) => setCodeFormat(e.target.value)}
-                            className="px-2 py-1 text-xs border border-gray-300 rounded"
+                            className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           >
                             <option value="html">HTML</option>
                             <option value="react">React</option>
@@ -312,14 +333,14 @@ const DynamicPreview = () => {
                               type="checkbox"
                               checked={isMinified}
                               onChange={(e) => setIsMinified(e.target.checked)}
-                              className="w-3 h-3"
+                              className="w-3 h-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                             />
                             <span>Minified</span>
                           </label>
                           
                           <button
                             onClick={() => copyToClipboard(getGeneratedCode(), 'Code')}
-                            className="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700"
+                            className="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
                           >
                             📋 {copied ? 'Copied!' : 'Copy'}
                           </button>
@@ -346,9 +367,12 @@ const DynamicPreview = () => {
                 </div>
               )}
 
-              {/* Direct Links */}
+              {/* Direct Links Tab */}
               {selectedUseCase === 'direct-links' && (
                 <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Direct Links</h3>
+                  <p className="text-sm text-gray-600 mb-4">Raw calendar URLs for advanced integrations</p>
+                  
                   {selectedPlatforms.map(platform => (
                     <div key={platform} className="space-y-2">
                       <div className="flex items-center">
@@ -368,7 +392,7 @@ const DynamicPreview = () => {
                       
                       <button
                         onClick={() => copyToClipboard(calendarLinks[platform], platformInfo[platform].name)}
-                        className="w-full px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50"
+                        className="w-full px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
                       >
                         Copy {platformInfo[platform].name} URL
                       </button>
@@ -377,10 +401,13 @@ const DynamicPreview = () => {
                 </div>
               )}
 
-              {/* Event Landing Page */}
+              {/* Event Page Tab */}
               {selectedUseCase === 'event-page' && (
                 <div className="space-y-4">
-                  <div className="bg-white border rounded-lg p-6 shadow-sm">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Event Landing Page</h3>
+                  <p className="text-sm text-gray-600 mb-4">Full page layout for event promotion</p>
+                  
+                  <div className="bg-white border-2 border-dashed border-gray-200 rounded-lg p-6">
                     <div className="text-center space-y-4">
                       <h2 className="text-2xl font-bold text-gray-900">{eventData.title}</h2>
                       <p className="text-lg text-gray-600">{formatDateTime()}</p>
@@ -392,7 +419,7 @@ const DynamicPreview = () => {
                       )}
                       
                       <div className="pt-6">
-                        <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                        <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm">
                           📅 Add to My Calendar
                         </button>
                       </div>

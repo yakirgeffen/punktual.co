@@ -281,7 +281,7 @@ export default function EventDetailsSection() {
           Recurring event
         </Switch>
         {eventData.isRecurring && (
-          <div className="space-y-4 ml-6 pl-6 border-l-2 border-blue-200 bg-blue-50/30 rounded-r-lg py-4">
+          <div className="space-y-4 ml-4 pl-4 border-l-2 border-emerald-400 bg-gray-500/30 rounded-r-lg py-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Select
                 label="Repeat"
@@ -369,8 +369,8 @@ export default function EventDetailsSection() {
                       }}
                       className={`w-10 h-10 rounded-full text-sm font-medium border-2 transition-all ${
                         (eventData.weeklyDays || []).includes(day.index)
-                          ? 'bg-blue-500 text-white border-blue-500'
-                          : 'bg-white text-gray-600 border-gray-300 hover:border-blue-300'
+                          ? 'bg-emerald-400 text-white border-emerald-500'
+                          : 'bg-white text-gray-600 border-gray-300 hover:border-emerald-400'
                       }`}
                       title={day.full}
                     >
@@ -390,7 +390,7 @@ export default function EventDetailsSection() {
                       value="date"
                       checked={eventData.monthlyOption === 'date' || !eventData.monthlyOption}
                       onChange={() => handleFieldChange('monthlyOption', 'date')}
-                      className="w-4 h-4 text-blue-600"
+                      className="w-4 h-4 text-emerald-500"
                     />
                     <span className="text-sm">Same date each month (e.g., 15th of every month)</span>
                   </label>
@@ -401,7 +401,7 @@ export default function EventDetailsSection() {
                       value="weekday"
                       checked={eventData.monthlyOption === 'weekday'}
                       onChange={() => handleFieldChange('monthlyOption', 'weekday')}
-                      className="w-4 h-4 text-blue-600"
+                      className="w-4 h-4 text-emerald-500"
                     />
                     <span className="text-sm">Same weekday pattern (e.g., first Monday of every month)</span>
                   </label>
@@ -488,8 +488,8 @@ export default function EventDetailsSection() {
               </div>
             )}
             {getRecurrenceDescription() && (
-              <div className="bg-blue-100 border border-blue-300 rounded-lg p-4">
-                <p className="text-sm text-blue-800 font-medium">{getRecurrenceDescription()}</p>
+              <div className="bg-emerald-100 border border-emerald-400 rounded-lg p-3">
+                <p className="text-sm text-emerald-800 font-medium">{getRecurrenceDescription()}</p>
               </div>
             )}
           </div>
@@ -504,7 +504,7 @@ export default function EventDetailsSection() {
           onChange={(e) => handleFieldChange('description', e.target.value)}
           placeholder="Describe your event, agenda, what attendees should expect..."
           rows={4}
-          className="w-full px-4 py-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none placeholder:text-gray-400"
+          className="w-full px-4 py-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 resize-none placeholder:text-gray-400"
         />
       </div>
 

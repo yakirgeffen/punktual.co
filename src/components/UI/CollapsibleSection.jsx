@@ -14,7 +14,7 @@ export default function CollapsibleSection({
     <div className="card">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-md p-1 -m-1"
+        className="w-full flex items-center justify-between text-left focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 rounded-md p-1 -m-1"
       >
         <div className="flex items-center space-x-2">
           {icon && <span className="text-lg">{icon}</span>}

@@ -13,48 +13,53 @@ export default function Hero() {
   };
 
   return (
-    <section className="pt-16 pb-24 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-hidden">
+    <section className="pt-16 pb-24 bg-gradient-to-br from-green-250 via-white to-emerald-350 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-      <div className="absolute top-20 right-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse"></div>
-      <div className="absolute bottom-20 left-10 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse delay-1000"></div>
+      <div className="absolute top-20 right-10 w-72 h-72 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+      <div className="absolute bottom-20 left-10 w-72 h-72 bg-emerald-50 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse delay-1000"></div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           
           {/* Left Column - Copy */}
           <div className="text-center lg:text-left">
-            <div className="inline-flex items-center bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center bg-emerald-100 text-emerald-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
               <Zap className="w-4 h-4 mr-2" />
               Finally, calendar buttons that work everywhere
             </div>
             
             <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Your events deserve better than
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-                "please add this manually"
+              <span className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                One button.
+              </span> <br />
+              <span className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                Zero friction.
+              </span> <br />
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-200">
+                Every calendar.
               </span>
             </h1>
             
-            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+            {/* <p className="text-xl text-gray-600 mb-8 leading-relaxed">
               One button. Every calendar platform. Zero friction.
               <br />
               <span className="text-gray-800 font-semibold">Stop losing attendees to forgotten events.</span>
-            </p>
+            </p> */}
             
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <Link
                 href="/create"
-                className="bg-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-blue-700 transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="bg-emerald-500 text-white px-8 py-4 rounded-xl font-semibold hover:bg-emerald-400 transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-100"
               >
-                Create Your First Button
+                Create your first event 
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
               
-              <button className="border border-gray-300 text-gray-700 px-8 py-4 rounded-xl font-medium hover:bg-gray-50 transition-colors flex items-center justify-center">
+              {/* <button className="border border-gray-300 text-gray-700 px-8 py-4 rounded-xl font-medium hover:bg-gray-50 transition-colors flex items-center justify-center">
                 <Play className="mr-2 h-5 w-5" />
                 Watch 2min demo
-              </button>
+              </button> */}
             </div>
             
             <div className="flex items-center justify-center lg:justify-start space-x-6 text-sm text-gray-500">
@@ -100,7 +105,7 @@ export default function Hero() {
                 {/* Calendar Button */}
                 <div className="border-t pt-6">
                   <div className="relative group">
-                    <button className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center">
+                    <button className="w-full bg-emerald-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-emerald-400 transition-colors flex items-center justify-center">
                       <Calendar className="w-5 h-5 mr-2" />
                       Add to Calendar
                     </button>
@@ -137,12 +142,12 @@ export default function Hero() {
             </div>
             
             {/* Floating elements */}
-            <div className="absolute -top-4 -right-4 bg-green-500 text-white p-3 rounded-full shadow-lg">
+            {/* <div className="absolute -top-4 -right-4 bg-green-500 text-white p-3 rounded-full shadow-lg">
               <Check className="w-5 h-5" />
-            </div>
-            <div className="absolute -bottom-4 -left-4 bg-purple-500 text-white p-3 rounded-full shadow-lg">
+            </div> */}
+            {/* <div className="absolute -bottom-4 -left-4 bg-purple-500 text-white p-3 rounded-full shadow-lg">
               <Star className="w-5 h-5" />
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

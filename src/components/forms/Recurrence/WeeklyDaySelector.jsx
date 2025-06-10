@@ -30,8 +30,8 @@ export default function WeeklyDaySelector({ eventData, onUpdate }) {
             onClick={() => toggleDay(day.index)}
             className={`w-10 h-10 rounded-full text-sm font-medium border-2 transition-all ${
               (eventData.weeklyDays || []).includes(day.index)
-                ? 'bg-blue-500 text-white border-blue-500'
-                : 'bg-white text-gray-600 border-gray-300 hover:border-blue-300'
+                ? 'bg-emerald-400 text-white border-emerald-400'
+                : 'bg-white text-gray-600 border-gray-300 hover:border-emerald-500'
             }`}
             title={day.full}
           >

@@ -67,7 +67,7 @@ const AdvancedCustomization = () => {
               onClick={() => handleStyleChange(style.key)}
               className={`p-3 text-left border rounded-lg transition-all hover:shadow-sm ${
                 buttonData.buttonStyle === style.key
-                  ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
+                  ? 'border-blue-500 bg-blue-50 ring-1 ring-emerald-500'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
@@ -152,7 +152,7 @@ const AdvancedCustomization = () => {
               onClick={() => handleSizeChange(size.key)}
               className={`p-3 text-left border rounded-lg transition-all hover:shadow-sm ${
                 buttonData.buttonSize === size.key
-                  ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
+                  ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
@@ -179,7 +179,7 @@ const AdvancedCustomization = () => {
                     [platform]: e.target.checked
                   }
                 })}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-emerald-500"
               />
               <span className="text-sm text-gray-700 capitalize">{platform.replace('365', ' 365')}</span>
             </label>
@@ -195,7 +195,7 @@ const AdvancedCustomization = () => {
             <input
               type="checkbox"
               defaultChecked={true}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-emerald-500"
             />
             <span className="text-sm text-gray-700">Include hover animations</span>
           </label>
@@ -203,7 +203,7 @@ const AdvancedCustomization = () => {
             <input
               type="checkbox"
               defaultChecked={true}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-emerald-500"
             />
             <span className="text-sm text-gray-700">Mobile responsive design</span>
           </label>
@@ -211,7 +211,7 @@ const AdvancedCustomization = () => {
             <input
               type="checkbox"
               defaultChecked={false}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-emerald-500"
             />
             <span className="text-sm text-gray-700">Auto-close dropdown after selection</span>
           </label>

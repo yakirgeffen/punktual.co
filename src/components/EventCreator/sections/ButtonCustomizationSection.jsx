@@ -22,7 +22,7 @@ export default function ButtonCustomizationSection() {
               value="dropdown"
               checked={buttonData.buttonLayout !== 'individual'}
               onChange={() => updateButton({ buttonLayout: 'dropdown' })}
-              className="w-4 h-4 text-blue-600"
+              className="w-4 h-4 text-emerald-600"
             />
             <span className="text-sm">Single button with dropdown</span>
           </label>
@@ -33,7 +33,7 @@ export default function ButtonCustomizationSection() {
               value="individual"
               checked={buttonData.buttonLayout === 'individual'}
               onChange={() => updateButton({ buttonLayout: 'individual' })}
-              className="w-4 h-4 text-blue-600"
+              className="w-4 h-4 text-emerald-600"
             />
             <span className="text-sm">Individual platform buttons</span>
             <Chip size="sm" color="primary" variant="flat">Popular</Chip>
@@ -96,7 +96,7 @@ export default function ButtonCustomizationSection() {
               type="button"
               onClick={() => updateButton({ colorScheme: color.value })}
               className={`w-10 h-10 rounded-full border-3 transition-all hover:scale-110 ${
-                buttonData.colorScheme === color.value ? 'border-gray-800 ring-2 ring-blue-200' : 'border-gray-300'
+                buttonData.colorScheme === color.value ? 'border-gray-800 ring-2 ring-emerald-200' : 'border-gray-300'
               }`}
               style={{ backgroundColor: color.value }}
               title={color.name}
