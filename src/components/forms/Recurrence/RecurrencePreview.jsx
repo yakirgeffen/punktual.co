@@ -62,8 +62,8 @@ export default function RecurrencePreview({ eventData }) {
   if (!description) return null;
 
   return (
-    <div className="bg-blue-100 border border-blue-300 rounded-lg p-4">
-      <p className="text-sm text-blue-800 font-medium">{description}</p>
+    <div className="bg-emerald-100 border border-emerald-300 rounded-lg p-4">
+      <p className="text-sm text-emerald-800 font-medium">{description}</p>
     </div>
   );
 }

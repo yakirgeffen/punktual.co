@@ -20,7 +20,7 @@ export default function EventForm() {
         defaultExpandedKeys={["basic-info", "event-details"]} 
         className="shadow-sm"
         itemClasses={{
-          indicator: "-rotate-90 data-[open=true]:rotate-0 transition-transform"
+          indicator: "transition-transform group-data-[open=true]:rotate-180"
         }}
       >
         {/* Basic Information */}

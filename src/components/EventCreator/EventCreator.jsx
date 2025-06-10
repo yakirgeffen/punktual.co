@@ -38,14 +38,14 @@ export default function EventCreator() {
     <div className="min-h-screen bg-gray-50">
       
       {/* Clean Header */}
-      <div className="bg-white border-b px-6 py-4">
+      {/* <div className="bg-white border-b px-6 py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">EasyCal</h1>
             <p className="mt-1 text-gray-600">Create calendar integrations in seconds</p>
           </div>
         </div>
-      </div>
+      </div>/ */}
 
 
 

@@ -110,10 +110,10 @@ export default function TimezoneSelector({
       </Autocomplete>
       
       {getTimezonePreview() && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
           <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-blue-600" />
-            <span className="text-sm text-blue-800 font-medium">
+            <Clock className="h-4 w-4 text-emerald-600" />
+            <span className="text-sm text-emerald-800 font-medium">
               {getTimezonePreview()}
             </span>
           </div>

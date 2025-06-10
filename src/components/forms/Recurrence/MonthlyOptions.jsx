@@ -12,7 +12,7 @@ export default function MonthlyOptions({ eventData, onUpdate }) {
             value="date"
             checked={eventData.monthlyOption === 'date' || !eventData.monthlyOption}
             onChange={() => onUpdate({ monthlyOption: 'date' })}
-            className="w-4 h-4 text-blue-600"
+            className="w-4 h-4 text-emerald-500"
           />
           <span className="text-sm">Same date each month (e.g., 15th of every month)</span>
         </label>
@@ -23,7 +23,7 @@ export default function MonthlyOptions({ eventData, onUpdate }) {
             value="weekday"
             checked={eventData.monthlyOption === 'weekday'}
             onChange={() => onUpdate({ monthlyOption: 'weekday' })}
-            className="w-4 h-4 text-blue-600"
+            className="w-4 h-4 text-emerald-500"
           />
           <span className="text-sm">Same weekday pattern (e.g., first Monday of every month)</span>
         </label>
