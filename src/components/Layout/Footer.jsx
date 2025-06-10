@@ -11,7 +11,7 @@ export default function Footer() {
               <div className="bg-blue-600 p-2 rounded-lg">
                 <Calendar className="h-5 w-5 text-white" />
               </div>
-              <span className="ml-3 text-lg font-bold">EasyCal</span>
+              <span className="ml-3 text-lg font-bold">Punktual</span>
             </Link>
             <p className="text-gray-400 leading-relaxed text-sm">
               Making calendar integration simple for marketers, event organizers, and businesses worldwide.
@@ -52,7 +52,7 @@ export default function Footer() {
         <div className="border-t border-gray-800 pt-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2025 EasyCal. All rights reserved.
+              © 2025 Punktual. All rights reserved.
             </p>
             <div className="flex items-center space-x-6 mt-4 md:mt-0">
               <a href="#" className="text-gray-400 hover:text-white transition-colors">
