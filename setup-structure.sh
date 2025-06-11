@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Setting up EasyCal folder structure..."
+echo "🚀 Setting up Punktual folder structure..."
 
 # Create main directories
 mkdir -p src/components/Layout

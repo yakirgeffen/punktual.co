@@ -67,8 +67,8 @@ const CodeOutput = ({ useCase }) => {
   };
 
   const getHTMLCode = () => {
-    const baseCode = `<!-- EasyCal Generated Code -->
-<div class="easycal-container" data-event-id="${eventData.title?.replace(/\s+/g, '-').toLowerCase()}">
+    const baseCode = `<!-- Punktual Generated Code -->
+<div class="Punktual-container" data-event-id="${eventData.title?.replace(/\s+/g, '-').toLowerCase()}">
   ${generatedCode}
 </div>`;
 
@@ -76,12 +76,12 @@ const CodeOutput = ({ useCase }) => {
   };
 
   const getCSSCode = () => {
-    const css = `/* EasyCal Styles */
-.easycal-container {
+    const css = `/* Punktual Styles */
+.Punktual-container {
   font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-.easycal-button {
+.Punktual-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -97,12 +97,12 @@ const CodeOutput = ({ useCase }) => {
   box-shadow: 0 4px 12px rgba(77, 144, 255, 0.3);
 }
 
-.easycal-button:hover {
+.Punktual-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(77, 144, 255, 0.4);
 }
 
-.easycal-dropdown {
+.Punktual-dropdown {
   position: absolute;
   top: 100%;
   left: 0;
@@ -118,13 +118,13 @@ const CodeOutput = ({ useCase }) => {
   transition: all 0.3s ease;
 }
 
-.easycal-dropdown.show {
+.Punktual-dropdown.show {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
 }
 
-.easycal-dropdown-item {
+.Punktual-dropdown-item {
   display: block;
   padding: 10px 16px;
   color: #374151;
@@ -133,7 +133,7 @@ const CodeOutput = ({ useCase }) => {
   transition: all 0.2s ease;
 }
 
-.easycal-dropdown-item:hover {
+.Punktual-dropdown-item:hover {
   background: #F3F4F6;
   color: #111827;
 }`;
@@ -142,16 +142,16 @@ const CodeOutput = ({ useCase }) => {
   };
 
   const getJavaScriptCode = () => {
-    const js = `// EasyCal JavaScript
+    const js = `// Punktual JavaScript
 (function() {
   'use strict';
   
   // Calendar URLs
   const calendarLinks = ${JSON.stringify(calendarLinks, null, 2)};
   
-  // Initialize EasyCal
-  function initEasyCal() {
-    const buttons = document.querySelectorAll('.easycal-button');
+  // Initialize Punktual
+  function initPunktual() {
+    const buttons = document.querySelectorAll('.Punktual-button');
     
     buttons.forEach(button => {
       button.addEventListener('click', function(e) {
@@ -159,7 +159,7 @@ const CodeOutput = ({ useCase }) => {
         e.stopPropagation();
         
         const dropdown = this.nextElementSibling;
-        if (dropdown && dropdown.classList.contains('easycal-dropdown')) {
+        if (dropdown && dropdown.classList.contains('Punktual-dropdown')) {
           dropdown.classList.toggle('show');
         }
       });
@@ -167,8 +167,8 @@ const CodeOutput = ({ useCase }) => {
     
     // Close dropdowns when clicking outside
     document.addEventListener('click', function(e) {
-      if (!e.target.closest('.easycal-container')) {
-        const dropdowns = document.querySelectorAll('.easycal-dropdown.show');
+      if (!e.target.closest('.Punktual-container')) {
+        const dropdowns = document.querySelectorAll('.Punktual-dropdown.show');
         dropdowns.forEach(dropdown => {
           dropdown.classList.remove('show');
         });
@@ -180,7 +180,7 @@ const CodeOutput = ({ useCase }) => {
   function trackCalendarClick(platform) {
     if (typeof gtag !== 'undefined') {
       gtag('event', 'calendar_add', {
-        'event_category': 'EasyCal',
+        'event_category': 'Punktual',
         'event_label': platform,
         'value': 1
       });
@@ -189,9 +189,9 @@ const CodeOutput = ({ useCase }) => {
   
   // Initialize when DOM is ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initEasyCal);
+    document.addEventListener('DOMContentLoaded', initPunktual);
   } else {
-    initEasyCal();
+    initPunktual();
   }
 })();`;
 
@@ -201,7 +201,7 @@ const CodeOutput = ({ useCase }) => {
   const getReactCode = () => {
     return `import React, { useState } from 'react';
 
-const EasyCalButton = ({ eventData, platforms = ['google', 'apple', 'outlook'] }) => {
+const PunktualButton = ({ eventData, platforms = ['google', 'apple', 'outlook'] }) => {
   const [isOpen, setIsOpen] = useState(false);
   
   const calendarLinks = {
@@ -211,23 +211,23 @@ const EasyCalButton = ({ eventData, platforms = ['google', 'apple', 'outlook'] }
   };
   
   return (
-    <div className="easycal-container relative">
+    <div className="Punktual-container relative">
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="easycal-button"
+        className="Punktual-button"
       >
         📅 Add to Calendar
       </button>
       
       {isOpen && (
-        <div className="easycal-dropdown show">
+        <div className="Punktual-dropdown show">
           {platforms.map(platform => (
             <a 
               key={platform}
               href={calendarLinks[platform]}
               target="_blank"
               rel="noopener noreferrer"
-              className="easycal-dropdown-item"
+              className="Punktual-dropdown-item"
               onClick={() => setIsOpen(false)}
             >
               {platform.charAt(0).toUpperCase() + platform.slice(1)} Calendar
@@ -239,7 +239,7 @@ const EasyCalButton = ({ eventData, platforms = ['google', 'apple', 'outlook'] }
   );
 };
 
-export default EasyCalButton;`;
+export default PunktualButton;`;
   };
 
   const getDirectLinks = () => {
@@ -254,14 +254,14 @@ export default EasyCalButton;`;
       title: 'HTML',
       icon: <Code2 size={16} />,
       content: getHTMLCode(),
-      filename: 'easycal-button.html'
+      filename: 'Punktual-button.html'
     },
     {
       key: 'css',
       title: 'CSS',
       icon: <FileText size={16} />,
       content: getCSSCode(),
-      filename: 'easycal-styles.css',
+      filename: 'Punktual-styles.css',
       disabled: !includeCSS
     },
     {
@@ -269,7 +269,7 @@ export default EasyCalButton;`;
       title: 'JavaScript',
       icon: <Settings size={16} />,
       content: getJavaScriptCode(),
-      filename: 'easycal-script.js',
+      filename: 'Punktual-script.js',
       disabled: !includeJS
     },
     {
@@ -277,7 +277,7 @@ export default EasyCalButton;`;
       title: 'React',
       icon: <Code2 size={16} />,
       content: getReactCode(),
-      filename: 'EasyCalButton.jsx'
+      filename: 'PunktualButton.jsx'
     },
     {
       key: 'links',
@@ -429,7 +429,7 @@ export default EasyCalButton;`;
                         <div className="text-sm space-y-2">
                           <div className="font-medium text-green-800">React Usage:</div>
                           <Code className="text-xs text-green-700">
-                            {`<EasyCalButton 
+                            {`<PunktualButton 
   eventData={{
     title: "${eventData.title}",
     date: "${eventData.startDate}",

@@ -13,7 +13,7 @@ const nunito = Nunito({
 });
 
 export const metadata = {
-  title: 'EasyCal - Add to Calendar Button Generator',
+  title: 'Punktual - Add to Calendar Button Generator',
   description: 'Generate "Add to Calendar" buttons for your website, email campaigns, and landing pages. Works with Google, Apple, Outlook, and more.',
 };
 

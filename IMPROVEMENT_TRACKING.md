@@ -1,4 +1,4 @@
-# EasyCal Improvement Tracking
+# Punktual Improvement Tracking
 
 ## 📊 Current State Assessment (Updated 2025-05-27)
 

@@ -105,8 +105,8 @@ export default function AuthModal({ isOpen, onClose, defaultTab = 'login' }) {
           </h2>
           <p className="text-sm text-gray-600">
             {activeTab === 'login' 
-              ? 'Sign in to your EasyCal account' 
-              : 'Get started with EasyCal'}
+              ? 'Sign in to your Punktual account' 
+              : 'Get started with Punktual'}
           </p>
         </ModalHeader>
         

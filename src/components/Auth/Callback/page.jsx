@@ -109,7 +109,7 @@ export default function AuthCallback() {
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Welcome to EasyCal!
+            Welcome to Punktual!
           </h2>
           <p className="text-gray-600 mb-6">
             Your account has been set up successfully. Redirecting you to create your first calendar event...
