@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 
@@ -13,33 +13,7 @@ export function AuthProvider({ children }) {
   const supabase = createClientComponentClient();
   const router = useRouter();
 
-  useEffect(() => {
-    getProfile();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state change:', event, session?.user?.email);
-      
-      // if (session) {
-      //   setUser(session.user);
-      //   setSession(session);
-        
-      //   // Create user profile if it doesn't exist (for new signups)
-      //   if (event === 'SIGNED_UP' || event === 'SIGNED_IN') {
-      //     await createUserProfile(session.user);
-      //   }
-      // } else {
-      //   setUser(null);
-      //   setSession(null);
-      // }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  async function getProfile() {
+  const getProfile = useCallback(async () => {
     try {
       setLoading(true);
       const { data: { user }, data: { session } } = await supabase.auth.getUser();
@@ -50,15 +24,15 @@ export function AuthProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [supabase.auth]);
 
-  async function createUserProfile(user) {
+  const createUserProfile = useCallback(async (user) => {
     try {
       // Check if profile already exists
       const { data: existingProfile } = await supabase
         .from('user_profiles')
         .select('id')
-        .eq('user_id', user.id)  // Correct: query by user_id
+        .eq('user_id', user.id)
         .single();
 
       if (existingProfile) return;
@@ -68,23 +42,48 @@ export function AuthProvider({ children }) {
         .from('user_profiles')
         .insert([
           {
-            user_id: user.id,  // Correct: insert user_id
+            user_id: user.id,
             email: user.email,
             full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
             avatar_url: user.user_metadata?.avatar_url || '',
-            plan: 'free',  // Correct: your table uses 'plan', not 'subscription_plan'
+            plan: 'free',
             created_at: new Date().toISOString()
           }
         ]);
 
       if (error) {
         console.error('Error creating user profile:', error);
-        alert(JSON.stringify(error, null, 2)); // This will show the full error
       }
     } catch (error) {
       console.error('Error in createUserProfile:', error);
     }
-  }
+  }, [supabase]);
+
+  useEffect(() => {
+    getProfile();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state change:', event, session?.user?.email);
+      
+      if (session) {
+        setUser(session.user);
+        setSession(session);
+        
+        // Create user profile if it doesn't exist (for new signups)
+        if (event === 'SIGNED_UP' || event === 'SIGNED_IN') {
+          await createUserProfile(session.user);
+        }
+      } else {
+        setUser(null);
+        setSession(null);
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [getProfile, createUserProfile, supabase.auth]);
 
   const signUp = async (email, password, options = {}) => {
     const { data, error } = await supabase.auth.signUp({
@@ -157,7 +156,7 @@ export function AuthProvider({ children }) {
         ...updates,
         updated_at: new Date().toISOString()
       })
-      .eq('user_id', user.id);  // Correct: query by user_id
+      .eq('user_id', user.id);
 
     if (profileError) throw profileError;
   };
@@ -168,7 +167,7 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase
       .from('user_profiles')
       .select('*')
-      .eq('user_id', user.id)  // Correct: query by user_id
+      .eq('user_id', user.id)
       .single();
 
     if (error) throw error;
