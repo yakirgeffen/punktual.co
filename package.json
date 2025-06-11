@@ -14,7 +14,7 @@
     "@heroui/theme": "^2.4.15",
     "@hookform/resolvers": "^5.0.1",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
-    "@supabase/supabase-js": "^2.49.8",
+    "@supabase/supabase-js": "^2.50.0",
     "date-fns": "^4.1.0",
     "framer-motion": "^11.18.2",
     "lucide-react": "^0.511.0",

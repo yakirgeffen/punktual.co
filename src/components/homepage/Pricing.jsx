@@ -16,14 +16,13 @@ export default function Pricing() {
     "Click analytics & insights",
     "Priority email support",
     "Advanced customization",
-    "White-label options"
   ];
 
   return (
     <section id="pricing" className="py-16 bg-gradient-to-br from-gray-50 to-blue-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">Simple, honest pricing</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">Simple pricing</h2>
           <p className="text-lg text-gray-600">Start free, upgrade when you're ready to scale</p>
         </div>
         
@@ -54,7 +53,7 @@ export default function Pricing() {
           </div>
           
           {/* Pro Plan */}
-          <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl p-6 relative text-white transform scale-105 shadow-xl">
+          <div className="bg-gradient-to-br from-emerald-600 to-emerald-400 rounded-2xl p-6 relative text-white transform shadow-xl">
             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
               <span className="bg-yellow-400 text-gray-900 px-4 py-1 rounded-full text-xs font-bold">
                 Most Popular
@@ -78,18 +77,13 @@ export default function Pricing() {
             
             <Link
               href="/create"
-              className="w-full bg-white text-blue-600 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors text-center block"
+              className="w-full bg-white text-emerald-500 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors text-center block"
             >
               Start 14-Day Free Trial
             </Link>
           </div>
         </div>
         
-        <div className="text-center mt-8">
-          <p className="text-gray-600">
-            Need something custom? <Link href="/contact" className="text-blue-600 hover:underline font-medium">Let's talk</Link>
-          </p>
-        </div>
       </div>
     </section>
   );
