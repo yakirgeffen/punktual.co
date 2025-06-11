@@ -6,37 +6,37 @@ export default function Features() {
       icon: <Globe className="w-6 h-6" />,
       title: "All Platforms",
       desc: "Google, Apple, Outlook, Office 365, Yahoo",
-      color: "bg-blue-500"
+      color: "bg-emerald-500"
     },
     {
       icon: <Zap className="w-6 h-6" />,
       title: "30 Seconds",
       desc: "From idea to working button",
-      color: "bg-yellow-500"
+      color: "bg-emerald-500"
     },
     {
       icon: <Palette className="w-6 h-6" />,
       title: "Brand Match",
       desc: "Custom colors and styling",
-      color: "bg-purple-500"
+      color: "bg-emerald-500"
     },
     {
       icon: <Copy className="w-6 h-6" />,
       title: "Copy & Paste",
       desc: "No developers needed",
-      color: "bg-green-500"
+      color: "bg-emerald-500"
     },
     {
       icon: <Eye className="w-6 h-6" />,
       title: "Live Preview",
       desc: "See it before you use it",
-      color: "bg-pink-500"
+      color: "bg-emerald-500"
     },
     {
       icon: <TrendingUp className="w-6 h-6" />,
       title: "Analytics",
       desc: "Track clicks and conversions",
-      color: "bg-indigo-500"
+      color: "bg-emerald-400"
     }
   ];
 
