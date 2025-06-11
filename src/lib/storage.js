@@ -1,5 +1,5 @@
 // src/lib/storage.js
-const STORAGE_KEY = 'easycal_draft'
+const STORAGE_KEY = 'Punktual_draft'
 
 export function saveEventToStorage(data) {
   try {

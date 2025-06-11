@@ -135,7 +135,7 @@ export default function Hero() {
                     </button>
                   </div>
                   <code className="text-xs text-gray-600 block">
-                    &lt;button class="easycal-btn"&gt;Add to Calendar&lt;/button&gt;
+                    &lt;button class="Punktual-btn"&gt;Add to Calendar&lt;/button&gt;
                   </code>
                 </div>
               </div>

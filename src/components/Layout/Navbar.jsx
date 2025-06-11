@@ -63,7 +63,7 @@ export default function Navbar() {
             </Link>
             
             <nav className="hidden md:flex space-x-8">
-              <a href="#problem" className="text-gray-600 hover:text-emerald-500 transition-colors">Why EasyCal</a>
+              <a href="#problem" className="text-gray-600 hover:text-emerald-500 transition-colors">Why Punktual</a>
               <a href="#pricing" className="text-gray-600 hover:text-emerald-500 transition-colors">Pricing</a>
               <a href="#docs" className="text-gray-600 hover:text-emerald-500 transition-colors">Docs</a>
             </nav>
