@@ -1,14 +1,20 @@
 'use client';
 
+import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import AuthRequired from './AuthRequired';
 
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  redirectTo?: string;
+}
+
 /**
  * ProtectedRoute - Conditionally renders children or auth form
- * @param {React.ReactNode} children - Protected content to show when authenticated
- * @param {string} redirectTo - Where to redirect after successful auth
+ * @param children - Protected content to show when authenticated
+ * @param redirectTo - Where to redirect after successful auth
  */
-export default function ProtectedRoute({ children, redirectTo }) {
+export default function ProtectedRoute({ children, redirectTo }: ProtectedRouteProps) {
   const { user, loading, initialized } = useAuth();
 
   // Show loading while auth is initializing
@@ -26,7 +32,7 @@ export default function ProtectedRoute({ children, redirectTo }) {
   // If user is authenticated, show the protected content
   if (user) {
     console.log('ProtectedRoute: User authenticated, showing protected content');
-    return children;
+    return <>{children}</>;
   }
 
   // If user is NOT authenticated, show the auth form

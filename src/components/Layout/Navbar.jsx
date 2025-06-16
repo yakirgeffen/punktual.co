@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Calendar, User, LogOut, Settings, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -10,7 +10,6 @@ import {
   DropdownMenu, 
   DropdownItem,
   DropdownSection,
-  Avatar,
   Button,
   useDisclosure
 } from '@heroui/react';
@@ -35,17 +34,34 @@ export default function Navbar() {
     }
   };
 
-  const getUserDisplayName = () => {
+  // Memoized user display name
+  const userDisplayName = useMemo(() => {
     if (!user) return '';
     return user.user_metadata?.full_name || 
            user.user_metadata?.name || 
            user.email?.split('@')[0] || 
            'User';
-  };
+  }, [user]);
 
-  const getUserAvatar = () => {
-    return user?.user_metadata?.avatar_url || null;
-  };
+  // Memoized first name with proper truncation
+  const userFirstName = useMemo(() => {
+    if (!user) return '';
+    
+    const fullName = user.user_metadata?.full_name || user.user_metadata?.name;
+    
+    if (fullName) {
+      // Extract first name (handles "J.R. Smith" → "J.R.")
+      const firstName = fullName.trim().split(' ')[0];
+      // Truncate if longer than 12 characters
+      return firstName.length > 12 ? firstName.substring(0, 12) + '...' : firstName;
+    } else if (user.email) {
+      // Fallback to first part of email before @
+      const emailName = user.email.split('@')[0];
+      return emailName.length > 12 ? emailName.substring(0, 12) + '...' : emailName;
+    }
+    
+    return 'User'; // Ultimate fallback
+  }, [user]);
 
   return (
     <>
@@ -80,7 +96,7 @@ export default function Navbar() {
                 <div className="flex items-center space-x-3">
                   <Link 
                     href="/create"
-                    className="bg-emerald-500 text-white px-4 py-2.5 rounded-lg hover:bg-emerald-400 transition-colors font-medium"
+                    className="bg-emerald-500 text-white px-4 py-2.5 rounded-lg hover:bg-emerald-400 transition-colors font-medium min-h-[42px] flex items-center justify-center"
                   >
                     Create Event
                   </Link>
@@ -89,14 +105,13 @@ export default function Navbar() {
                     <DropdownTrigger>
                       <Button
                         variant="ghost"
-                        className="p-0 data-[hover=true]:bg-transparent"
+                        className="px-4 py-2.5 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 transition-all font-medium h-auto min-h-[42px] data-[hover=true]:bg-emerald-50 flex items-center gap-2 max-w-32"
+                        aria-label={`User menu for ${userFirstName}`}
                       >
-                        <Avatar
-                          src={getUserAvatar()}
-                          name={getUserDisplayName()}
-                          size="sm"
-                          className="cursor-pointer"
-                        />
+                        <User className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                        <span className="truncate">
+                          {loading ? 'Loading...' : userFirstName}
+                        </span>
                       </Button>
                     </DropdownTrigger>
                     <DropdownMenu aria-label="User menu">
@@ -106,7 +121,7 @@ export default function Navbar() {
                           description={user.email}
                           startContent={<User className="w-4 h-4" />}
                         >
-                          {getUserDisplayName()}
+                          {userDisplayName}
                         </DropdownItem>
                       </DropdownSection>
                       
