@@ -1,6 +1,6 @@
-import EventCreator from '../../components/EventCreator/EventCreator';
-import { EventContextProvider } from '../../contexts/EventContext';
-import ProtectedRoute from '../../components/Auth/ProtectedRoute';
+import EventCreator from '@/components/EventCreator/EventCreator';
+import { EventContextProvider } from '@/contexts/EventContext';
+import ProtectedRoute from '@/components/Auth/ProtectedRoute';
 
 export default function CreatePage() {
   return (

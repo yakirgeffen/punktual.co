@@ -1,18 +1,24 @@
-// src/contexts/EventContext.jsx - FIXED VERSION
+// src/contexts/EventContext.tsx - TYPED VERSION
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { generateCalendarCode, generateCalendarLinks } from '@/utils/calendarGenerator';
+import type { 
+  EventData, 
+  ButtonData, 
+  CalendarLinks, 
+  EventContextType 
+} from '@/types';
 
-const EventContext = createContext();
+const EventContext = createContext<EventContextType | undefined>(undefined);
 
 // Helper function to get current date
-const getCurrentDate = () => {
+const getCurrentDate = (): string => {
   return new Date().toISOString().split('T')[0];
 };
 
 // Helper function to get rounded next 30 minutes
-const getRoundedNextTime = () => {
+const getRoundedNextTime = (): string => {
   const now = new Date();
   const minutes = now.getMinutes();
   const roundedMinutes = minutes <= 30 ? 30 : 60;
@@ -28,15 +34,19 @@ const getRoundedNextTime = () => {
 };
 
 // Helper function to get end time (1 hour after start)
-const getEndTime = (startTime) => {
+const getEndTime = (startTime: string): string => {
   const [hours, minutes] = startTime.split(':').map(Number);
   const endHours = hours + 1;
   return `${endHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 };
 
-export function EventContextProvider({ children }) {
+interface EventContextProviderProps {
+  children: ReactNode;
+}
+
+export function EventContextProvider({ children }: EventContextProviderProps) {
   // Initialize state with proper default values - only run once
-  const [eventData, setEventData] = useState(() => {
+  const [eventData, setEventData] = useState<EventData>(() => {
     const currentDate = getCurrentDate();
     const currentTime = getRoundedNextTime();
     
@@ -58,7 +68,7 @@ export function EventContextProvider({ children }) {
     };
   });
 
-  const [buttonData, setButtonData] = useState({
+  const [buttonData, setButtonData] = useState<ButtonData>({
     buttonStyle: 'standard',
     buttonSize: 'medium',
     colorScheme: '#4D90FF',
@@ -73,47 +83,51 @@ export function EventContextProvider({ children }) {
     }
   });
 
-  const [outputType, setOutputType] = useState('links');
-  const [generatedCode, setGeneratedCode] = useState('');
-  const [calendarLinks, setCalendarLinks] = useState({});
+  const [outputType, setOutputType] = useState<string>('links');
+  const [generatedCode, setGeneratedCode] = useState<string>('');
+  const [calendarLinks, setCalendarLinks] = useState<CalendarLinks>({});
 
   // Stable callback functions using useCallback
-  const updateEvent = useCallback((data) => {
+  const updateEvent = useCallback((data: Partial<EventData>) => {
     console.log('Updating event data:', data);
     
     setEventData(prevEventData => {
-      // Smart date logic
-      let updatedData = { ...data };
+      const newEventData = { ...prevEventData, ...data };
       
-      // If start date changes, update end date to match (if end date is before start date)
-      if (data.startDate && prevEventData.endDate < data.startDate) {
-        updatedData.endDate = data.startDate;
-      }
-      
-      // If start time changes and it's the same day, ensure end time is after start time
-      if (data.startTime && prevEventData.startDate === prevEventData.endDate) {
-        const startTime = data.startTime;
-        const [startHours, startMinutes] = startTime.split(':').map(Number);
-        const [endHours, endMinutes] = prevEventData.endTime.split(':').map(Number);
-
-        const startTotal = startHours * 60 + startMinutes;
-        const endTotal = endHours * 60 + endMinutes;
-
-        if (startTotal >= endTotal) {
-          updatedData.endTime = getEndTime(startTime);
+      // Smart date logic - ensure end date is not before start date
+      if (data.startDate && newEventData.endDate) {
+        if (new Date(data.startDate) > new Date(newEventData.endDate)) {
+          newEventData.endDate = data.startDate;
         }
       }
       
-      return { ...prevEventData, ...updatedData };
+      // Smart time logic - ensure end time is after start time on same day
+      if (
+        data.startTime && 
+        newEventData.startDate === newEventData.endDate && 
+        newEventData.endTime
+      ) {
+        const [startHours, startMinutes] = data.startTime.split(':').map(Number);
+        const [endHours, endMinutes] = newEventData.endTime.split(':').map(Number);
+
+        const startTotalMinutes = startHours * 60 + startMinutes;
+        const endTotalMinutes = endHours * 60 + endMinutes;
+
+        if (startTotalMinutes >= endTotalMinutes) {
+          newEventData.endTime = getEndTime(data.startTime);
+        }
+      }
+      
+      return newEventData;
     });
   }, []); // Empty dependency array - function never changes
 
-  const updateButton = useCallback((data) => {
+  const updateButton = useCallback((data: Partial<ButtonData>) => {
     console.log('Updating button data:', data);
     setButtonData(prev => ({ ...prev, ...data }));
   }, []); // Empty dependency array - function never changes
 
-  const setOutput = useCallback((type) => {
+  const setOutput = useCallback((type: string) => {
     console.log('Setting output type:', type);
     setOutputType(type);
   }, []); // Empty dependency array - function never changes
@@ -139,7 +153,7 @@ export function EventContextProvider({ children }) {
   }, [eventData, buttonData, outputType]); // These dependencies are fine since they're state values
 
   // Memoize the context value to prevent unnecessary re-renders
-  const contextValue = useMemo(() => ({
+  const contextValue = useMemo<EventContextType>(() => ({
     eventData,
     buttonData,
     outputType,
@@ -167,7 +181,7 @@ export function EventContextProvider({ children }) {
   );
 }
 
-export function useEventContext() {
+export function useEventContext(): EventContextType {
   const context = useContext(EventContext);
   if (!context) {
     throw new Error('useEventContext must be used within EventContextProvider');

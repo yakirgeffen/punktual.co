@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import { Nunito } from 'next/font/google';
 import './globals.css';
-import { AuthProvider } from '../hooks/useAuth';
+import { AuthProvider } from '@/hooks/useAuth';
 import { Toaster } from 'react-hot-toast';
-import Navbar from '../components/Layout/Navbar';
-import Footer from '../components/Layout/Footer';
+import Navbar from '@/components/Layout/Navbar';
+import Footer from '@/components/Layout/Footer';
 
 const nunito = Nunito({
   subsets: ['latin'],
