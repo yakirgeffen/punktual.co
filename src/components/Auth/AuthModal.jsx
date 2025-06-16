@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Modal, 
   ModalContent, 
@@ -28,6 +28,11 @@ export default function AuthModal({ isOpen, onClose, defaultTab = 'login' }) {
   });
 
   const { signIn, signUp, signInWithGoogle } = useAuth();
+
+  // Fix: Update activeTab when defaultTab changes
+  useEffect(() => {
+    setActiveTab(defaultTab);
+  }, [defaultTab]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));

@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { Calendar, Zap, ArrowRight, Play, Check, Copy, Users, Star } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Hero() {
   const [copiedCode, setCopiedCode] = useState(false);
+  const { user, loading } = useAuth();
 
   const handleCopyCode = () => {
     setCopiedCode(true);
@@ -41,25 +43,20 @@ export default function Hero() {
               </span>
             </h1>
             
-            {/* <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-              One button. Every calendar platform. Zero friction.
-              <br />
-              <span className="text-gray-800 font-semibold">Stop losing attendees to forgotten events.</span>
-            </p> */}
-            
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <Link
                 href="/create"
                 className="bg-emerald-500 text-white px-8 py-4 rounded-xl font-semibold hover:bg-emerald-400 transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-100"
               >
-                Create your first event 
+                {loading ? (
+                  'Loading...'
+                ) : user ? (
+                  'Create your new event'
+                ) : (
+                  'Create an event now'
+                )}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
-              
-              {/* <button className="border border-gray-300 text-gray-700 px-8 py-4 rounded-xl font-medium hover:bg-gray-50 transition-colors flex items-center justify-center">
-                <Play className="mr-2 h-5 w-5" />
-                Watch 2min demo
-              </button> */}
             </div>
             
             <div className="flex items-center justify-center lg:justify-start space-x-6 text-sm text-gray-500">
@@ -140,14 +137,6 @@ export default function Hero() {
                 </div>
               </div>
             </div>
-            
-            {/* Floating elements */}
-            {/* <div className="absolute -top-4 -right-4 bg-green-500 text-white p-3 rounded-full shadow-lg">
-              <Check className="w-5 h-5" />
-            </div> */}
-            {/* <div className="absolute -bottom-4 -left-4 bg-purple-500 text-white p-3 rounded-full shadow-lg">
-              <Star className="w-5 h-5" />
-            </div> */}
           </div>
         </div>
       </div>
