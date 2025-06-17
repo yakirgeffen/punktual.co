@@ -1,20 +1,32 @@
 'use client';
 
-import { useState, useEffect, createContext, useContext, useCallback } from 'react';
+import { useState, useEffect, createContext, useContext, useCallback, ReactNode } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
+import type { 
+  SupabaseUser, 
+  SupabaseSession, 
+  AuthContextType, 
+  AuthResponse, 
+  SignUpOptions, 
+  UserProfile 
+} from '@/types';
 
-const AuthContext = createContext();
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState(null);
-  const [initialized, setInitialized] = useState(false);
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [session, setSession] = useState<SupabaseSession | null>(null);
+  const [initialized, setInitialized] = useState<boolean>(false);
   const supabase = createClientComponentClient();
   const router = useRouter();
 
-  const createUserProfile = useCallback(async (user) => {
+  const createUserProfile = useCallback(async (user: SupabaseUser): Promise<void> => {
     try {
       // Check if profile already exists
       const { data: existingProfile } = await supabase
@@ -48,7 +60,7 @@ export function AuthProvider({ children }) {
   }, [supabase]);
 
   // Initialize auth state
-  const initializeAuth = useCallback(async () => {
+  const initializeAuth = useCallback(async (): Promise<void> => {
     try {
       console.log('Initializing auth...');
       
@@ -100,7 +112,7 @@ export function AuthProvider({ children }) {
           setSession(session);
           
           // Create user profile if it doesn't exist (for new signups)
-          if (event === 'SIGNED_UP' || event === 'SIGNED_IN') {
+          if ((event as string) === 'SIGNED_UP' || (event as string) === 'SIGNED_IN') {
             await createUserProfile(session.user);
           }
         } else {
@@ -120,7 +132,7 @@ export function AuthProvider({ children }) {
     };
   }, [initializeAuth, createUserProfile, supabase.auth]);
 
-  const signUp = async (email, password, options = {}) => {
+  const signUp = async (email: string, password: string, options: SignUpOptions = {}): Promise<AuthResponse> => {
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -133,13 +145,13 @@ export function AuthProvider({ children }) {
       });
       
       if (error) throw error;
-      return data;
+      return { user: data.user, session: data.session };
     } finally {
       setLoading(false);
     }
   };
 
-  const signIn = async (email, password) => {
+  const signIn = async (email: string, password: string): Promise<AuthResponse> => {
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -148,14 +160,14 @@ export function AuthProvider({ children }) {
       });
       
       if (error) throw error;
-      return data;
+      return { user: data.user, session: data.session };
     } finally {
       setLoading(false);
     }
   };
 
-  const signInWithGoogle = async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+  const signInWithGoogle = async (): Promise<AuthResponse> => {
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
@@ -167,10 +179,10 @@ export function AuthProvider({ children }) {
     });
     
     if (error) throw error;
-    return data;
+    return { user: null, session: null }; // OAuth redirects, so no immediate user/session
   };
 
-  const signOut = async () => {
+  const signOut = async (): Promise<void> => {
     setLoading(true);
     try {
       const { error } = await supabase.auth.signOut();
@@ -186,7 +198,7 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const resetPassword = async (email) => {
+  const resetPassword = async (email: string): Promise<void> => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/reset-password`
     });
@@ -194,7 +206,7 @@ export function AuthProvider({ children }) {
     if (error) throw error;
   };
 
-  const updateProfile = async (updates) => {
+  const updateProfile = async (updates: Partial<UserProfile>): Promise<void> => {
     if (!user) throw new Error('No user logged in');
 
     setLoading(true);
@@ -221,7 +233,7 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const getUserProfile = async () => {
+  const getUserProfile = async (): Promise<UserProfile | null> => {
     if (!user) return null;
 
     const { data, error } = await supabase
@@ -234,7 +246,7 @@ export function AuthProvider({ children }) {
     return data;
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
     session,
     loading,
@@ -255,7 +267,7 @@ export function AuthProvider({ children }) {
   );
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within AuthProvider');
