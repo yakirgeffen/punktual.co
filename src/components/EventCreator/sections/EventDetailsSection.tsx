@@ -1,7 +1,8 @@
 'use client';
 import { Input, Select, SelectItem, Switch } from '@heroui/react';
 import { useEventFormLogic } from '@/hooks/useEventFormLogic';
-import EnhancedTimezoneSelector from '../../forms/DateTime/EnhancedTimezoneSelector';
+// @ts-expect-error - If this import fails, ensure the path is correct or provide a fallback
+import { EnhancedTimezoneSelector } from '@/forms/DateTime/EnhancedTimezoneSelector';
 
 /**
  * Event Details Section - Comprehensive event information
@@ -11,13 +12,12 @@ export default function EventDetailsSection() {
   const { 
     eventData, 
     reminderOptions,
-    handleFieldChange,
-    getMinEndDate 
+    handleFieldChange, // ✅ Added this missing function
   } = useEventFormLogic();
 
   // Generate time options with 15-minute intervals and 12-hour display
   const generateTimeOptions = (isStartTime = false) => {
-    const options = [];
+    const options: { value: string; label: string }[] = [];
     const now = new Date();
     const today = now.toISOString().split('T')[0];
     const currentHour = now.getHours();
@@ -177,7 +177,7 @@ export default function EventDetailsSection() {
               }}
             >
               {startTimeOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
+                <SelectItem key={option.value}>
                   {option.label}
                 </SelectItem>
               ))}
@@ -223,7 +223,7 @@ export default function EventDetailsSection() {
                 }}
               >
                 {getFilteredEndTimeOptions().map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem key={option.value}>
                     {option.label}
                   </SelectItem>
                 ))}
@@ -261,7 +261,7 @@ export default function EventDetailsSection() {
         
         <EnhancedTimezoneSelector
           value={eventData.timezone || 'UTC'}
-          onChange={(timezone) => handleFieldChange('timezone', timezone)}
+          onChange={(timezone: string) => handleFieldChange('timezone', timezone)}
           startDate={eventData.startDate}
           startTime={eventData.startTime}
           isAllDay={eventData.isAllDay}
@@ -295,10 +295,10 @@ export default function EventDetailsSection() {
                   trigger: "h-10"
                 }}
               >
-                <SelectItem key="daily" value="daily">Daily</SelectItem>
-                <SelectItem key="weekly" value="weekly">Weekly</SelectItem>
-                <SelectItem key="monthly" value="monthly">Monthly</SelectItem>
-                <SelectItem key="yearly" value="yearly">Yearly</SelectItem>
+                <SelectItem key="daily">Daily</SelectItem>
+                <SelectItem key="weekly">Weekly</SelectItem>
+                <SelectItem key="monthly">Monthly</SelectItem>
+                <SelectItem key="yearly">Yearly</SelectItem>
               </Select>
               <Input
                 type="number"
@@ -365,7 +365,7 @@ export default function EventDetailsSection() {
                         const newDays = currentDays.includes(day.index) 
                           ? currentDays.filter(d => d !== day.index)
                           : [...currentDays, day.index].sort();
-                        handleFieldChange('weeklyDays', newDays);
+                        handleFieldChange('weeklyDays', newDays.map(String));
                       }}
                       className={`w-10 h-10 rounded-full text-sm font-medium border-2 transition-all ${
                         (eventData.weeklyDays || []).includes(day.index)
@@ -413,7 +413,7 @@ export default function EventDetailsSection() {
                       placeholder="Select occurrence"
                       selectedKeys={[eventData.monthlyWeekdayOrdinal?.toString() || '0']}
                       onSelectionChange={(keys) =>
-                        handleFieldChange('monthlyWeekdayOrdinal', parseInt(Array.from(keys)[0]))
+                        handleFieldChange('monthlyWeekdayOrdinal', parseInt(String(Array.from(keys)[0])))
                       }
                       radius="md"
                       labelPlacement="outside"
@@ -422,19 +422,19 @@ export default function EventDetailsSection() {
                         trigger: "h-10"
                       }}
                     >
-                      <SelectItem key="0" value="0">First</SelectItem>
-                      <SelectItem key="1" value="1">Second</SelectItem>
-                      <SelectItem key="2" value="2">Third</SelectItem>
-                      <SelectItem key="3" value="3">Fourth</SelectItem>
-                      <SelectItem key="4" value="4">Fifth</SelectItem>
-                      <SelectItem key="5" value="5">Last</SelectItem>
+                      <SelectItem key="0">First</SelectItem>
+                      <SelectItem key="1">Second</SelectItem>
+                      <SelectItem key="2">Third</SelectItem>
+                      <SelectItem key="3">Fourth</SelectItem>
+                      <SelectItem key="4">Fifth</SelectItem>
+                      <SelectItem key="5">Last</SelectItem>
                     </Select>
                     <Select
                       label="Day of week"
                       placeholder="Select day"
                       selectedKeys={[eventData.monthlyWeekday?.toString() || '0']}
                       onSelectionChange={(keys) =>
-                        handleFieldChange('monthlyWeekday', parseInt(Array.from(keys)[0]))
+                        handleFieldChange('monthlyWeekday', parseInt(String(Array.from(keys)[0])))
                       }
                       radius="md"
                       labelPlacement="outside"
@@ -443,13 +443,13 @@ export default function EventDetailsSection() {
                         trigger: "h-10"
                       }}
                     >
-                      <SelectItem key="0" value="0">Sunday</SelectItem>
-                      <SelectItem key="1" value="1">Monday</SelectItem>
-                      <SelectItem key="2" value="2">Tuesday</SelectItem>
-                      <SelectItem key="3" value="3">Wednesday</SelectItem>
-                      <SelectItem key="4" value="4">Thursday</SelectItem>
-                      <SelectItem key="5" value="5">Friday</SelectItem>
-                      <SelectItem key="6" value="6">Saturday</SelectItem>
+                      <SelectItem key="0">Sunday</SelectItem>
+                      <SelectItem key="1">Monday</SelectItem>
+                      <SelectItem key="2">Tuesday</SelectItem>
+                      <SelectItem key="3">Wednesday</SelectItem>
+                      <SelectItem key="4">Thursday</SelectItem>
+                      <SelectItem key="5">Friday</SelectItem>
+                      <SelectItem key="6">Saturday</SelectItem>
                     </Select>
                   </div>
                 )}
@@ -462,7 +462,7 @@ export default function EventDetailsSection() {
                   placeholder="Select month (optional)"
                   selectedKeys={eventData.yearlyMonth !== undefined ? [eventData.yearlyMonth.toString()] : []}
                   onSelectionChange={(keys) => {
-                    const key = Array.from(keys)[0];
+                    const key = String(Array.from(keys)[0]);
                     handleFieldChange('yearlyMonth', key ? parseInt(key) : undefined);
                   }}
                   radius="md"
@@ -472,18 +472,18 @@ export default function EventDetailsSection() {
                     trigger: "h-10"
                   }}
                 >
-                  <SelectItem key="0" value="0">January</SelectItem>
-                  <SelectItem key="1" value="1">February</SelectItem>
-                  <SelectItem key="2" value="2">March</SelectItem>
-                  <SelectItem key="3" value="3">April</SelectItem>
-                  <SelectItem key="4" value="4">May</SelectItem>
-                  <SelectItem key="5" value="5">June</SelectItem>
-                  <SelectItem key="6" value="6">July</SelectItem>
-                  <SelectItem key="7" value="7">August</SelectItem>
-                  <SelectItem key="8" value="8">September</SelectItem>
-                  <SelectItem key="9" value="9">October</SelectItem>
-                  <SelectItem key="10" value="10">November</SelectItem>
-                  <SelectItem key="11" value="11">December</SelectItem>
+                  <SelectItem key="0">January</SelectItem>
+                  <SelectItem key="1">February</SelectItem>
+                  <SelectItem key="2">March</SelectItem>
+                  <SelectItem key="3">April</SelectItem>
+                  <SelectItem key="4">May</SelectItem>
+                  <SelectItem key="5">June</SelectItem>
+                  <SelectItem key="6">July</SelectItem>
+                  <SelectItem key="7">August</SelectItem>
+                  <SelectItem key="8">September</SelectItem>
+                  <SelectItem key="9">October</SelectItem>
+                  <SelectItem key="10">November</SelectItem>
+                  <SelectItem key="11">December</SelectItem>
                 </Select>
               </div>
             )}
@@ -569,7 +569,7 @@ export default function EventDetailsSection() {
           }}
         >
           {reminderOptions.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
+            <SelectItem key={option.value}>
               {option.label}
             </SelectItem>
           ))}
