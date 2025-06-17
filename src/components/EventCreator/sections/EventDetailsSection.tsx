@@ -1,8 +1,7 @@
 'use client';
 import { Input, Select, SelectItem, Switch } from '@heroui/react';
 import { useEventFormLogic } from '@/hooks/useEventFormLogic';
-// @ts-expect-error - If this import fails, ensure the path is correct or provide a fallback
-import { EnhancedTimezoneSelector } from '@/forms/DateTime/EnhancedTimezoneSelector';
+import EnhancedTimezoneSelector from '@/components/forms/DateTime/EnhancedTimezoneSelector';
 
 /**
  * Event Details Section - Comprehensive event information
