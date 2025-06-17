@@ -1,7 +1,8 @@
 import { Calendar } from 'lucide-react';
 import Link from 'next/link';
+import type { FC } from 'react';
 
-export default function Footer() {
+const Footer: FC = () => {
   return (
     <footer className="bg-slate-900 text-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -24,7 +25,7 @@ export default function Footer() {
               <li><Link href="#features" className="hover:text-white transition-colors">Features</Link></li>
               <li><Link href="#pricing" className="hover:text-white transition-colors">Pricing</Link></li>
               <li><Link href="/docs" className="hover:text-white transition-colors">Documentation</Link></li>
-              <li><Link href="/api" className="hover:text-white transition-colors">API</Link></li>
+              <li><Link href="/api-info" className="hover:text-white transition-colors">API</Link></li>
             </ul>
           </div>
           
@@ -73,4 +74,6 @@ export default function Footer() {
       </div>
     </footer>
   );
-}
+};
+
+export default Footer;
