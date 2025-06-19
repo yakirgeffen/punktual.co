@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import { Nunito } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/hooks/useAuth';
 import { Toaster } from 'react-hot-toast';
 import Navbar from '@/components/Layout/Navbar';
 import Footer from '@/components/Layout/Footer';
+import TrafficTracker from '@/components/TrafficTracker';
 
 const nunito = Nunito({
   subsets: ['latin'],
@@ -24,8 +26,23 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+      <Script
+        src="https://www.googletagmanager.com/gtag/js?id=G-MQD8GRBC4V"
+        strategy="afterInteractive"
+      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-MQD8GRBC4V');
+        `}
+      </Script>
+    </head>
       <body className={`${nunito.variable} font-sans min-h-screen bg-white`}>
         <AuthProvider>
+          {/* <TrafficTracker /> */}
           <Navbar />
           {children}
           <Footer />

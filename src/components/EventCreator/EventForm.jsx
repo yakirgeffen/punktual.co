@@ -5,6 +5,7 @@ import EventDetailsSection from './sections/EventDetailsSection';
 import PlatformSelectionSection from './sections/PlatformSelectionSection';
 import ButtonCustomizationSection from './sections/ButtonCustomizationSection';
 import StatusIndicator from './sections/StatusIndicator';
+import { trackConversion } from '@/lib/analytics';
 
 /**
  * EventForm - Main form orchestrator

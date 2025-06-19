@@ -11,8 +11,8 @@ import { generateCalendarCode } from '@/utils/calendarGenerator';
 import toast from 'react-hot-toast';
 import EmailLinksPreview from './Preview/EmailLinksPreview';
 import type { PlatformInfo } from '@/types/preview';
-import type { CodeGenerationOptions } from '@/types';
-import { trackConversion } from '@/lib/analytics';
+import { trackConversion } from '@/lib/analytics.js';
+import type { CodeGenerationOptions } from '@/types/index';
 
 interface UseCaseOption {
   id: string;
@@ -97,7 +97,7 @@ export default function DynamicPreview() {
   const getGeneratedCode = (): string => {
     if (!isComplete) return '<!-- Complete the form to generate code -->';
     
-    const options = {
+    const options: CodeGenerationOptions = {
       minified: isMinified,
       format: codeFormat,
       includeCss: true,
@@ -315,7 +315,10 @@ export default function DynamicPreview() {
                           </label>
                           <select
                             value={codeFormat}
-                            onChange={(e) => setCodeFormat(e.target.value as 'html' | 'react' | 'css' | 'js')}
+                            onChange={(e) => {
+                            const value = e.target.value as 'html' | 'react' | 'css' | 'js';
+                            setCodeFormat(value);
+                          }}
                             className="text-sm border rounded px-2 py-1"
                           >
                             <option value="html">HTML</option>
