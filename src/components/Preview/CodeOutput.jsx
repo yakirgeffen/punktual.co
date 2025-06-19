@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { trackConversion } from '@/lib/analytics';
 import { useEventContext } from '@/contexts/EventContext';
 import { 
   Card, 
@@ -36,6 +37,7 @@ const CodeOutput = ({ useCase }) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
+      trackConversion('code_copied');
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy text: ', err);
