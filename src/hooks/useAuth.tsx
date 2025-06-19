@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, createContext, useContext, useCallback, useMemo, ReactNode } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import type { 
   SupabaseUser, 
@@ -25,22 +25,52 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [initialized, setInitialized] = useState<boolean>(false);
   
   // ✅ Memoize Supabase client to prevent infinite re-renders
-  const supabase = useMemo(() => createClientComponentClient(), []);
+  const supabase = useMemo(() => createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  ), []);
   const router = useRouter();
+
+  // Test function to verify Supabase client is working
+  const testSupabaseConnection = useCallback(async () => {
+    try {
+      
+      // Try a simple query to test the connection
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .limit(1);
+      
+      return { success: !error, error };
+    } catch (error) {
+      console.error('Test query failed:', error);
+      return { success: false, error };
+    }
+  }, [supabase]);
 
   const createUserProfile = useCallback(async (user: SupabaseUser): Promise<void> => {
     try {
       // Check if profile already exists
-      const { data: existingProfile } = await supabase
+      const { data: existingProfile, error: selectError } = await supabase
         .from('user_profiles')
         .select('id')
         .eq('user_id', user.id)
         .single();
 
-      if (existingProfile) return;
+      if (selectError) {
+        console.error('Error checking existing profile:', selectError);
+        // If it's a "not found" error, that's expected for new users
+        if (selectError.code !== 'PGRST116') {
+          return; // Don't proceed if there's a real error
+        }
+      }
+
+      if (existingProfile) {
+        return;
+      }
 
       // Create new profile
-      const { error } = await supabase
+      const { error: insertError } = await supabase
         .from('user_profiles')
         .insert([
           {
@@ -53,48 +83,45 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
         ]);
 
-      if (error && error.code !== '23505') { // Ignore duplicate key errors
-        console.error('Error creating user profile:', error);
+      if (insertError && insertError.code !== '23505') { // Ignore duplicate key errors
+        console.error('Error creating user profile:', insertError);
       }
     } catch (error) {
       console.error('Error in createUserProfile:', error);
     }
   }, [supabase]);
 
-  // Initialize auth state
+  // Initialize auth state - REMOVE createUserProfile from dependencies
   const initializeAuth = useCallback(async (): Promise<void> => {
     try {
-      console.log('Initializing auth...');
+      
+      // Test Supabase connection first
+      await testSupabaseConnection();
       
       // Get current session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
-        console.error('Session error:', sessionError);
         setUser(null);
         setSession(null);
       } else if (session) {
-        console.log('Found existing session:', session.user.email);
         setUser(session.user);
         setSession(session);
         
-        // Ensure user profile exists
+        // Ensure user profile exists - call createUserProfile directly
         await createUserProfile(session.user);
       } else {
-        console.log('No existing session found');
         setUser(null);
         setSession(null);
       }
     } catch (error) {
-      console.error('Error initializing auth:', error);
       setUser(null);
       setSession(null);
     } finally {
       setLoading(false);
       setInitialized(true);
-      console.log('Auth initialization complete');
     }
-  }, [supabase.auth, createUserProfile]);
+  }, [supabase.auth, testSupabaseConnection]);
 
   useEffect(() => {
     // Initialize auth state
@@ -104,7 +131,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state change:', event, session?.user?.email);
       
       setLoading(true);
       
@@ -129,10 +155,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
 
     return () => {
-      console.log('Cleaning up auth subscription');
       subscription.unsubscribe();
     };
-  }, [initializeAuth, createUserProfile, supabase.auth]);
+  }, [initializeAuth, supabase.auth]);
 
   const signUp = async (email: string, password: string, options: SignUpOptions = {}): Promise<AuthResponse> => {
     setLoading(true);
@@ -141,7 +166,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/create`,
           data: options.data || {}
         }
       });
@@ -172,7 +197,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/create`,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
