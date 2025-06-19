@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, createContext, useContext, useCallback, ReactNode } from 'react';
+import { useState, useEffect, createContext, useContext, useCallback, useMemo, ReactNode } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import type { 
@@ -23,7 +23,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState<boolean>(true);
   const [session, setSession] = useState<SupabaseSession | null>(null);
   const [initialized, setInitialized] = useState<boolean>(false);
-  const supabase = createClientComponentClient();
+  
+  // ✅ Memoize Supabase client to prevent infinite re-renders
+  const supabase = useMemo(() => createClientComponentClient(), []);
   const router = useRouter();
 
   const createUserProfile = useCallback(async (user: SupabaseUser): Promise<void> => {
@@ -112,7 +114,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setSession(session);
           
           // Create user profile if it doesn't exist (for new signups)
-          if ((event as string) === 'SIGNED_UP' || (event as string) === 'SIGNED_IN') {
+          if (String(event) === 'SIGNED_UP' || String(event) === 'SIGNED_IN') {
             await createUserProfile(session.user);
           }
         } else {
