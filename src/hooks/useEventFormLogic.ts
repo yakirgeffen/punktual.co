@@ -93,7 +93,7 @@ export const useEventFormLogic = (): EventFormLogicReturn => {
       }
       initializedRef.current = true;
     }
-  }, [eventData, updateEvent]);
+  }, [updateEvent]);
 
   // Validation states
   const hasTitle = !!eventData.title?.trim();
