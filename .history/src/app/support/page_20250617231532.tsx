@@ -16,7 +16,7 @@ export default function SupportPage() {
           </p>
           <div className="bg-white rounded-lg shadow p-8">
             <p className="text-gray-600 mb-4">
-              Found a bug or need technical help? We&apos;re here to assist!
+              Found a bug or need technical help? We're here to assist!
             </p>
             <p className="text-gray-600">
               Support ticketing system coming soon. For now, email us at:

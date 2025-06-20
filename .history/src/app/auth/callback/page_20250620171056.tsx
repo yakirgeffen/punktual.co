@@ -1,22 +1,28 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Spinner } from '@heroui/react';
 import { CheckCircle, XCircle, ArrowRight } from 'lucide-react';
 
-export default function AuthCallback() {
+function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const supabase = createClientComponentClient();
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
+        // Check if searchParams is available
+        if (!searchParams) {
+          router.push('/');
+          return;
+        }
+
         // Get the code from URL parameters
         const code = searchParams.get('code');
         const error_code = searchParams.get('error');
@@ -44,9 +50,10 @@ export default function AuthCallback() {
           // No code parameter, redirect to home
           router.push('/');
         }
-      } catch (error) {
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
         console.error('Auth callback error:', error);
-        setError(error.message);
+        setError(errorMessage);
         
         // Redirect to home after error
         setTimeout(() => {

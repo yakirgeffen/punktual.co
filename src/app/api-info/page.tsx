@@ -16,7 +16,7 @@ export default function ApiInfoPage() {
           </p>
           <div className="bg-white rounded-lg shadow p-8">
             <p className="text-gray-600">
-              Our API is in development. Soon you'll be able to:
+              Our API is in development. Soon you&apos;ll be able to:
             </p>
             <ul className="text-left mt-4 text-gray-600 space-y-2">
               <li>• Generate calendar buttons programmatically</li>
