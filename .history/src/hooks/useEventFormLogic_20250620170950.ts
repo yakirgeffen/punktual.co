@@ -69,23 +69,39 @@ export const useEventFormLogic = (): EventFormLogicReturn => {
     if (!initializedRef.current) {
       const now = new Date();
       const today = now.toISOString().split('T')[0];
-      const defaultStartTime = roundToNext15Minutes(now);
-      const startTime24 = formatTimeForInput(defaultStartTime);
-      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const updates: Partial<EventData> = {};
       
-      // Build updates object without reading from eventData to avoid dependency issues
-      const updates: Partial<EventData> = {
-        startDate: today,
-        endDate: today,
-        startTime: startTime24,
-        endTime: addHoursToTime(startTime24, 1),
-        timezone: userTimezone || 'UTC'
-      };
+      if (!eventData.startDate) updates.startDate = today;
+      if (!eventData.endDate) updates.endDate = today;
       
-      updateEvent(updates);
+      if (!eventData.isAllDay && !eventData.startTime) {
+        const defaultStartTime = roundToNext15Minutes(now);
+        const startTime24 = formatTimeForInput(defaultStartTime);
+        updates.startTime = startTime24;
+        if (!eventData.endTime) {
+          updates.endTime = addHoursToTime(startTime24, 1);
+        }
+      }
+      
+      if (!eventData.timezone) {
+        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        updates.timezone = userTimezone || 'UTC';
+      }
+      
+      if (Object.keys(updates).length > 0) {
+        updateEvent(updates);
+      }
       initializedRef.current = true;
     }
-  }, [updateEvent]);
+  }, [
+    eventData.startDate,
+    eventData.endDate,
+    eventData.isAllDay,
+    eventData.startTime,
+    eventData.endTime,
+    eventData.timezone,
+    updateEvent
+  ]);
 
   // Validation states
   const hasTitle = !!eventData.title?.trim();

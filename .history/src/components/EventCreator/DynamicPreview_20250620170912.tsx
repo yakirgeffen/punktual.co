@@ -363,8 +363,6 @@ export default function DynamicPreview() {
                         <Image 
                           src={PLATFORM_INFO[platform as keyof typeof PLATFORM_INFO].logo} 
                           alt={PLATFORM_INFO[platform as keyof typeof PLATFORM_INFO].name}
-                          width={16}
-                          height={16}
                           className="w-4 h-4 mr-2"
                         />
                         <span className="font-medium text-gray-900">{PLATFORM_INFO[platform as keyof typeof PLATFORM_INFO].name}</span>
