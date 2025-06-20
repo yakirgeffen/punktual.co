@@ -26,23 +26,22 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-      <Script
-        src="https://www.googletagmanager.com/gtag/js?id=G-MQD8GRBC4V"
-        strategy="afterInteractive"
-      />
-      <Script id="google-analytics" strategy="afterInteractive">
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-MQD8GRBC4V');
-        `}
-      </Script>
-    </head>
       <body className={`${nunito.variable} font-sans min-h-screen bg-white`}>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-MQD8GRBC4V"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-MQD8GRBC4V');
+          `}
+        </Script>
+        
         <AuthProvider>
-          {/* <TrafficTracker /> */}
+          <TrafficTracker />
           <Navbar />
           {children}
           <Footer />

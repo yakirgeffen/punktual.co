@@ -36,7 +36,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       
       // Try a simple query to test the connection
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('user_profiles')
         .select('id')
         .limit(1);
@@ -91,46 +91,56 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [supabase]);
 
-  // Initialize auth state - REMOVE createUserProfile from dependencies
-  const initializeAuth = useCallback(async (): Promise<void> => {
-    try {
-      
-      // Test Supabase connection first
-      await testSupabaseConnection();
-      
-      // Get current session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        setUser(null);
-        setSession(null);
-      } else if (session) {
-        setUser(session.user);
-        setSession(session);
-        
-        // Ensure user profile exists - call createUserProfile directly
-        await createUserProfile(session.user);
-      } else {
-        setUser(null);
-        setSession(null);
-      }
-    } catch (error) {
-      setUser(null);
-      setSession(null);
-    } finally {
-      setLoading(false);
-      setInitialized(true);
-    }
-  }, [supabase.auth, testSupabaseConnection]);
 
   useEffect(() => {
-    // Initialize auth state
-    initializeAuth();
+    let mounted = true;
+
+    // Initialize auth state once
+    const initialize = async () => {
+      if (initialized || !mounted) return;
+
+      try {
+        // Test Supabase connection first
+        await testSupabaseConnection();
+        
+        // Get current session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+
+        if (sessionError) {
+          setUser(null);
+          setSession(null);
+        } else if (session) {
+          setUser(session.user);
+          setSession(session);
+          
+          // Ensure user profile exists
+          await createUserProfile(session.user);
+        } else {
+          setUser(null);
+          setSession(null);
+        }
+      } catch {
+        if (mounted) {
+          setUser(null);
+          setSession(null);
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+          setInitialized(true);
+        }
+      }
+    };
+
+    initialize();
 
     // Set up auth state listener
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
       
       setLoading(true);
       
@@ -150,14 +160,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } catch (error) {
         console.error('Error handling auth state change:', error);
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
-  }, [initializeAuth, supabase.auth]);
+  }, [supabase.auth, testSupabaseConnection, createUserProfile, initialized]);
 
   const signUp = async (email: string, password: string, options: SignUpOptions = {}): Promise<AuthResponse> => {
     setLoading(true);
