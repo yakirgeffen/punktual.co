@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import { useEventContext } from '@/contexts/EventContext';
 import { 
   roundToNext15Minutes, 

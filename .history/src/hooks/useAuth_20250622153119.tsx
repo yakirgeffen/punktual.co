@@ -3,7 +3,7 @@
 import { useState, useEffect, createContext, useContext, useCallback, ReactNode, useRef } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
-import type { Subscription, AuthChangeEvent } from '@supabase/supabase-js';
+import type { Subscription } from '@supabase/supabase-js';
 import type { 
   SupabaseUser, 
   SupabaseSession, 
@@ -110,7 +110,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // Set up auth state listener ONCE
     if (!subscriptionRef.current) {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
         console.log('Auth state change:', event, session?.user?.email);
         
         // REMOVED: setLoading(true) - Don't show loading on every auth change
@@ -120,8 +120,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
             setUser(session.user);
             setSession(session);
             
-            // Create user profile if it doesn't exist (for new signups and sign-ins)
-            if (event === 'SIGNED_IN') {
+            // Create user profile if it doesn't exist (for new signups)
+            if (event === 'SIGNED_UP' || event === 'SIGNED_IN') {
               await createUserProfile(session.user);
             }
           } else {
