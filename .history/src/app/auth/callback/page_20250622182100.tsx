@@ -14,8 +14,6 @@ export default function AuthCallback() {
   const supabase = createClientComponentClient();
 
   useEffect(() => {
-    console.log('🟡 AuthCallback useEffect started');
-    
     const handleAuthCallback = async () => {
       console.log('🟡 handleAuthCallback function called');
       try {
@@ -24,8 +22,6 @@ export default function AuthCallback() {
         const code = urlParams.get('code');
         const error_code = urlParams.get('error');
         const error_description = urlParams.get('error_description');
-
-        console.log('🟡 Retrieved URL params - code:', code, 'error_code:', error_code);
 
         if (error_code) {
           throw new Error(error_description || 'Authentication failed');
@@ -37,7 +33,6 @@ export default function AuthCallback() {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           
           if (error) {
-            console.log('❌ Exchange code error:', error);
             throw error;
           }
           console.log('✅ Auth successful, setting success state');
@@ -50,30 +45,25 @@ export default function AuthCallback() {
             router.push('/create');
           }, 2000);
         } else {
-          console.log('❌ No code parameter, redirecting to home');
           // No code parameter, redirect to home
           router.push('/');
         }
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-        console.error('❌ Auth callback error:', error);
+        console.error('Auth callback error:', error);
         setError(errorMessage);
         
         // Redirect to home after error
         setTimeout(() => {
-          console.log('🔴 Redirecting to home after error');
           router.push('/');
         }, 3000);
       } finally {
-        console.log('🟡 Setting loading to false');
         setLoading(false);
       }
     };
 
     handleAuthCallback();
   }, [router, supabase.auth]);
-
-  console.log('🟡 Component render - loading:', loading, 'error:', error, 'success:', success);
 
   if (loading) {
     return (
