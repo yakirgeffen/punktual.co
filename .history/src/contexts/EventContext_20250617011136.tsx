@@ -87,23 +87,36 @@ export function EventContextProvider({ children }: EventContextProviderProps) {
   const [generatedCode, setGeneratedCode] = useState<string>('');
   const [calendarLinks, setCalendarLinks] = useState<CalendarLinks>({});
 
-  // FIXED: Simplified updateEvent function without competing smart logic
+  // Stable callback functions using useCallback
   const updateEvent = useCallback((data: Partial<EventData>) => {
     console.log('Updating event data:', data);
     
     setEventData(prevEventData => {
       const newEventData = { ...prevEventData, ...data };
       
-      // SIMPLIFIED: Only basic date validation that doesn't compete with useEventFormLogic
-      // Only apply if endDate is not being explicitly set in this update
-      if (data.startDate && newEventData.endDate && !data.endDate) {
+      // Smart date logic - ensure end date is not before start date
+      if (data.startDate && newEventData.endDate) {
         if (new Date(data.startDate) > new Date(newEventData.endDate)) {
           newEventData.endDate = data.startDate;
         }
       }
       
-      // REMOVED: Competing smart time logic - let useEventFormLogic handle time coordination
-      // This was causing conflicts with the batched updates from useEventFormLogic
+      // Smart time logic - ensure end time is after start time on same day
+      if (
+        data.startTime && 
+        newEventData.startDate === newEventData.endDate && 
+        newEventData.endTime
+      ) {
+        const [startHours, startMinutes] = data.startTime.split(':').map(Number);
+        const [endHours, endMinutes] = newEventData.endTime.split(':').map(Number);
+
+        const startTotalMinutes = startHours * 60 + startMinutes;
+        const endTotalMinutes = endHours * 60 + endMinutes;
+
+        if (startTotalMinutes >= endTotalMinutes) {
+          newEventData.endTime = getEndTime(data.startTime);
+        }
+      }
       
       return newEventData;
     });

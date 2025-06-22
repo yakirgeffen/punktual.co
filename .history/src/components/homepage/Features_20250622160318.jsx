@@ -36,7 +36,7 @@ export default function Features() {
       icon: <TrendingUp className="w-6 h-6" />,
       title: "Analytics",
       desc: "Track clicks and conversions",
-      color: "bg-emerald-500"
+      color: "bg-emerald-400"
     }
   ];
 
@@ -44,7 +44,7 @@ export default function Features() {
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-emerald-800 mb-3">Everything you need, nothing you don't.</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">Everything you need, nothing you don't</h2>
           <p className="text-lg text-gray-600">Professional calendar integration made simple</p>
         </div>
         
