@@ -7,10 +7,13 @@ import { useAuth } from '@/hooks/useAuth';
 
 export default function AuthCallback() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, initialized } = useAuth();
 
   useEffect(() => {
-    console.log('🟡 Callback effect - user:', !!user);
+    console.log('🟡 Callback effect - user:', !!user, 'initialized:', initialized);
+    
+    // Only proceed if auth is initialized
+    if (!initialized) return;
     
     // Get URL parameters
     const urlParams = new URLSearchParams(window.location.search);
@@ -31,15 +34,18 @@ export default function AuthCallback() {
       return;
     }
     
+    if (code && !user) {
+      console.log('⏳ Code present but no user yet, waiting...');
+      return;
+    }
+    
     if (!code) {
       console.log('❌ No code, redirecting home');
       router.push('/');
       return;
     }
     
-    console.log('⏳ Code present but no user yet, waiting...');
-    
-  }, [user, router]);
+  }, [user, initialized, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">

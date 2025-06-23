@@ -1,6 +1,13 @@
 'use client';
+// import { 
+//   LayoutStyleSection, 
+//   ButtonStyleSection, 
+//   ButtonColorSection, 
+//   AdditionalOptionsSection 
+// } from './ButtonCustomization';
+
+// Temporary: Import just ButtonColorSection to test
 import ButtonColorSection from './ButtonCustomization/ButtonColorSection';
-import ButtonStyleSection from './ButtonCustomization/ButtonStyleSection';
 import { useEventFormLogic } from '@/hooks/useEventFormLogic';
 
 export default function ButtonCustomizationSection() {
@@ -8,7 +15,7 @@ export default function ButtonCustomizationSection() {
   
   return (
     <div className="space-y-6 pb-4">
-      {/* Temporary: Keep old layout section */}
+      {/* Temporary: Keep old layout section to test ButtonColorSection */}
       <div>
         <label className="block text-sm font-medium text-gray-700 pb-1 mb-3">Layout Style</label>
         <div className="flex gap-6">
@@ -26,10 +33,7 @@ export default function ButtonCustomizationSection() {
         </div>
       </div>
 
-      {/* TEST: Add ButtonStyleSection */}
-      <ButtonStyleSection />
-      
-      {/* WORKING: ButtonColorSection */}
+      {/* TEST: New ButtonColorSection */}
       <ButtonColorSection />
       
       {/* OLD: Keep this for now */}
