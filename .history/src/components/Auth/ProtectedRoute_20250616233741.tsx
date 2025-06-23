@@ -17,17 +17,8 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children, redirectTo }: ProtectedRouteProps) {
   const { user, loading, initialized } = useAuth();
 
-  console.log('🟡 ProtectedRoute:', { user: !!user, loading, initialized });
-
-  // If user exists, show content immediately (handles OAuth race condition)
-  if (user) {
-    console.log('✅ ProtectedRoute: User authenticated, showing protected content');
-    return <>{children}</>;
-  }
-
-  // Only show loading if we're still initializing and no user
+  // Show loading while auth is initializing
   if (!initialized || loading) {
-    console.log('🔴 ProtectedRoute showing loading screen');
     return (
       <div className="bg-gradient-to-br from-emerald-50 via-white to-blue-50 lg:min-h-screen flex items-center justify-center px-4 py-16">
         <div className="text-center">
@@ -38,7 +29,13 @@ export default function ProtectedRoute({ children, redirectTo }: ProtectedRouteP
     );
   }
 
+  // If user is authenticated, show the protected content
+  if (user) {
+    console.log('ProtectedRoute: User authenticated, showing protected content');
+    return <>{children}</>;
+  }
+
   // If user is NOT authenticated, show the auth form
-  console.log('🟡 ProtectedRoute: User not authenticated, showing auth form');
+  console.log('ProtectedRoute: User not authenticated, showing auth form');
   return <AuthRequired redirectTo={redirectTo} />;
 }
