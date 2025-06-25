@@ -6,7 +6,7 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyPage() {
-  const effectiveDate = "December 1, 2024";
+  const effectiveDate = "June 1, 2025";
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -29,7 +29,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Introduction</h2>
               <p className="text-gray-700 leading-relaxed">
-                Punktual helps you create calendar buttons for events. This privacy policy explains 
+                Punktual is a web-based tool that helps you create calendar buttons for events. This privacy policy explains 
                 what information we collect and how we use it.
               </p>
             </section>
@@ -121,7 +121,7 @@ export default function PrivacyPage() {
                 </p>
                 <p className="text-gray-700 leading-relaxed flex items-start">
                   <span className="text-emerald-500 mr-2">•</span>
-                  <span>If we transfer our business (you'll be notified)</span>
+                  <span>If we transfer our business (you will be notified)</span>
                 </p>
               </div>
             </section>
@@ -136,7 +136,7 @@ export default function PrivacyPage() {
                 </p>
                 <p className="text-gray-700 leading-relaxed flex items-start">
                   <span className="text-emerald-500 mr-2">•</span>
-                  <span>Delete events you've created</span>
+                  <span>Delete events you have created</span>
                 </p>
                 <p className="text-gray-700 leading-relaxed flex items-start">
                   <span className="text-emerald-500 mr-2">•</span>
@@ -144,7 +144,7 @@ export default function PrivacyPage() {
                 </p>
                 <p className="text-gray-700 leading-relaxed flex items-start">
                   <span className="text-emerald-500 mr-2">•</span>
-                  <span>                Contact us about your data or to delete your account</span>
+                  <span>Contact us about your data or to delete your account</span>
                 </p>
               </div>
             </section>
@@ -160,9 +160,9 @@ export default function PrivacyPage() {
 
             {/* Children */}
             <section>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Children's Privacy</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Children Privacy</h2>
               <p className="text-gray-700 leading-relaxed">
-                Our service is not for children under 16. If you believe we've collected information from someone 
+                Our service is not for children under 16. If you believe we have collected information from someone 
                 under 16, please contact us so we can delete it.
               </p>
             </section>
@@ -171,7 +171,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Policy Changes</h2>
               <p className="text-gray-700 leading-relaxed">
-                We may update this policy. If we make significant changes, we'll notify you via email or our website.
+                We may update this policy. If we make significant changes, we will notify you via email or our website.
               </p>
             </section>
 
