@@ -6,7 +6,7 @@ export const metadata: Metadata = {
 };
 
 export default function TermsPage() {
-  const effectiveDate = "December 1, 2024";
+  const effectiveDate = "June 1, 2025";
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -29,7 +29,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Agreement</h2>
               <p className="text-gray-700 leading-relaxed">
-                By using Punktual, you agree to these terms. If you don&apos;t agree, please don&apos;t use our service.
+                By using Punktual, you agree to these terms. If you do not agree, please do not use our service.
                 Punktual is a tool for creating calendar buttons and links for events.
               </p>
             </section>
@@ -49,7 +49,7 @@ export default function TermsPage() {
               <div className="space-y-2">
                 <p className="text-gray-700 leading-relaxed flex items-start">
                   <span className="text-emerald-500 mr-2">•</span>
-                  <span>You&apos;re responsible for keeping your account secure</span>
+                  <span>You are responsible for keeping your account secure</span>
                 </p>
                 <p className="text-gray-700 leading-relaxed flex items-start">
                   <span className="text-emerald-500 mr-2">•</span>
@@ -61,7 +61,7 @@ export default function TermsPage() {
                 </p>
                 <p className="text-gray-700 leading-relaxed flex items-start">
                   <span className="text-emerald-500 mr-2">•</span>
-                  <span>You&apos;re responsible for all activity under your account</span>
+                  <span>You are responsible for all activity under your account</span>
                 </p>
               </div>
             </section>
@@ -89,7 +89,7 @@ export default function TermsPage() {
                 </p>
                 <p className="text-gray-700 leading-relaxed flex items-start">
                   <span className="text-emerald-500 mr-2">•</span>
-                  <span>Violate others&apos; intellectual property rights</span>
+                  <span>Violate intellectual property rights of others</span>
                 </p>
               </div>
             </section>
@@ -102,7 +102,7 @@ export default function TermsPage() {
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Our Content</h3>
                   <p className="text-gray-700 leading-relaxed">
                     Punktual owns the website, software, and service. You can use our service according to these terms, 
-                    but you can&apos;t copy, modify, or resell our platform.
+                    but you cannot copy, modify, or resell our platform.
                   </p>
                 </div>
                 <div>
@@ -142,8 +142,8 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Service Availability</h2>
               <p className="text-gray-700 leading-relaxed">
-                We try to keep Punktual running smoothly, but we can&apos;t guarantee 100% uptime. We may need to temporarily 
-                shut down for maintenance or updates. We&apos;re not responsible if the service is temporarily unavailable.
+                We try to keep Punktual running smoothly, but we cannot guarantee 100% uptime. We may need to temporarily 
+                shut down for maintenance or updates. We are not responsible if the service is temporarily unavailable.
               </p>
             </section>
 
@@ -151,8 +151,8 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Disclaimers</h2>
               <p className="text-gray-700 leading-relaxed">
-                Punktual is provided &quot;as is.&quot; We make no warranties about the service being error-free, secure, or 
-                meeting your specific needs. You use our service at your own risk. We&apos;re not responsible for any 
+                Punktual is provided as is. We make no warranties about the service being error-free, secure, or 
+                meeting your specific needs. You use our service at your own risk. We are not responsible for any 
                 problems with calendar integrations or third-party services.
               </p>
             </section>
@@ -161,7 +161,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Limitation of Liability</h2>
               <p className="text-gray-700 leading-relaxed">
-                Our liability to you is limited to the amount you&apos;ve paid us in the last 12 months. We&apos;re not liable 
+                Our liability to you is limited to the amount you have paid us in the last 12 months. We are not liable 
                 for any indirect, incidental, or consequential damages, even if we knew they were possible.
               </p>
             </section>
@@ -193,7 +193,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Changes to These Terms</h2>
               <p className="text-gray-700 leading-relaxed">
-                We may update these terms from time to time. If we make significant changes, we'll notify you via 
+                We may update these terms from time to time. If we make significant changes, we will notify you via 
                 email or a notice on our website. Continuing to use Punktual after changes means you accept the new terms.
               </p>
             </section>
@@ -202,8 +202,8 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">General</h2>
               <p className="text-gray-700 leading-relaxed">
-                If any part of these terms is found unenforceable, the rest still applies.                 Our failure to enforce 
-                any term doesn&apos;t waive our right to enforce it later. These terms are the complete agreement between us.
+                If any part of these terms is found unenforceable, the rest still applies. Our failure to enforce 
+                any term does not waive our right to enforce it later. These terms are the complete agreement between us.
               </p>
             </section>
 
