@@ -6,8 +6,7 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyPage() {
-  const effectiveDate = "June 1, 2025";
-  const lastUpdated = "June 24, 2025";
+  const effectiveDate = "December 1, 2024";
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -18,9 +17,9 @@ export default function PrivacyPage() {
           <p className="text-xl text-gray-600 mb-2">
             How we handle your data and protect your privacy
           </p>
-          {/* <p className="text-sm text-gray-500">
-            Effective Date: {effectiveDate} | Last Updated: {lastUpdated}
-          </p> */}
+          <p className="text-sm text-gray-500">
+            Effective Date: {effectiveDate}
+          </p>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -120,10 +119,10 @@ export default function PrivacyPage() {
                   <span className="text-emerald-500 mr-2">•</span>
                   <span>When required by law or to protect our rights</span>
                 </p>
-                {/* <p className="text-gray-700 leading-relaxed flex items-start">
+                <p className="text-gray-700 leading-relaxed flex items-start">
                   <span className="text-emerald-500 mr-2">•</span>
                   <span>If we transfer our business (you'll be notified)</span>
-                </p> */}
+                </p>
               </div>
             </section>
 
@@ -145,7 +144,7 @@ export default function PrivacyPage() {
                 </p>
                 <p className="text-gray-700 leading-relaxed flex items-start">
                   <span className="text-emerald-500 mr-2">•</span>
-                  <span>Contact us about your data or to delete your account</span>
+                  <span>                Contact us about your data or to delete your account</span>
                 </p>
               </div>
             </section>
@@ -181,7 +180,7 @@ export default function PrivacyPage() {
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Contact Us</h2>
               <p className="text-gray-700 leading-relaxed">
                 Questions about this privacy policy? Email us at{' '}
-                <a href="mailto:hello@punktual.co" className="text-blue-600 hover:text-blue-700 underline">
+                <a href="mailto:hello@punktual.co" className="text-emerald-600 hover:text-emerald-700 underline">
                   hello@punktual.co
                 </a>
               </p>

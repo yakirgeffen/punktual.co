@@ -6,7 +6,7 @@ export const metadata: Metadata = {
 };
 
 export default function TermsPage() {
-  const effectiveDate = "June 1, 2025";
+  const effectiveDate = "December 1, 2024";
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -202,8 +202,8 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">General</h2>
               <p className="text-gray-700 leading-relaxed">
-                If any part of these terms is found unenforceable, the rest still applies.
-                Our failure to enforce any term doesn&apos;t waive our right to enforce it later. These terms are the complete agreement between us.
+                If any part of these terms is found unenforceable, the rest still applies.                 Our failure to enforce 
+                any term doesn&apos;t waive our right to enforce it later. These terms are the complete agreement between us.
               </p>
             </section>
 
