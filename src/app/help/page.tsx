@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Search, Mail } from 'lucide-react';
-import type { Metadata } from 'next';
 
 interface FAQ {
   id: string;
@@ -20,7 +19,7 @@ export default function HelpPage() {
       id: 'getting-started',
       category: 'Getting Started',
       question: 'How do I create my first calendar button?',
-      answer: 'Creating a calendar button with Punktual is simple: 1) Sign up for a free account 2) Click "Create Event" 3) Fill in your event details (title, date, time, location) 4) Choose calendar platforms 5) Customize button style 6) Copy and paste the code. Your first 5 events per month are free!'
+      answer: `Creating a calendar button with Punktual is simple: 1) Sign up for a free account 2) Click "Create Event" 3) Fill in your event details (title, date, time, location) 4) Choose calendar platforms 5) Customize button style 6) Copy and paste the code. Your first 5 events per month are free!`
     },
     {
       id: 'supported-platforms',
@@ -49,7 +48,7 @@ export default function HelpPage() {
     {
       id: 'button-not-working',
       category: 'Troubleshooting',
-      question: 'My calendar button isn\'t working. What should I check?',
+      question: 'My calendar button isn&apos;t working. What should I check?',
       answer: 'Check: 1) Complete HTML code copied 2) Code placed correctly on page 3) Test different browsers 4) Check for script conflicts 5) Verify event date is in future. Contact support if issues persist.'
     },
     {
@@ -68,7 +67,7 @@ export default function HelpPage() {
       id: 'reset-password',
       category: 'Account Management',
       question: 'How do I reset my password?',
-      answer: 'Click "Forgot Password" on the login page, enter your email, and follow the reset instructions. Google sign-in users don\'t have passwords - just use "Sign in with Google".'
+      answer: 'Click "Forgot Password" on the login page, enter your email, and follow the reset instructions. Google sign-in users don&apos;t have passwords - just use "Sign in with Google".'
     },
     {
       id: 'wordpress-integration',
@@ -86,7 +85,7 @@ export default function HelpPage() {
       id: 'timezone-issues',
       category: 'Troubleshooting',
       question: 'Calendar shows wrong time zone',
-      answer: 'Make sure to set the correct timezone when creating your event. The calendar button will automatically adjust to the user\'s local timezone when they click it.'
+      answer: 'Make sure to set the correct timezone when creating your event. The calendar button will automatically adjust to the user&apos;s local timezone when they click it.'
     }
   ];
 
@@ -154,9 +153,9 @@ export default function HelpPage() {
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
               Punktual Help Center
             </h1>
-            <h2 className="text-xl text-gray-600 mb-4">
+            <p className="text-xl text-gray-600 mb-4">
               Learn how to create calendar buttons, embed event codes, and manage your account
-            </h2>
+            </p>
             <p className="text-gray-600">
               Step-by-step guides for calendar integration, troubleshooting tips, and account management
             </p>
@@ -185,7 +184,7 @@ export default function HelpPage() {
                   {filteredFaqs.length > 0 ? (
                     <div className="space-y-4">
                       <h3 className="font-medium text-gray-900">
-                        Found {filteredFaqs.length} result{filteredFaqs.length !== 1 ? 's' : ''} for "{searchTerm}"
+                        Found {filteredFaqs.length} result{filteredFaqs.length !== 1 ? 's' : ''} for &quot;{searchTerm}&quot;
                       </h3>
                       <div className="space-y-3">
                         {filteredFaqs.map((faq: FAQ) => (
@@ -208,7 +207,7 @@ export default function HelpPage() {
                       <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                       <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
                       <p className="text-gray-600 mb-4">
-                        We couldn't find any help articles matching "{searchTerm}"
+                        We couldn&apos;t find any help articles matching &quot;{searchTerm}&quot;
                       </p>
                       <a
                         href="mailto:hello@punktual.co"
@@ -251,7 +250,7 @@ export default function HelpPage() {
                 <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center mb-4">
                   <span className="text-white font-bold">2</span>
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Customize & Generate</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">Customize &amp; Generate</h3>
                 <p className="text-gray-600 text-sm mb-3">
                   Choose calendar platforms, customize button style, and generate your code.
                 </p>
@@ -291,7 +290,7 @@ export default function HelpPage() {
                     <p>Creating a calendar button with Punktual is simple:</p>
                     <ol className="list-decimal list-inside space-y-1 ml-4">
                       <li>Sign up for a free account</li>
-                      <li>Click "Create Event"</li>
+                      <li>Click &quot;Create Event&quot;</li>
                       <li>Fill in your event details (title, date, time, location)</li>
                       <li>Choose which calendar platforms to support</li>
                       <li>Customize the button style</li>
@@ -337,10 +336,10 @@ export default function HelpPage() {
                 <div>
                   <h4 className="text-lg font-medium text-gray-900 mb-3">How do I add the calendar button to my website?</h4>
                   <div className="text-gray-700 space-y-2">
-                    <p>After creating your event, you'll get HTML code that you can paste directly into your website:</p>
+                    <p>After creating your event, you&apos;ll get HTML code that you can paste directly into your website:</p>
                     <ol className="list-decimal list-inside space-y-1 ml-4">
                       <li>Copy the generated HTML code</li>
-                      <li>Paste it into your website's HTML where you want the button to appear</li>
+                      <li>Paste it into your website&apos;s HTML where you want the button to appear</li>
                       <li>The button will automatically work - no additional setup needed!</li>
                     </ol>
                     <p>The code works with <strong>WordPress, Squarespace, Wix</strong>, and any website that allows custom HTML.</p>
@@ -355,7 +354,7 @@ export default function HelpPage() {
                       <li><strong>Calendar Links</strong>: Individual links for each platform (works in all email clients)</li>
                       <li><strong>Calendar Button</strong>: HTML button (works in most email clients)</li>
                     </ul>
-                    <p>For email newsletters, we recommend using the "Calendar Links" option for maximum compatibility.</p>
+                    <p>For email newsletters, we recommend using the &quot;Calendar Links&quot; option for maximum compatibility.</p>
                   </div>
                 </div>
               </div>
@@ -368,9 +367,9 @@ export default function HelpPage() {
               </div>
               <div className="p-6 space-y-6">
                 <div>
-                  <h4 className="text-lg font-medium text-gray-900 mb-3">My calendar button isn't working. What should I check?</h4>
+                  <h4 className="text-lg font-medium text-gray-900 mb-3">My calendar button isn&apos;t working. What should I check?</h4>
                   <div className="text-gray-700 space-y-2">
-                    <p>If your calendar button isn't working, try these troubleshooting steps:</p>
+                    <p>If your calendar button isn&apos;t working, try these troubleshooting steps:</p>
                     <ol className="list-decimal list-inside space-y-1 ml-4">
                       <li><strong>Check the code</strong>: Make sure you copied the complete HTML code</li>
                       <li><strong>Verify placement</strong>: Ensure the code is in the right place on your page</li>
@@ -378,7 +377,7 @@ export default function HelpPage() {
                       <li><strong>Check for conflicts</strong>: Other scripts might interfere with the button</li>
                       <li><strong>Validate dates</strong>: Ensure your event date/time is in the future</li>
                     </ol>
-                    <p>If it's still not working, <a href="mailto:hello@punktual.co" className="text-emerald-600 hover:text-emerald-700">contact our support team</a> with the specific error you're seeing.</p>
+                    <p>If it&apos;s still not working, <a href="mailto:hello@punktual.co" className="text-emerald-600 hover:text-emerald-700">contact our support team</a> with the specific error you&apos;re seeing.</p>
                   </div>
                 </div>
 
@@ -389,9 +388,9 @@ export default function HelpPage() {
                     <ul className="list-disc list-inside space-y-1 ml-4">
                       <li><strong>Edit Events</strong>: Update any event details and regenerate the code</li>
                       <li><strong>Delete Events</strong>: Remove events you no longer need</li>
-                      <li><strong>View History</strong>: See all events you've created</li>
+                      <li><strong>View History</strong>: See all events you&apos;ve created</li>
                     </ul>
-                    <p><strong>Important</strong>: If you update an event, you'll need to replace the old code with the new code on your website.</p>
+                    <p><strong>Important</strong>: If you update an event, you&apos;ll need to replace the old code with the new code on your website.</p>
                   </div>
                 </div>
               </div>
@@ -400,7 +399,7 @@ export default function HelpPage() {
             {/* Account Management */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
               <div className="p-6 border-b border-gray-200">
-                <h3 className="text-xl font-semibold text-gray-900">Account & Billing</h3>
+                <h3 className="text-xl font-semibold text-gray-900">Account &amp; Billing</h3>
               </div>
               <div className="p-6 space-y-6">
                 <div>
@@ -409,7 +408,7 @@ export default function HelpPage() {
                     <p>To upgrade from free to paid plans:</p>
                     <ol className="list-decimal list-inside space-y-1 ml-4">
                       <li>Go to your account settings</li>
-                      <li>Click "Upgrade Plan"</li>
+                      <li>Click &quot;Upgrade Plan&quot;</li>
                       <li>Choose your preferred plan</li>
                       <li>Complete the payment process</li>
                     </ol>
@@ -423,12 +422,12 @@ export default function HelpPage() {
                     <p>To reset your password:</p>
                     <ol className="list-decimal list-inside space-y-1 ml-4">
                       <li>Go to the login page</li>
-                      <li>Click "Forgot Password"</li>
+                      <li>Click &quot;Forgot Password&quot;</li>
                       <li>Enter your email address</li>
                       <li>Check your email for reset instructions</li>
                       <li>Follow the link to create a new password</li>
                     </ol>
-                    <p>If you signed up with Google, you don't have a password - just use "Sign in with Google".</p>
+                    <p>If you signed up with Google, you don&apos;t have a password - just use &quot;Sign in with Google&quot;.</p>
                   </div>
                 </div>
               </div>
@@ -436,10 +435,10 @@ export default function HelpPage() {
           </section>
 
           {/* Contact Section */}
-          <section className="mt-12 bg-emerald-50 rounded-lg p-8 text-center border border-emerald-200">
+          <section className="mt-12 bg-emerald-50 rounded-lg p-8 text-center">
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Still need help?</h2>
             <p className="text-gray-600 mb-4">
-              Can't find what you're looking for? Our support team responds within 24 hours.
+              Can&apos;t find what you&apos;re looking for? Our support team responds within 24 hours.
             </p>
             <a
               href="mailto:hello@punktual.co"
