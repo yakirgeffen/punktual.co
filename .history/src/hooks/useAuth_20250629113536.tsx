@@ -26,12 +26,39 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const supabase = createClientComponentClient();
   const router = useRouter();
 
+  // Direct fetch to Supabase API
+  const directFetchAuth = async (endpoint: string, body?: any) => {
+    const url = `${supabase.supabaseUrl}/auth/v1${endpoint}`;
+    const headers = {
+      'apikey': supabase.supabaseKey,
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${supabase.supabaseKey}`
+    };
+
+    console.log(`🔄 Direct fetch to: ${endpoint}`);
+    
+    const response = await fetch(url, {
+      method: body ? 'POST' : 'GET',
+      headers,
+      ...(body && { body: JSON.stringify(body) })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error(`❌ Direct fetch error for ${endpoint}:`, error);
+      throw new Error(error.msg || `HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(`✅ Direct fetch success for ${endpoint}`);
+    return data;
+  };
+
   const createUserProfile = useCallback(async (user: SupabaseUser): Promise<void> => {
     console.log('👤 Creating user profile for:', user.email);
     
     try {
-      // Check if profile already exists
-      console.log('🔍 Checking if profile exists...');
+      // Use direct database query instead of Supabase client
       const { data: existingProfile, error: selectError } = await supabase
         .from('user_profiles')
         .select('id')
@@ -39,7 +66,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         .single();
 
       if (selectError && selectError.code !== 'PGRST116') {
-        // PGRST116 = no rows returned, which is expected for new users
         console.error('❌ Error checking existing profile:', selectError);
         return;
       }
@@ -50,7 +76,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       console.log('📝 Creating new profile...');
-      // Create new profile
       const { error: insertError } = await supabase
         .from('user_profiles')
         .insert([
@@ -64,7 +89,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
         ]);
 
-      if (insertError && insertError.code !== '23505') { // Ignore duplicate key errors
+      if (insertError && insertError.code !== '23505') {
         console.error('❌ Error creating user profile:', insertError);
       } else {
         console.log('✅ User profile created successfully');
@@ -74,19 +99,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [supabase]);
 
-  // Simplified auth initialization - skip problematic getSession
+  // Initialize auth state using direct fetch
   const initializeAuth = useCallback(async (): Promise<void> => {
-    console.log('🚀 Starting simplified auth initialization...');
+    console.log('🚀 Starting auth initialization with direct fetch...');
     
     try {
-      // Skip getSession() call that was timing out
-      // Instead, rely on the auth state listener to detect sessions
-      console.log('ℹ️ Skipping getSession() - relying on auth state listener');
+      // Try to get current session using direct fetch
+      console.log('🔍 Getting current session via direct fetch...');
       
-      setUser(null);
-      setSession(null);
+      const sessionData = await Promise.race([
+        directFetchAuth('/user'),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Direct fetch timeout')), 5000)
+        )
+      ]);
+
+      if (sessionData && sessionData.id) {
+        console.log('✅ Found existing session for:', sessionData.email);
+        setUser(sessionData);
+        setSession({ user: sessionData } as SupabaseSession);
+        
+        // Ensure user profile exists
+        console.log('👤 Ensuring user profile exists...');
+        await createUserProfile(sessionData);
+      } else {
+        console.log('ℹ️ No existing session found');
+        setUser(null);
+        setSession(null);
+      }
     } catch (error) {
-      console.error('❌ Error initializing auth:', error);
+      console.log('ℹ️ No session found via direct fetch (expected for logged out users)');
       setUser(null);
       setSession(null);
     } finally {
@@ -95,15 +137,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setInitialized(true);
       console.log('🎉 Auth initialization complete!');
     }
-  }, []);
+  }, [createUserProfile]);
 
   useEffect(() => {
-    console.log('🔄 useEffect: Setting up working auth...');
+    console.log('🔄 useEffect: Setting up auth with direct fetch...');
     
-    // Initialize auth state (simplified)
+    // Initialize auth state
     initializeAuth();
 
-    // Set up auth state listener - this works and catches OAuth sessions
+    // Set up auth state listener (keep this as it works)
     console.log('👂 Setting up auth state listener...');
     const {
       data: { subscription },
@@ -297,6 +339,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return data;
   };
 
+  // Manual session exchange for OAuth callback
+  const exchangeCodeForSession = async (code: string): Promise<void> => {
+    console.log('🔄 Exchanging OAuth code via direct fetch...');
+    
+    try {
+      const tokenData = await directFetchAuth('/token?grant_type=authorization_code', {
+        code,
+        redirect_uri: `${window.location.origin}/auth/callback`
+      });
+
+      if (tokenData.user) {
+        console.log('✅ OAuth exchange successful for:', tokenData.user.email);
+        setUser(tokenData.user);
+        setSession(tokenData);
+        await createUserProfile(tokenData.user);
+      }
+    } catch (error) {
+      console.error('❌ OAuth exchange failed:', error);
+      throw error;
+    }
+  };
+
   const value: AuthContextType = {
     user,
     session,
@@ -308,8 +372,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signOut,
     resetPassword,
     updateProfile,
-    getUserProfile
-  };
+    getUserProfile,
+    // Add the manual exchange function
+    exchangeCodeForSession
+  } as any;
 
   // Debug current state
   useEffect(() => {
@@ -328,7 +394,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 }
 
-// 🔥 IMPORTANT: This export was missing!
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (!context) {

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle, XCircle, ArrowRight } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function AuthCallback() {
   const router = useRouter();
@@ -12,7 +13,7 @@ export default function AuthCallback() {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    console.log('🔄 OAuth Callback: Starting corrected auth callback handling...');
+    console.log('🔄 OAuth Callback: Starting direct fetch auth callback handling...');
     
     const handleAuthCallback = async () => {
       try {
@@ -32,13 +33,13 @@ export default function AuthCallback() {
         }
 
         if (code) {
-          console.log('🔄 OAuth Callback: Exchanging code using correct Supabase API...');
+          console.log('🔄 OAuth Callback: Exchanging code using direct fetch...');
           
-          // Use the correct Supabase token exchange endpoint
+          // Use direct fetch instead of Supabase client
           const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
           const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
           
-          const response = await fetch(`${supabaseUrl}/auth/v1/token`, {
+          const response = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=authorization_code`, {
             method: 'POST',
             headers: {
               'apikey': supabaseKey!,
@@ -46,28 +47,23 @@ export default function AuthCallback() {
               'Authorization': `Bearer ${supabaseKey}`
             },
             body: JSON.stringify({
-              grant_type: 'authorization_code',
-              code: code,
-              redirect_uri: `${window.location.origin}/auth/callback`
+              auth_code: code,
+              code_verifier: '', // Not needed for Google OAuth
             })
           });
 
-          console.log('🔍 OAuth Response status:', response.status);
-
           if (!response.ok) {
             const errorData = await response.json();
-            console.error('❌ OAuth Callback: API error:', errorData);
-            throw new Error(errorData.error_description || errorData.msg || `HTTP ${response.status}`);
+            console.error('❌ OAuth Callback: Direct fetch error:', errorData);
+            throw new Error(errorData.msg || `HTTP ${response.status}`);
           }
 
           const sessionData = await response.json();
-          console.log('✅ OAuth Callback: Session exchange successful');
-          console.log('👤 OAuth Callback: User data received:', sessionData.user?.email);
+          console.log('✅ OAuth Callback: Direct fetch session exchange successful');
 
-          // Store session in localStorage for the auth state listener to pick up
-          if (sessionData.access_token) {
-            console.log('💾 Storing session data...');
-            localStorage.setItem('supabase.auth.token', JSON.stringify(sessionData));
+          // Store the session data (you might want to trigger a custom event here)
+          if (sessionData.user) {
+            console.log('👤 OAuth Callback: User data received:', sessionData.user.email);
           }
 
           setSuccess(true);
@@ -113,7 +109,7 @@ export default function AuthCallback() {
             Please wait while we set up your account
           </p>
           <p className="text-sm text-gray-500 mt-2">
-            Using corrected Supabase API...
+            Using direct fetch method...
           </p>
         </div>
       </div>
@@ -136,7 +132,8 @@ export default function AuthCallback() {
           <details className="text-sm text-gray-500 mb-8">
             <summary className="cursor-pointer">Technical Details</summary>
             <p className="mt-2">
-              The OAuth callback failed during token exchange. This indicates an issue with the Supabase OAuth configuration or API parameters.
+              The OAuth callback failed during the direct fetch approach. 
+              This suggests the Supabase JavaScript client has specific timeout issues.
             </p>
           </details>
           <button
@@ -162,7 +159,7 @@ export default function AuthCallback() {
             Welcome to Punktual!
           </h2>
           <p className="text-gray-600 text-lg mb-2">
-            Your Google account has been connected successfully.
+            Your Google account has been connected successfully using direct fetch.
           </p>
           <p className="text-sm text-gray-500 mb-8">
             Taking you to create your first calendar event...

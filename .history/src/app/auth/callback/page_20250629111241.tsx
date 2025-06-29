@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { CheckCircle, XCircle, ArrowRight } from 'lucide-react';
 
 export default function AuthCallback() {
@@ -10,9 +11,10 @@ export default function AuthCallback() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const supabase = createClientComponentClient();
 
   useEffect(() => {
-    console.log('🔄 OAuth Callback: Starting corrected auth callback handling...');
+    console.log('🔄 OAuth Callback: Starting auth callback handling...');
     
     const handleAuthCallback = async () => {
       try {
@@ -32,44 +34,24 @@ export default function AuthCallback() {
         }
 
         if (code) {
-          console.log('🔄 OAuth Callback: Exchanging code using correct Supabase API...');
+          console.log('🔄 OAuth Callback: Exchanging code for session...');
           
-          // Use the correct Supabase token exchange endpoint
-          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-          const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+          // Add timeout to the exchange
+          const exchangeResult = await Promise.race([
+            supabase.auth.exchangeCodeForSession(code),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Session exchange timeout')), 15000)
+            )
+          ]);
+
+          const { error: exchangeError } = exchangeResult as any;
           
-          const response = await fetch(`${supabaseUrl}/auth/v1/token`, {
-            method: 'POST',
-            headers: {
-              'apikey': supabaseKey!,
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${supabaseKey}`
-            },
-            body: JSON.stringify({
-              grant_type: 'authorization_code',
-              code: code,
-              redirect_uri: `${window.location.origin}/auth/callback`
-            })
-          });
-
-          console.log('🔍 OAuth Response status:', response.status);
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            console.error('❌ OAuth Callback: API error:', errorData);
-            throw new Error(errorData.error_description || errorData.msg || `HTTP ${response.status}`);
+          if (exchangeError) {
+            console.error('❌ OAuth Callback: Exchange error:', exchangeError);
+            throw exchangeError;
           }
 
-          const sessionData = await response.json();
           console.log('✅ OAuth Callback: Session exchange successful');
-          console.log('👤 OAuth Callback: User data received:', sessionData.user?.email);
-
-          // Store session in localStorage for the auth state listener to pick up
-          if (sessionData.access_token) {
-            console.log('💾 Storing session data...');
-            localStorage.setItem('supabase.auth.token', JSON.stringify(sessionData));
-          }
-
           setSuccess(true);
           
           // Redirect to the create page after successful auth
@@ -97,7 +79,7 @@ export default function AuthCallback() {
     };
 
     handleAuthCallback();
-  }, [searchParams, router]);
+  }, [searchParams, router, supabase.auth]);
 
   if (loading) {
     return (
@@ -111,9 +93,6 @@ export default function AuthCallback() {
           </h2>
           <p className="text-gray-600 text-lg">
             Please wait while we set up your account
-          </p>
-          <p className="text-sm text-gray-500 mt-2">
-            Using corrected Supabase API...
           </p>
         </div>
       </div>
@@ -130,15 +109,9 @@ export default function AuthCallback() {
           <h2 className="text-2xl font-bold text-gray-900 mb-3">
             Authentication Failed
           </h2>
-          <p className="text-gray-600 text-lg mb-2">
+          <p className="text-gray-600 text-lg mb-8">
             {error}
           </p>
-          <details className="text-sm text-gray-500 mb-8">
-            <summary className="cursor-pointer">Technical Details</summary>
-            <p className="mt-2">
-              The OAuth callback failed during token exchange. This indicates an issue with the Supabase OAuth configuration or API parameters.
-            </p>
-          </details>
           <button
             onClick={() => router.push('/')}
             className="inline-flex items-center px-6 py-3 bg-emerald-500 text-white font-medium rounded-lg hover:bg-emerald-400 transition-colors"
@@ -161,11 +134,8 @@ export default function AuthCallback() {
           <h2 className="text-2xl font-bold text-gray-900 mb-3">
             Welcome to Punktual!
           </h2>
-          <p className="text-gray-600 text-lg mb-2">
-            Your Google account has been connected successfully.
-          </p>
-          <p className="text-sm text-gray-500 mb-8">
-            Taking you to create your first calendar event...
+          <p className="text-gray-600 text-lg mb-8">
+            Your account has been set up successfully. Redirecting you to create your first calendar event...
           </p>
           <div className="flex items-center justify-center">
             <div className="w-6 h-6 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mr-3"></div>

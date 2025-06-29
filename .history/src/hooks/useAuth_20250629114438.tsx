@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { CheckCircle, XCircle, ArrowRight } from 'lucide-react';
 
 export default function AuthCallback() {
@@ -10,9 +11,10 @@ export default function AuthCallback() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const supabase = createClientComponentClient();
 
   useEffect(() => {
-    console.log('🔄 OAuth Callback: Starting corrected auth callback handling...');
+    console.log('🔄 OAuth Callback: Starting final auth callback handling...');
     
     const handleAuthCallback = async () => {
       try {
@@ -32,51 +34,37 @@ export default function AuthCallback() {
         }
 
         if (code) {
-          console.log('🔄 OAuth Callback: Exchanging code using correct Supabase API...');
+          console.log('🔄 OAuth Callback: Using Supabase exchangeCodeForSession method...');
           
-          // Use the correct Supabase token exchange endpoint
-          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-          const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+          // Use the proper Supabase method with timeout handling
+          const exchangeResult = await Promise.race([
+            supabase.auth.exchangeCodeForSession(code),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('OAuth exchange timeout after 30 seconds')), 30000)
+            )
+          ]);
+
+          const { data, error: exchangeError } = exchangeResult as any;
           
-          const response = await fetch(`${supabaseUrl}/auth/v1/token`, {
-            method: 'POST',
-            headers: {
-              'apikey': supabaseKey!,
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${supabaseKey}`
-            },
-            body: JSON.stringify({
-              grant_type: 'authorization_code',
-              code: code,
-              redirect_uri: `${window.location.origin}/auth/callback`
-            })
-          });
-
-          console.log('🔍 OAuth Response status:', response.status);
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            console.error('❌ OAuth Callback: API error:', errorData);
-            throw new Error(errorData.error_description || errorData.msg || `HTTP ${response.status}`);
+          if (exchangeError) {
+            console.error('❌ OAuth Callback: Exchange error:', exchangeError);
+            throw new Error(exchangeError.message || 'Failed to exchange OAuth code');
           }
 
-          const sessionData = await response.json();
-          console.log('✅ OAuth Callback: Session exchange successful');
-          console.log('👤 OAuth Callback: User data received:', sessionData.user?.email);
-
-          // Store session in localStorage for the auth state listener to pick up
-          if (sessionData.access_token) {
-            console.log('💾 Storing session data...');
-            localStorage.setItem('supabase.auth.token', JSON.stringify(sessionData));
+          if (data?.session?.user) {
+            console.log('✅ OAuth Callback: Session exchange successful');
+            console.log('👤 OAuth Callback: User authenticated:', data.session.user.email);
+            
+            setSuccess(true);
+            
+            // Redirect to the create page after successful auth
+            console.log('🔄 OAuth Callback: Redirecting to /create in 2 seconds...');
+            setTimeout(() => {
+              router.push('/create');
+            }, 2000);
+          } else {
+            throw new Error('No session data received from OAuth exchange');
           }
-
-          setSuccess(true);
-          
-          // Redirect to the create page after successful auth
-          console.log('🔄 OAuth Callback: Redirecting to /create in 2 seconds...');
-          setTimeout(() => {
-            router.push('/create');
-          }, 2000);
         } else {
           // No code parameter, redirect to home
           console.log('⚠️ OAuth Callback: No code parameter, redirecting to home');
@@ -97,7 +85,7 @@ export default function AuthCallback() {
     };
 
     handleAuthCallback();
-  }, [searchParams, router]);
+  }, [searchParams, router, supabase.auth]);
 
   if (loading) {
     return (
@@ -113,7 +101,7 @@ export default function AuthCallback() {
             Please wait while we set up your account
           </p>
           <p className="text-sm text-gray-500 mt-2">
-            Using corrected Supabase API...
+            Using Supabase exchangeCodeForSession method...
           </p>
         </div>
       </div>
@@ -136,8 +124,14 @@ export default function AuthCallback() {
           <details className="text-sm text-gray-500 mb-8">
             <summary className="cursor-pointer">Technical Details</summary>
             <p className="mt-2">
-              The OAuth callback failed during token exchange. This indicates an issue with the Supabase OAuth configuration or API parameters.
+              The OAuth callback failed during session exchange. This could be due to:
             </p>
+            <ul className="list-disc list-inside mt-2 text-left">
+              <li>OAuth configuration mismatch in Supabase</li>
+              <li>Redirect URL not matching exactly</li>
+              <li>Code expiration (try signing in again)</li>
+              <li>Network connectivity issues</li>
+            </ul>
           </details>
           <button
             onClick={() => router.push('/')}
