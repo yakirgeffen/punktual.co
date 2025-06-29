@@ -26,10 +26,41 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const supabase = createClientComponentClient();
   const router = useRouter();
 
+  // Debug: Check Supabase configuration
+  useEffect(() => {
+    console.log('🔧 Supabase URL:', supabase.supabaseUrl);
+    console.log('🔧 Supabase Key exists:', !!supabase.supabaseKey);
+    console.log('🔧 Environment check:', {
+      NODE_ENV: process.env.NODE_ENV,
+      hasNextPublicSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasNextPublicSupabaseAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    });
+  }, [supabase]);
+
   const createUserProfile = useCallback(async (user: SupabaseUser): Promise<void> => {
     console.log('👤 Creating user profile for:', user.email);
     
     try {
+      // First, test if we can connect to the database at all
+      console.log('🧪 Testing database connection...');
+      const { data: testData, error: testError } = await supabase
+        .from('user_profiles')
+        .select('count')
+        .limit(1);
+      
+      if (testError) {
+        console.error('❌ Database connection test failed:', testError);
+        console.error('❌ Error details:', {
+          code: testError.code,
+          message: testError.message,
+          details: testError.details,
+          hint: testError.hint
+        });
+        return; // Skip profile creation if we can't connect to DB
+      }
+      
+      console.log('✅ Database connection successful');
+
       // Check if profile already exists
       console.log('🔍 Checking if profile exists...');
       const { data: existingProfile, error: selectError } = await supabase
@@ -70,21 +101,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.log('✅ User profile created successfully');
       }
     } catch (error) {
-      console.error('❌ Error in createUserProfile:', error);
+      console.error('❌ Unexpected error in createUserProfile:', error);
     }
   }, [supabase]);
 
-  // Simplified auth initialization - skip problematic getSession
+  // Initialize auth state
   const initializeAuth = useCallback(async (): Promise<void> => {
-    console.log('🚀 Starting simplified auth initialization...');
+    console.log('🚀 Starting auth initialization...');
     
     try {
-      // Skip getSession() call that was timing out
-      // Instead, rely on the auth state listener to detect sessions
-      console.log('ℹ️ Skipping getSession() - relying on auth state listener');
+      // Get current session
+      console.log('🔍 Getting current session...');
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      setUser(null);
-      setSession(null);
+      if (sessionError) {
+        console.error('❌ Session error:', sessionError);
+        setUser(null);
+        setSession(null);
+      } else if (session) {
+        console.log('✅ Found existing session for:', session.user.email);
+        setUser(session.user);
+        setSession(session);
+        
+        // Ensure user profile exists
+        console.log('👤 Ensuring user profile exists...');
+        await createUserProfile(session.user);
+      } else {
+        console.log('ℹ️ No existing session found');
+        setUser(null);
+        setSession(null);
+      }
     } catch (error) {
       console.error('❌ Error initializing auth:', error);
       setUser(null);
@@ -95,15 +141,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setInitialized(true);
       console.log('🎉 Auth initialization complete!');
     }
-  }, []);
+  }, [supabase.auth, createUserProfile]);
 
   useEffect(() => {
-    console.log('🔄 useEffect: Setting up working auth...');
+    console.log('🔄 useEffect: Setting up auth...');
     
-    // Initialize auth state (simplified)
+    // Initialize auth state
     initializeAuth();
 
-    // Set up auth state listener - this works and catches OAuth sessions
+    // Set up auth state listener
     console.log('👂 Setting up auth state listener...');
     const {
       data: { subscription },
@@ -207,7 +253,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
     
     console.log('✅ Google OAuth redirect initiated');
-    return { user: null, session: null };
+    return { user: null, session: null }; // OAuth redirects, so no immediate user/session
   };
 
   const signOut = async (): Promise<void> => {
@@ -220,6 +266,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw error;
       }
       
+      // Clear state immediately
       setUser(null);
       setSession(null);
       
@@ -250,6 +297,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     console.log('📝 Updating profile for:', user.email);
     setLoading(true);
     try {
+      // Update auth user metadata
       const { error: authError } = await supabase.auth.updateUser({
         data: updates
       });
@@ -259,6 +307,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw authError;
       }
 
+      // Update user profile table
       const { error: profileError } = await supabase
         .from('user_profiles')
         .update({
@@ -328,7 +377,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 }
 
-// 🔥 IMPORTANT: This export was missing!
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (!context) {

@@ -105,8 +105,14 @@ export default function Navbar() {
             </nav>
             
             <div className="flex items-center space-x-3">
-              {user ? (
-                // 🔥 AUTHENTICATED STATE - Show this when user exists (regardless of loading)
+              {loading ? (
+                // Loading state
+                <div className="flex items-center space-x-3">
+                  <div className="w-20 h-9 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="w-24 h-9 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              ) : user ? (
+                // Authenticated state
                 <div className="flex items-center space-x-3">
                   <Link 
                     href="/create"
@@ -124,7 +130,7 @@ export default function Navbar() {
                       >
                         <User className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                         <span className="truncate">
-                          {userFirstName}
+                          {loading ? 'Loading...' : userFirstName}
                         </span>
                       </Button>
                     </DropdownTrigger>
@@ -176,14 +182,8 @@ export default function Navbar() {
                     </DropdownMenu>
                   </Dropdown>
                 </div>
-              ) : loading && !initialized ? (
-                // 🔄 LOADING STATE - Only show when loading AND not initialized
-                <div className="flex items-center space-x-3">
-                  <div className="w-20 h-9 bg-gray-200 rounded animate-pulse"></div>
-                  <div className="w-24 h-9 bg-gray-200 rounded animate-pulse"></div>
-                </div>
               ) : (
-                // 🔓 UNAUTHENTICATED STATE - Show sign in buttons
+                // Unauthenticated state
                 <>
                   <Button
                     variant="ghost"

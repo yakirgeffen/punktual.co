@@ -26,20 +26,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const supabase = createClientComponentClient();
   const router = useRouter();
 
+  // Helper function to create a timeout promise
+  const createTimeoutPromise = (ms: number) => {
+    return new Promise((_, reject) => {
+      setTimeout(() => reject(new Error(`Operation timed out after ${ms}ms`)), ms);
+    });
+  };
+
   const createUserProfile = useCallback(async (user: SupabaseUser): Promise<void> => {
     console.log('👤 Creating user profile for:', user.email);
     
     try {
-      // Check if profile already exists
+      // Check if profile already exists (with timeout)
       console.log('🔍 Checking if profile exists...');
-      const { data: existingProfile, error: selectError } = await supabase
-        .from('user_profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
+      const { data: existingProfile, error: selectError } = await Promise.race([
+        supabase
+          .from('user_profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single(),
+        createTimeoutPromise(5000)
+      ]) as any;
 
       if (selectError && selectError.code !== 'PGRST116') {
-        // PGRST116 = no rows returned, which is expected for new users
         console.error('❌ Error checking existing profile:', selectError);
         return;
       }
@@ -50,21 +59,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       console.log('📝 Creating new profile...');
-      // Create new profile
-      const { error: insertError } = await supabase
-        .from('user_profiles')
-        .insert([
-          {
-            user_id: user.id,
-            email: user.email,
-            full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
-            avatar_url: user.user_metadata?.avatar_url || '',
-            plan: 'free',
-            created_at: new Date().toISOString()
-          }
-        ]);
+      // Create new profile (with timeout)
+      const { error: insertError } = await Promise.race([
+        supabase
+          .from('user_profiles')
+          .insert([
+            {
+              user_id: user.id,
+              email: user.email,
+              full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
+              avatar_url: user.user_metadata?.avatar_url || '',
+              plan: 'free',
+              created_at: new Date().toISOString()
+            }
+          ]),
+        createTimeoutPromise(5000)
+      ]) as any;
 
-      if (insertError && insertError.code !== '23505') { // Ignore duplicate key errors
+      if (insertError && insertError.code !== '23505') {
         console.error('❌ Error creating user profile:', insertError);
       } else {
         console.log('✅ User profile created successfully');
@@ -74,17 +86,43 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [supabase]);
 
-  // Simplified auth initialization - skip problematic getSession
+  // Initialize auth state with timeout handling
   const initializeAuth = useCallback(async (): Promise<void> => {
-    console.log('🚀 Starting simplified auth initialization...');
+    console.log('🚀 Starting auth initialization...');
     
     try {
-      // Skip getSession() call that was timing out
-      // Instead, rely on the auth state listener to detect sessions
-      console.log('ℹ️ Skipping getSession() - relying on auth state listener');
+      // Get current session with timeout
+      console.log('🔍 Getting current session...');
       
-      setUser(null);
-      setSession(null);
+      const sessionResult = await Promise.race([
+        supabase.auth.getSession(),
+        createTimeoutPromise(10000) // 10 second timeout
+      ]).catch((error) => {
+        console.warn('⚠️ Session timeout or error:', error);
+        return { data: { session: null }, error: null };
+      });
+
+      const { data: { session }, error: sessionError } = sessionResult as any;
+      
+      if (sessionError) {
+        console.error('❌ Session error:', sessionError);
+        setUser(null);
+        setSession(null);
+      } else if (session) {
+        console.log('✅ Found existing session for:', session.user.email);
+        setUser(session.user);
+        setSession(session);
+        
+        // Ensure user profile exists (but don't block on it)
+        console.log('👤 Ensuring user profile exists...');
+        createUserProfile(session.user).catch(error => {
+          console.warn('⚠️ Profile creation failed but continuing:', error);
+        });
+      } else {
+        console.log('ℹ️ No existing session found');
+        setUser(null);
+        setSession(null);
+      }
     } catch (error) {
       console.error('❌ Error initializing auth:', error);
       setUser(null);
@@ -95,15 +133,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setInitialized(true);
       console.log('🎉 Auth initialization complete!');
     }
-  }, []);
+  }, [supabase.auth, createUserProfile]);
 
   useEffect(() => {
-    console.log('🔄 useEffect: Setting up working auth...');
+    console.log('🔄 useEffect: Setting up auth...');
     
-    // Initialize auth state (simplified)
+    // Initialize auth state
     initializeAuth();
 
-    // Set up auth state listener - this works and catches OAuth sessions
+    // Set up auth state listener
     console.log('👂 Setting up auth state listener...');
     const {
       data: { subscription },
@@ -121,7 +159,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           // Create user profile if it doesn't exist (for new signups)
           if ((event as string) === 'SIGNED_UP' || (event as string) === 'SIGNED_IN') {
             console.log('👤 New signup/signin, creating profile...');
-            await createUserProfile(session.user);
+            createUserProfile(session.user).catch(error => {
+              console.warn('⚠️ Profile creation failed:', error);
+            });
           }
         } else {
           console.log('❌ No session user, clearing state...');
@@ -328,7 +368,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 }
 
-// 🔥 IMPORTANT: This export was missing!
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (!context) {

@@ -27,31 +27,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const router = useRouter();
 
   const createUserProfile = useCallback(async (user: SupabaseUser): Promise<void> => {
-    console.log('👤 Creating user profile for:', user.email);
-    
     try {
-      // Check if profile already exists
-      console.log('🔍 Checking if profile exists...');
-      const { data: existingProfile, error: selectError } = await supabase
+      const { data: existingProfile } = await supabase
         .from('user_profiles')
         .select('id')
         .eq('user_id', user.id)
         .single();
 
-      if (selectError && selectError.code !== 'PGRST116') {
-        // PGRST116 = no rows returned, which is expected for new users
-        console.error('❌ Error checking existing profile:', selectError);
-        return;
-      }
+      if (existingProfile) return;
 
-      if (existingProfile) {
-        console.log('✅ Profile already exists, skipping creation');
-        return;
-      }
-
-      console.log('📝 Creating new profile...');
-      // Create new profile
-      const { error: insertError } = await supabase
+      const { error } = await supabase
         .from('user_profiles')
         .insert([
           {
@@ -64,86 +49,80 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
         ]);
 
-      if (insertError && insertError.code !== '23505') { // Ignore duplicate key errors
-        console.error('❌ Error creating user profile:', insertError);
-      } else {
-        console.log('✅ User profile created successfully');
+      if (error && error.code !== '23505') {
+        console.error('Error creating user profile:', error);
       }
     } catch (error) {
-      console.error('❌ Error in createUserProfile:', error);
+      console.error('Error in createUserProfile:', error);
     }
   }, [supabase]);
 
-  // Simplified auth initialization - skip problematic getSession
-  const initializeAuth = useCallback(async (): Promise<void> => {
-    console.log('🚀 Starting simplified auth initialization...');
-    
-    try {
-      // Skip getSession() call that was timing out
-      // Instead, rely on the auth state listener to detect sessions
-      console.log('ℹ️ Skipping getSession() - relying on auth state listener');
-      
-      setUser(null);
-      setSession(null);
-    } catch (error) {
-      console.error('❌ Error initializing auth:', error);
-      setUser(null);
-      setSession(null);
-    } finally {
-      console.log('✅ Setting loading=false and initialized=true');
-      setLoading(false);
-      setInitialized(true);
-      console.log('🎉 Auth initialization complete!');
-    }
-  }, []);
-
   useEffect(() => {
-    console.log('🔄 useEffect: Setting up working auth...');
-    
-    // Initialize auth state (simplified)
+    const initializeAuth = async () => {
+      try {
+        console.log('Initializing auth...');
+        
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          setUser(null);
+          setSession(null);
+        } else if (session) {
+          console.log('Found existing session:', session.user.email);
+          setUser(session.user);
+          setSession(session);
+          await createUserProfile(session.user);
+        } else {
+          console.log('No existing session found');
+          setUser(null);
+          setSession(null);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        setUser(null);
+        setSession(null);
+      } finally {
+        setLoading(false);
+        setInitialized(true);
+        console.log('Auth initialization complete');
+      }
+    };
+
     initializeAuth();
 
-    // Set up auth state listener - this works and catches OAuth sessions
-    console.log('👂 Setting up auth state listener...');
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔄 Auth state change:', event, session?.user?.email || 'no user');
+      console.log('Auth state change:', event, session?.user?.email);
       
       setLoading(true);
       
       try {
         if (session?.user) {
-          console.log('✅ Session user found, updating state...');
           setUser(session.user);
           setSession(session);
           
-          // Create user profile if it doesn't exist (for new signups)
           if ((event as string) === 'SIGNED_UP' || (event as string) === 'SIGNED_IN') {
-            console.log('👤 New signup/signin, creating profile...');
             await createUserProfile(session.user);
           }
         } else {
-          console.log('❌ No session user, clearing state...');
           setUser(null);
           setSession(null);
         }
       } catch (error) {
-        console.error('❌ Error handling auth state change:', error);
+        console.error('Error handling auth state change:', error);
       } finally {
         setLoading(false);
-        console.log('✅ Auth state change processing complete');
       }
     });
 
     return () => {
-      console.log('🧹 Cleaning up auth subscription');
       subscription.unsubscribe();
     };
-  }, [initializeAuth, createUserProfile, supabase.auth]);
+  }, []);
 
   const signUp = async (email: string, password: string, options: SignUpOptions = {}): Promise<AuthResponse> => {
-    console.log('📝 Signing up user:', email);
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -155,12 +134,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
       });
       
-      if (error) {
-        console.error('❌ Signup error:', error);
-        throw error;
-      }
-      
-      console.log('✅ Signup successful');
+      if (error) throw error;
       return { user: data.user, session: data.session };
     } finally {
       setLoading(false);
@@ -168,7 +142,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const signIn = async (email: string, password: string): Promise<AuthResponse> => {
-    console.log('🔐 Signing in user:', email);
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -176,12 +149,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         password
       });
       
-      if (error) {
-        console.error('❌ Signin error:', error);
-        throw error;
-      }
-      
-      console.log('✅ Signin successful');
+      if (error) throw error;
       return { user: data.user, session: data.session };
     } finally {
       setLoading(false);
@@ -189,7 +157,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const signInWithGoogle = async (): Promise<AuthResponse> => {
-    console.log('🔗 Starting Google OAuth...');
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -201,29 +168,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     });
     
-    if (error) {
-      console.error('❌ Google OAuth error:', error);
-      throw error;
-    }
-    
-    console.log('✅ Google OAuth redirect initiated');
+    if (error) throw error;
     return { user: null, session: null };
   };
 
   const signOut = async (): Promise<void> => {
-    console.log('👋 Signing out user...');
     setLoading(true);
     try {
       const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('❌ Signout error:', error);
-        throw error;
-      }
+      if (error) throw error;
       
       setUser(null);
       setSession(null);
-      
-      console.log('✅ Signout successful, redirecting to home');
       router.push('/');
     } finally {
       setLoading(false);
@@ -231,33 +187,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const resetPassword = async (email: string): Promise<void> => {
-    console.log('🔄 Resetting password for:', email);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/reset-password`
     });
     
-    if (error) {
-      console.error('❌ Password reset error:', error);
-      throw error;
-    }
-    
-    console.log('✅ Password reset email sent');
+    if (error) throw error;
   };
 
   const updateProfile = async (updates: Partial<UserProfile>): Promise<void> => {
     if (!user) throw new Error('No user logged in');
 
-    console.log('📝 Updating profile for:', user.email);
     setLoading(true);
     try {
       const { error: authError } = await supabase.auth.updateUser({
         data: updates
       });
 
-      if (authError) {
-        console.error('❌ Auth update error:', authError);
-        throw authError;
-      }
+      if (authError) throw authError;
 
       const { error: profileError } = await supabase
         .from('user_profiles')
@@ -267,12 +213,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         })
         .eq('user_id', user.id);
 
-      if (profileError) {
-        console.error('❌ Profile update error:', profileError);
-        throw profileError;
-      }
-      
-      console.log('✅ Profile updated successfully');
+      if (profileError) throw profileError;
     } finally {
       setLoading(false);
     }
@@ -281,19 +222,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const getUserProfile = async (): Promise<UserProfile | null> => {
     if (!user) return null;
 
-    console.log('👤 Getting profile for:', user.email);
     const { data, error } = await supabase
       .from('user_profiles')
       .select('*')
       .eq('user_id', user.id)
       .single();
 
-    if (error) {
-      console.error('❌ Get profile error:', error);
-      throw error;
-    }
-    
-    console.log('✅ Profile retrieved successfully');
+    if (error) throw error;
     return data;
   };
 
@@ -311,16 +246,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     getUserProfile
   };
 
-  // Debug current state
-  useEffect(() => {
-    console.log('📊 Auth State Update:', {
-      user: user?.email || 'none',
-      loading,
-      initialized,
-      timestamp: new Date().toISOString()
-    });
-  }, [user, loading, initialized]);
-
   return (
     <AuthContext.Provider value={value}>
       {children}
@@ -328,7 +253,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 }
 
-// 🔥 IMPORTANT: This export was missing!
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (!context) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Calendar, User, LogOut, Settings, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -17,19 +17,9 @@ import { useAuth } from '@/hooks/useAuth';
 import AuthModal from '@/components/Auth/AuthModal';
 
 export default function Navbar() {
-  const { user, signOut, loading, initialized } = useAuth();
+  const { user, signOut, loading } = useAuth();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [authMode, setAuthMode] = useState('login');
-
-  // DEBUG: Log auth state
-  useEffect(() => {
-    console.log('🔍 Navbar Auth State:', {
-      loading,
-      initialized,
-      user: user?.email || null,
-      timestamp: new Date().toISOString()
-    });
-  }, [loading, initialized, user]);
 
   const handleAuthClick = (mode) => {
     setAuthMode(mode);
@@ -73,18 +63,8 @@ export default function Navbar() {
     return 'User'; // Ultimate fallback
   }, [user]);
 
-  // DEBUG: Add visual indicator of auth state
-  const debugInfo = (
-    <div className="fixed bottom-4 left-4 bg-gray-800 text-white p-2 rounded text-xs z-50">
-      Loading: {String(loading)} | Initialized: {String(initialized)} | User: {user?.email || 'null'}
-    </div>
-  );
-
   return (
     <>
-      {/* DEBUG INFO - Remove this in production */}
-      {process.env.NODE_ENV === 'development' && debugInfo}
-      
       <header className="border-b border-gray-100 bg-white sticky top-0 z-50 backdrop-blur-sm bg-white/95">
         <div className="max-w-7xl mx-auto px-8 sm:px-6 lg:px-12">
           <div className="flex justify-between items-center py-4">
@@ -105,8 +85,14 @@ export default function Navbar() {
             </nav>
             
             <div className="flex items-center space-x-3">
-              {user ? (
-                // 🔥 AUTHENTICATED STATE - Show this when user exists (regardless of loading)
+              {loading ? (
+                // Loading state
+                <div className="flex items-center space-x-3">
+                  <div className="w-20 h-9 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="w-24 h-9 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              ) : user ? (
+                // Authenticated state
                 <div className="flex items-center space-x-3">
                   <Link 
                     href="/create"
@@ -124,7 +110,7 @@ export default function Navbar() {
                       >
                         <User className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                         <span className="truncate">
-                          {userFirstName}
+                          {loading ? 'Loading...' : userFirstName}
                         </span>
                       </Button>
                     </DropdownTrigger>
@@ -176,14 +162,8 @@ export default function Navbar() {
                     </DropdownMenu>
                   </Dropdown>
                 </div>
-              ) : loading && !initialized ? (
-                // 🔄 LOADING STATE - Only show when loading AND not initialized
-                <div className="flex items-center space-x-3">
-                  <div className="w-20 h-9 bg-gray-200 rounded animate-pulse"></div>
-                  <div className="w-24 h-9 bg-gray-200 rounded animate-pulse"></div>
-                </div>
               ) : (
-                // 🔓 UNAUTHENTICATED STATE - Show sign in buttons
+                // Unauthenticated state
                 <>
                   <Button
                     variant="ghost"

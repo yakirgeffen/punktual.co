@@ -328,7 +328,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 }
 
-// 🔥 IMPORTANT: This export was missing!
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (!context) {
