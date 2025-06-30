@@ -5,8 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle, XCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
-export const dynamic = 'force-dynamic';
-
 export default function AuthCallback() {
   const router = useRouter();
   const searchParams = useSearchParams();

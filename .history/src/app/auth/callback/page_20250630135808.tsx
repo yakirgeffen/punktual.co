@@ -5,8 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle, XCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
-export const dynamic = 'force-dynamic';
-
 export default function AuthCallback() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -46,6 +44,16 @@ export default function AuthCallback() {
 
         console.log('✅ OAuth code found, waiting for auth state to update...');
 
+        // Set up timeout fallback
+        const timeoutId = setTimeout(() => {
+          if (!hasRedirected) {
+            console.log('⏰ Timeout reached, redirecting home');
+            router.replace('/?auth_error=' + encodeURIComponent('Authentication timeout'));
+          }
+        }, 15000); // 15 second timeout
+
+        return () => clearTimeout(timeoutId);
+
       } catch (err: unknown) {
         console.error('❌ OAuth Callback: Error:', err);
         const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
@@ -57,24 +65,7 @@ export default function AuthCallback() {
     };
 
     handleAuthCallback();
-  }, [searchParams, router]);
-
-  // Separate timeout effect that can be properly cleaned up
-  useEffect(() => {
-    if (hasRedirected) return; // Don't set timeout if already redirected
-    
-    const timeoutId = setTimeout(() => {
-      if (!hasRedirected) {
-        console.log('⏰ Timeout reached, redirecting home');
-        router.replace('/?auth_error=' + encodeURIComponent('Authentication timeout'));
-      }
-    }, 15000);
-
-    return () => {
-      console.log('🧹 Clearing timeout');
-      clearTimeout(timeoutId);
-    };
-  }, [hasRedirected, router]);
+  }, [searchParams, router, hasRedirected]);
 
   // Watch for auth state changes and redirect when user is authenticated
   useEffect(() => {
