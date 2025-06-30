@@ -3,23 +3,23 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle, XCircle, ArrowRight } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function AuthCallback() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [loading, setLoading] = useState(true);
+  const { user, initialized } = useAuth();
+  const [hasRedirected, setHasRedirected] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    console.log('🔄 OAuth Callback: Starting corrected auth callback handling...');
+    console.log('🔄 OAuth Callback: Starting callback...');
     
     const handleAuthCallback = async () => {
       try {
-        // Get the code from URL parameters
-        const code = searchParams.get('code');
-        const error_code = searchParams.get('error');
-        const error_description = searchParams.get('error_description');
+        const code = searchParams?.get('code');
+        const error_code = searchParams?.get('error');
+        const error_description = searchParams?.get('error_description');
 
         console.log('🔍 OAuth Callback: URL params:', {
           hasCode: !!code,
@@ -28,98 +28,66 @@ export default function AuthCallback() {
         });
 
         if (error_code) {
-          throw new Error(error_description || 'Authentication failed');
-        }
-
-        if (code) {
-          console.log('🔄 OAuth Callback: Exchanging code using correct Supabase API...');
-          
-          // Use the correct Supabase token exchange endpoint
-          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-          const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-          
-          const response = await fetch(`${supabaseUrl}/auth/v1/token`, {
-            method: 'POST',
-            headers: {
-              'apikey': supabaseKey!,
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${supabaseKey}`
-            },
-            body: JSON.stringify({
-              grant_type: 'authorization_code',
-              code: code,
-              redirect_uri: `${window.location.origin}/auth/callback`
-            })
-          });
-
-          console.log('🔍 OAuth Response status:', response.status);
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            console.error('❌ OAuth Callback: API error:', errorData);
-            throw new Error(errorData.error_description || errorData.msg || `HTTP ${response.status}`);
-          }
-
-          const sessionData = await response.json();
-          console.log('✅ OAuth Callback: Session exchange successful');
-          console.log('👤 OAuth Callback: User data received:', sessionData.user?.email);
-
-          // Store session in localStorage for the auth state listener to pick up
-          if (sessionData.access_token) {
-            console.log('💾 Storing session data...');
-            localStorage.setItem('supabase.auth.token', JSON.stringify(sessionData));
-          }
-
-          setSuccess(true);
-          
-          // Redirect to the create page after successful auth
-          console.log('🔄 OAuth Callback: Redirecting to /create in 2 seconds...');
+          console.error('❌ OAuth Error:', error_description);
+          setError(error_description || 'Authentication failed');
           setTimeout(() => {
-            router.push('/create');
-          }, 2000);
-        } else {
-          // No code parameter, redirect to home
-          console.log('⚠️ OAuth Callback: No code parameter, redirecting to home');
-          router.push('/');
+            router.replace('/?auth_error=' + encodeURIComponent(error_description || 'Authentication failed'));
+          }, 3000);
+          return;
         }
-      } catch (error: any) {
-        console.error('❌ OAuth Callback: Error:', error);
-        setError(error.message || 'Authentication failed');
-        
-        // Redirect to home after error
+
+        if (!code) {
+          console.log('⚠️ No auth code, redirecting home');
+          router.replace('/');
+          return;
+        }
+
+        console.log('✅ OAuth code found, waiting for auth state to update...');
+
+      } catch (err: unknown) {
+        console.error('❌ OAuth Callback: Error:', err);
+        const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
+        setError(errorMessage);
         setTimeout(() => {
-          router.push('/');
-        }, 5000);
-      } finally {
-        setLoading(false);
-        console.log('✅ OAuth Callback: Processing complete');
+          router.replace('/?auth_error=' + encodeURIComponent(errorMessage));
+        }, 3000);
       }
     };
 
     handleAuthCallback();
   }, [searchParams, router]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-blue-50">
-        <div className="text-center max-w-md mx-auto px-4">
-          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">
-            Completing sign-in...
-          </h2>
-          <p className="text-gray-600 text-lg">
-            Please wait while we set up your account
-          </p>
-          <p className="text-sm text-gray-500 mt-2">
-            Using corrected Supabase API...
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // Separate timeout effect that can be properly cleaned up
+  useEffect(() => {
+    if (hasRedirected) return; // Don't set timeout if already redirected
+    
+    const timeoutId = setTimeout(() => {
+      if (!hasRedirected) {
+        console.log('⏰ Timeout reached, redirecting home');
+        router.replace('/?auth_error=' + encodeURIComponent('Authentication timeout'));
+      }
+    }, 15000);
 
+    return () => {
+      console.log('🧹 Clearing timeout');
+      clearTimeout(timeoutId);
+    };
+  }, [hasRedirected, router]);
+
+  // Watch for auth state changes and redirect when user is authenticated
+  useEffect(() => {
+    if (initialized && user && !hasRedirected) {
+      console.log('✅ User authenticated, redirecting to /create...', user.email);
+      setHasRedirected(true);
+      
+      // Small delay to ensure state is stable
+      setTimeout(() => {
+        router.replace('/create');
+      }, 500);
+    }
+  }, [user, initialized, hasRedirected, router]);
+
+  // Error state
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-blue-50">
@@ -130,18 +98,12 @@ export default function AuthCallback() {
           <h2 className="text-2xl font-bold text-gray-900 mb-3">
             Authentication Failed
           </h2>
-          <p className="text-gray-600 text-lg mb-2">
+          <p className="text-gray-600 text-lg mb-6">
             {error}
           </p>
-          <details className="text-sm text-gray-500 mb-8">
-            <summary className="cursor-pointer">Technical Details</summary>
-            <p className="mt-2">
-              The OAuth callback failed during token exchange. This indicates an issue with the Supabase OAuth configuration or API parameters.
-            </p>
-          </details>
           <button
-            onClick={() => router.push('/')}
-            className="inline-flex items-center px-6 py-3 bg-emerald-500 text-white font-medium rounded-lg hover:bg-emerald-400 transition-colors"
+            onClick={() => router.replace('/')}
+            className="inline-flex items-center px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-400 transition-colors"
           >
             Back to Home
             <ArrowRight className="ml-2 w-4 h-4" />
@@ -151,30 +113,30 @@ export default function AuthCallback() {
     );
   }
 
-  if (success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-blue-50">
-        <div className="text-center max-w-md mx-auto px-4">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-8 h-8 text-green-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">
-            Welcome to Punktual!
-          </h2>
-          <p className="text-gray-600 text-lg mb-2">
-            Your Google account has been connected successfully.
-          </p>
-          <p className="text-sm text-gray-500 mb-8">
-            Taking you to create your first calendar event...
-          </p>
-          <div className="flex items-center justify-center">
-            <div className="w-6 h-6 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mr-3"></div>
-            <span className="text-gray-500 font-medium">Redirecting...</span>
-          </div>
+  // Loading state
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-blue-50">
+      <div className="text-center max-w-md mx-auto px-4">
+        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle className="w-8 h-8 text-green-600" />
         </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-3">
+          Welcome to Punktual!
+        </h2>
+        <p className="text-gray-600 text-lg mb-2">
+          Processing Google sign-in...
+        </p>
+        <p className="text-xs text-gray-400 mt-4">
+          Waiting for authentication to complete
+        </p>
+        <div className="flex items-center justify-center mt-6">
+          <div className="w-6 h-6 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mr-3"></div>
+          <span className="text-gray-500 font-medium">Setting up your account...</span>
+        </div>
+        <p className="text-xs text-gray-400 mt-4">
+          {initialized ? 'Authentication system ready' : 'Initializing authentication system...'}
+        </p>
       </div>
-    );
-  }
-
-  return null;
+    </div>
+  );
 }
