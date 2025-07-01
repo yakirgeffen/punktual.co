@@ -27,6 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${nunito.variable} font-sans min-h-screen bg-white`}>
+        {/* Remove Google Analytics scripts from here - CookieConsent will handle them */}
         
         <AuthProvider>
           <TrafficTracker />

@@ -293,38 +293,3 @@ export type FullEventData = EventData & {
 // Export platform-related types
 export type PlatformSelection = ButtonData['selectedPlatforms'];
 export type CalendarPlatformLinks = CalendarLinks;
-
-// ============================================================================
-// GOOGLE ANALYTICS TYPES
-// ============================================================================
-
-type GtagCommand = 'config' | 'set' | 'event' | 'js';
-
-type GtagConfigParams = {
-  page_title?: string;
-  page_location?: string;
-  send_page_view?: boolean;
-  [key: string]: string | number | boolean | undefined;
-};
-
-type GtagEventParams = {
-  event_category?: string;
-  event_label?: string;
-  value?: number;
-  [key: string]: string | number | boolean | undefined;
-};
-
-interface GtagFunction {
-  (command: 'config', targetId: string, config?: GtagConfigParams): void;
-  (command: 'set', config: { [key: string]: string | number | boolean }): void;
-  (command: 'event', eventName: string, eventParams?: GtagEventParams): void;
-  (command: 'js', date: Date): void;
-  (command: GtagCommand, ...args: unknown[]): void;
-}
-
-declare global {
-  interface Window {
-    gtag: GtagFunction;
-    dataLayer: unknown[];
-  }
-}
