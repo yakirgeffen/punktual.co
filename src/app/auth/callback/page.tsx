@@ -1,13 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle, XCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
-export const dynamic = 'force-dynamic';
-
-export default function AuthCallback() {
+function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, initialized } = useAuth();
@@ -76,7 +74,7 @@ export default function AuthCallback() {
 
   // Separate timeout effect that can be properly cleaned up
   useEffect(() => {
-    if (hasRedirected) return; // Don't set timeout if already redirected
+    if (hasRedirected) return;
     
     const timeoutId = setTimeout(() => {
       if (!hasRedirected) {
@@ -97,14 +95,12 @@ export default function AuthCallback() {
       console.log('✅ User authenticated, redirecting to /create...', user.email);
       setHasRedirected(true);
       
-      // Small delay to ensure state is stable
       setTimeout(() => {
         router.replace('/create');
       }, 500);
     }
   }, [user, initialized, hasRedirected, router]);
 
-  // Error state
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-blue-50">
@@ -130,7 +126,6 @@ export default function AuthCallback() {
     );
   }
 
-  // Loading state
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-blue-50">
       <div className="text-center max-w-md mx-auto px-4">
@@ -155,5 +150,20 @@ export default function AuthCallback() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function AuthCallback() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-blue-50">
+        <div className="text-center">
+          <div className="w-6 h-6 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <span className="text-gray-500 font-medium">Loading...</span>
+        </div>
+      </div>
+    }>
+      <AuthCallbackContent />
+    </Suspense>
   );
 }
