@@ -59,7 +59,7 @@ export default function PlatformSelectionSection() {
   };
 
   return (
-    <div className="space-y-6 pb-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between mb-4">
         <span className="text-sm text-gray-600">Select which calendar platforms to support</span>
         {selectedCount > 0 && (

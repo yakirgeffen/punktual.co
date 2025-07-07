@@ -4,14 +4,13 @@ import { useEventFormLogic } from '@/hooks/useEventFormLogic';
 import EnhancedTimezoneSelector from '@/components/forms/DateTime/EnhancedTimezoneSelector';
 
 /**
- * Event Details Section - Comprehensive event information
- * Handles date/time, timezone, recurring events, description, location, host info, and reminders
+ * Event Details Section - Date & Time Management
+ * Handles dates, times, timezone, all-day toggle, and recurring events
  */
 export default function EventDetailsSection() {
   const { 
     eventData, 
-    reminderOptions,
-    handleFieldChange, // ✅ Added this missing function
+    handleFieldChange,
   } = useEventFormLogic();
 
   // Generate time options with 15-minute intervals and 12-hour display
@@ -83,65 +82,8 @@ export default function EventDetailsSection() {
     return `${hours}h ${minutes}m`;
   };
 
-  // Generate recurrence description
-  const getRecurrenceDescription = () => {
-    if (!eventData.isRecurring) return '';
-    const { 
-      recurrencePattern, 
-      recurrenceCount = 1, 
-      weeklyDays = [],
-      monthlyOption = 'date',
-      monthlyWeekday = 0, 
-      monthlyWeekdayOrdinal = 0,
-      yearlyMonth = 0,
-      recurrenceInterval = 1
-    } = eventData;
-    
-    let description = 'Repeats ';
-    const intervalText = recurrenceInterval > 1 ? `every ${recurrenceInterval} ` : '';
-    
-    switch (recurrencePattern) {
-      case 'daily':
-        description += `${intervalText}${recurrenceInterval === 1 ? 'daily' : 'days'}`;
-        break;
-      case 'weekly':
-        if (weeklyDays.length > 0) {
-          const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-          const selectedDays = weeklyDays.sort((a, b) => a - b).map(day => dayNames[day]).join(', ');
-          description += `${intervalText}${recurrenceInterval === 1 ? 'weekly' : 'weeks'} on ${selectedDays}`;
-        } else {
-          description += `${intervalText}${recurrenceInterval === 1 ? 'weekly' : 'weeks'}`;
-        }
-        break;
-      case 'monthly':
-        if (monthlyOption === 'date') {
-          description += `${intervalText}${recurrenceInterval === 1 ? 'monthly' : 'months'} on the same date`;
-        } else if (monthlyOption === 'weekday') {
-          const ordinals = ['first', 'second', 'third', 'fourth', 'fifth', 'last'];
-          const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-          description += `${intervalText}${recurrenceInterval === 1 ? 'monthly' : 'months'} on the ${ordinals[monthlyWeekdayOrdinal]} ${weekdays[monthlyWeekday]}`;
-        }
-        break;
-      case 'yearly':
-        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-        if (yearlyMonth !== undefined && yearlyMonth >= 0) {
-          description += `${intervalText}${recurrenceInterval === 1 ? 'yearly' : 'years'} in ${months[yearlyMonth]}`;
-        } else {
-          description += `${intervalText}${recurrenceInterval === 1 ? 'yearly' : 'years'}`;
-        }
-        break;
-      default:
-        description = '';
-    }
-    
-    if (recurrenceCount > 1) {
-      description += ` for ${recurrenceCount} occurrence${recurrenceCount > 1 ? 's' : ''}`;
-    }
-    return description;
-  };
-
   return (
-    <div className="space-y-6 pb-4">
+    <div className="space-y-6">
       {/* Date & Time Section */}
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
@@ -279,8 +221,9 @@ export default function EventDetailsSection() {
         >
           Recurring event
         </Switch>
+        
         {eventData.isRecurring && (
-          <div className="space-y-4 ml-4 pl-4 border-l-2 border-emerald-400 bg-gray-500/30 rounded-r-lg py-6">
+          <div className="space-y-4 ml-4 pl-4 border-l-2 border-emerald-400 bg-gray-50 rounded-r-lg py-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Select
                 label="Repeat"
@@ -299,14 +242,15 @@ export default function EventDetailsSection() {
                 <SelectItem key="monthly">Monthly</SelectItem>
                 <SelectItem key="yearly">Yearly</SelectItem>
               </Select>
+              
               <Input
                 type="number"
                 label="Every"
                 placeholder="1"
-                min={1}
-                max={99}
-                value={eventData.recurrenceInterval?.toString() || '1'}
+                value={String(eventData.recurrenceInterval || 1)}
                 onChange={(e) => handleFieldChange('recurrenceInterval', parseInt(e.target.value) || 1)}
+                min="1"
+                max="999"
                 radius="md"
                 labelPlacement="outside"
                 classNames={{
@@ -314,26 +258,16 @@ export default function EventDetailsSection() {
                   input: "placeholder:text-gray-400",
                   inputWrapper: "h-10"
                 }}
-                endContent={
-                  <span className="text-xs text-gray-500">
-                    {eventData.recurrencePattern === 'daily'
-                      ? 'days'
-                      : eventData.recurrencePattern === 'weekly'
-                      ? 'weeks'
-                      : eventData.recurrencePattern === 'monthly'
-                      ? 'months'
-                      : 'years'}
-                  </span>
-                }
               />
+              
               <Input
                 type="number"
-                label="Occurrences"
-                placeholder="10"
-                min={1}
-                max={999}
-                value={eventData.recurrenceCount?.toString() || '1'}
+                label="For"
+                placeholder="Occurrences"
+                value={String(eventData.recurrenceCount || '')}
                 onChange={(e) => handleFieldChange('recurrenceCount', parseInt(e.target.value) || 1)}
+                min="1"
+                max="999"
                 radius="md"
                 labelPlacement="outside"
                 classNames={{
@@ -343,236 +277,8 @@ export default function EventDetailsSection() {
                 }}
               />
             </div>
-            {eventData.recurrencePattern === 'weekly' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">Repeat on days</label>
-                <div className="flex gap-2">
-                  {[
-                    { index: 0, short: 'S', full: 'Sunday' },
-                    { index: 1, short: 'M', full: 'Monday' },
-                    { index: 2, short: 'T', full: 'Tuesday' },
-                    { index: 3, short: 'W', full: 'Wednesday' },
-                    { index: 4, short: 'T', full: 'Thursday' },
-                    { index: 5, short: 'F', full: 'Friday' },
-                    { index: 6, short: 'S', full: 'Saturday' }
-                  ].map((day) => (
-                    <button
-                      key={day.index}
-                      type="button"
-                      onClick={() => {
-                        const currentDays = eventData.weeklyDays || [];
-                        const newDays = currentDays.includes(day.index) 
-                          ? currentDays.filter(d => d !== day.index)
-                          : [...currentDays, day.index].sort();
-                        handleFieldChange('weeklyDays', newDays.map(String));
-                      }}
-                      className={`w-10 h-10 rounded-full text-sm font-medium border-2 transition-all ${
-                        (eventData.weeklyDays || []).includes(day.index)
-                          ? 'bg-emerald-400 text-white border-emerald-500'
-                          : 'bg-white text-gray-600 border-gray-300 hover:border-emerald-400'
-                      }`}
-                      title={day.full}
-                    >
-                      {day.short}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            {eventData.recurrencePattern === 'monthly' && (
-              <div className="space-y-4">
-                <div className="space-y-3">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="monthlyOption"
-                      value="date"
-                      checked={eventData.monthlyOption === 'date' || !eventData.monthlyOption}
-                      onChange={() => handleFieldChange('monthlyOption', 'date')}
-                      className="w-4 h-4 text-emerald-500"
-                    />
-                    <span className="text-sm">Same date each month (e.g., 15th of every month)</span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="monthlyOption"
-                      value="weekday"
-                      checked={eventData.monthlyOption === 'weekday'}
-                      onChange={() => handleFieldChange('monthlyOption', 'weekday')}
-                      className="w-4 h-4 text-emerald-500"
-                    />
-                    <span className="text-sm">Same weekday pattern (e.g., first Monday of every month)</span>
-                  </label>
-                </div>
-                {eventData.monthlyOption === 'weekday' && (
-                  <div className="grid grid-cols-2 gap-4 ml-7">
-                    <Select
-                      label="Which occurrence"
-                      placeholder="Select occurrence"
-                      selectedKeys={[eventData.monthlyWeekdayOrdinal?.toString() || '0']}
-                      onSelectionChange={(keys) =>
-                        handleFieldChange('monthlyWeekdayOrdinal', parseInt(String(Array.from(keys)[0])))
-                      }
-                      radius="md"
-                      labelPlacement="outside"
-                      classNames={{
-                        label: "text-sm font-medium text-gray-700 pb-1",
-                        trigger: "h-10"
-                      }}
-                    >
-                      <SelectItem key="0">First</SelectItem>
-                      <SelectItem key="1">Second</SelectItem>
-                      <SelectItem key="2">Third</SelectItem>
-                      <SelectItem key="3">Fourth</SelectItem>
-                      <SelectItem key="4">Fifth</SelectItem>
-                      <SelectItem key="5">Last</SelectItem>
-                    </Select>
-                    <Select
-                      label="Day of week"
-                      placeholder="Select day"
-                      selectedKeys={[eventData.monthlyWeekday?.toString() || '0']}
-                      onSelectionChange={(keys) =>
-                        handleFieldChange('monthlyWeekday', parseInt(String(Array.from(keys)[0])))
-                      }
-                      radius="md"
-                      labelPlacement="outside"
-                      classNames={{
-                        label: "text-sm font-medium text-gray-700 pb-1",
-                        trigger: "h-10"
-                      }}
-                    >
-                      <SelectItem key="0">Sunday</SelectItem>
-                      <SelectItem key="1">Monday</SelectItem>
-                      <SelectItem key="2">Tuesday</SelectItem>
-                      <SelectItem key="3">Wednesday</SelectItem>
-                      <SelectItem key="4">Thursday</SelectItem>
-                      <SelectItem key="5">Friday</SelectItem>
-                      <SelectItem key="6">Saturday</SelectItem>
-                    </Select>
-                  </div>
-                )}
-              </div>
-            )}
-            {eventData.recurrencePattern === 'yearly' && (
-              <div>
-                <Select
-                  label="Month"
-                  placeholder="Select month (optional)"
-                  selectedKeys={eventData.yearlyMonth !== undefined ? [eventData.yearlyMonth.toString()] : []}
-                  onSelectionChange={(keys) => {
-                    const key = String(Array.from(keys)[0]);
-                    handleFieldChange('yearlyMonth', key ? parseInt(key) : undefined);
-                  }}
-                  radius="md"
-                  labelPlacement="outside"
-                  classNames={{
-                    label: "text-sm font-medium text-gray-700 pb-1",
-                    trigger: "h-10"
-                  }}
-                >
-                  <SelectItem key="0">January</SelectItem>
-                  <SelectItem key="1">February</SelectItem>
-                  <SelectItem key="2">March</SelectItem>
-                  <SelectItem key="3">April</SelectItem>
-                  <SelectItem key="4">May</SelectItem>
-                  <SelectItem key="5">June</SelectItem>
-                  <SelectItem key="6">July</SelectItem>
-                  <SelectItem key="7">August</SelectItem>
-                  <SelectItem key="8">September</SelectItem>
-                  <SelectItem key="9">October</SelectItem>
-                  <SelectItem key="10">November</SelectItem>
-                  <SelectItem key="11">December</SelectItem>
-                </Select>
-              </div>
-            )}
-            {getRecurrenceDescription() && (
-              <div className="bg-emerald-100 border border-emerald-400 rounded-lg p-3">
-                <p className="text-sm text-emerald-800 font-medium">{getRecurrenceDescription()}</p>
-              </div>
-            )}
           </div>
         )}
-      </div>
-
-      {/* Event Description */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 pb-1">Event Description</label>
-        <textarea
-          value={eventData.description || ''}
-          onChange={(e) => handleFieldChange('description', e.target.value)}
-          placeholder="Describe your event, agenda, what attendees should expect..."
-          rows={4}
-          className="w-full px-4 py-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 resize-none placeholder:text-gray-400"
-        />
-      </div>
-
-      {/* Location */}
-      <Input
-        label="Location"
-        placeholder="Conference room, venue address, or meeting link"
-        value={eventData.location || ''}
-        onChange={(e) => handleFieldChange('location', e.target.value)}
-        radius="md"
-        labelPlacement="outside"
-        classNames={{
-          label: "text-sm font-medium text-gray-700 pb-1",
-          input: "text-base placeholder:text-gray-400",
-          inputWrapper: "h-12"
-        }}
-      />
-
-      {/* Host Information */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input
-          label="Host Name"
-          placeholder="Event organizer or company name"
-          value={eventData.hostName || ''}
-          onChange={(e) => handleFieldChange('hostName', e.target.value)}
-          radius="md"
-          labelPlacement="outside"
-          classNames={{
-            label: "text-sm font-medium text-gray-700 pb-1",
-            input: "text-base placeholder:text-gray-400",
-            inputWrapper: "h-12"
-          }}
-        />
-        <Input
-          type="email"
-          label="Host Email"
-          placeholder="organizer@company.com"
-          value={eventData.hostEmail || ''}
-          onChange={(e) => handleFieldChange('hostEmail', e.target.value)}
-          radius="md"
-          labelPlacement="outside"
-          classNames={{
-            label: "text-sm font-medium text-gray-700 pb-1",
-            input: "text-base placeholder:text-gray-400",
-            inputWrapper: "h-12"
-          }}
-        />
-      </div>
-
-      {/* Reminder */}
-      <div className="pt-2">
-        <Select
-          label="Remind attendees"
-          placeholder="Select when to remind attendees"
-          selectedKeys={[eventData.reminderTime || '15']}
-          onSelectionChange={(keys) => handleFieldChange('reminderTime', Array.from(keys)[0])}
-          radius="md"
-          labelPlacement="outside"
-          classNames={{
-            label: "text-sm font-medium text-gray-700 pb-1",
-            trigger: "h-12"
-          }}
-        >
-          {reminderOptions.map((option) => (
-            <SelectItem key={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </Select>
       </div>
     </div>
   );
