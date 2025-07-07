@@ -98,9 +98,9 @@ export default function ButtonCustomizationSection() {
             <button
               key={color.value}
               type="button"
-              onClick={() => updateButton({ colorScheme: color.value })}
+              onClick={() => updateButton({ colorTheme: color.value })}
               className={`w-10 h-10 rounded-full border-3 transition-all hover:scale-110 ${
-                buttonData.colorScheme === color.value ? 'border-gray-800 ring-2 ring-emerald-200' : 'border-gray-300'
+                buttonData.colorTheme === color.value ? 'border-gray-800 ring-2 ring-emerald-200' : 'border-gray-300'
               }`}
               style={{ backgroundColor: color.value }}
               title={color.name}
@@ -108,8 +108,8 @@ export default function ButtonCustomizationSection() {
           ))}
           <input
             type="color"
-            value={buttonData.colorScheme || '#4D90FF'}
-            onChange={(e) => updateButton({ colorScheme: e.target.value })}
+            value={buttonData.colorTheme || '#4D90FF'}
+            onChange={(e) => updateButton({ colorTheme: e.target.value })}
             className="w-10 h-10 rounded-lg border-2 border-gray-300 cursor-pointer"
             title="Custom color"
           />

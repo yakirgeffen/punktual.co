@@ -31,7 +31,7 @@ export default function ButtonColorSection() {
   const [savedCustomColor, setSavedCustomColor] = useState('#4D90FF');
 
   // No default fallback - shows actual selection state
-  const currentColor = buttonData.colorScheme;
+  const currentColor = buttonData.colorTheme;
   const isLight = currentColor === LIGHT_COLOR;
   const isDark = currentColor === DARK_COLOR;
   const isCustom = currentColor && !isLight && !isDark;
@@ -39,14 +39,14 @@ export default function ButtonColorSection() {
   // Preserve custom color when switching from Light/Dark back to Custom
   const handleCustomSelect = () => {
     if (isLight || isDark) {
-      updateButton({ colorScheme: savedCustomColor });
+      updateButton({ colorTheme: savedCustomColor });
     }
   };
 
   // Update custom color and save it
   const handleColorChange = (color: string) => {
     setSavedCustomColor(color);
-    updateButton({ colorScheme: color });
+    updateButton({ colorTheme: color });
   };
 
   return (
@@ -60,7 +60,7 @@ export default function ButtonColorSection() {
         <Button
           variant={isLight ? 'solid' : 'bordered'}
           color={isLight ? 'primary' : 'default'}
-          onPress={() => updateButton({ colorScheme: LIGHT_COLOR })}
+          onPress={() => updateButton({ colorTheme: LIGHT_COLOR })}
           className="flex-1"
         >
           Light
@@ -70,7 +70,7 @@ export default function ButtonColorSection() {
         <Button
           variant={isDark ? 'solid' : 'bordered'}
           color={isDark ? 'primary' : 'default'}
-          onPress={() => updateButton({ colorScheme: DARK_COLOR })}
+          onPress={() => updateButton({ colorTheme: DARK_COLOR })}
           className="flex-1"
           style={isDark ? { 
             backgroundColor: DARK_COLOR, 
