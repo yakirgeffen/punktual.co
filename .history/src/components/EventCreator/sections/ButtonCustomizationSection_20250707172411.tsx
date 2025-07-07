@@ -55,9 +55,9 @@ const COLOR_THEMES = [
 
 // Platform Display Options (for multiple buttons)
 const DISPLAY_OPTIONS = [
-  { id: 'names' as const, name: 'Platform Names Only', example: 'Google Calendar' },
-  { id: 'icons' as const, name: 'Platform Icons Only', example: '📅' },
-  { id: 'both' as const, name: 'Icons + Names', example: '📅 Google Calendar' }
+  { id: 'names', name: 'Platform Names Only', example: 'Google Calendar' },
+  { id: 'icons', name: 'Platform Icons Only', example: '📅' },
+  { id: 'both', name: 'Icons + Names', example: '📅 Google Calendar' }
 ];
 
 // Platform Info
