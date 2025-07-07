@@ -71,7 +71,7 @@ export function EventContextProvider({ children }: EventContextProviderProps) {
   const [buttonData, setButtonData] = useState<ButtonData>({
     buttonStyle: 'standard',
     buttonSize: 'medium',
-    colorScheme: '#4D90FF',
+    colorTheme: '#4D90FF',
     textColor: '#FFFFFF',
     selectedPlatforms: {
       google: true,

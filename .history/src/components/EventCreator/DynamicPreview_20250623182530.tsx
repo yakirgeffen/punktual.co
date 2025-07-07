@@ -193,7 +193,7 @@ export default function DynamicPreview({ useCase }: DynamicPreviewProps) {
                             <button
                               onClick={() => setDropdownOpen(!dropdownOpen)}
                               className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors shadow-sm"
-                              style={{ backgroundColor: buttonData.colorScheme || '#10b981' }}
+                              style={{ backgroundColor: buttonData.colorTheme || '#10b981' }}
                             >
                               {buttonData.showIcons !== false && <span>📅</span>}
                               <span>Add to Calendar</span>

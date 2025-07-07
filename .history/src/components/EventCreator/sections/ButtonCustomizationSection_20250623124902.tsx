@@ -90,9 +90,9 @@ export default function ButtonCustomizationSection() {
         <div className="flex gap-3">
           {/* Light Button */}
           <Button
-            variant={buttonData.colorScheme === '#F4F4F5' ? 'solid' : 'bordered'}
-            color={buttonData.colorScheme === '#F4F4F5' ? 'primary' : 'default'}
-            onPress={() => updateButton({ colorScheme: '#F4F4F5' })}
+            variant={buttonData.colorTheme === '#F4F4F5' ? 'solid' : 'bordered'}
+            color={buttonData.colorTheme === '#F4F4F5' ? 'primary' : 'default'}
+            onPress={() => updateButton({ colorTheme: '#F4F4F5' })}
             className="flex-1"
           >
             Light
@@ -100,9 +100,9 @@ export default function ButtonCustomizationSection() {
           
           {/* Dark Button */}
           <Button
-            variant={buttonData.colorScheme === '#18181B' ? 'solid' : 'bordered'}
-            color={buttonData.colorScheme === '#18181B' ? 'primary' : 'default'}
-            onPress={() => updateButton({ colorScheme: '#18181B' })}
+            variant={buttonData.colorTheme === '#18181B' ? 'solid' : 'bordered'}
+            color={buttonData.colorTheme === '#18181B' ? 'primary' : 'default'}
+            onPress={() => updateButton({ colorTheme: '#18181B' })}
             className="flex-1"
           >
             Dark
@@ -111,16 +111,16 @@ export default function ButtonCustomizationSection() {
           {/* Custom Color Button + Picker */}
           <div className="flex gap-2 flex-1">
             <Button
-              variant={buttonData.colorScheme !== '#F4F4F5' && buttonData.colorScheme !== '#18181B' ? 'solid' : 'bordered'}
-              color={buttonData.colorScheme !== '#F4F4F5' && buttonData.colorScheme !== '#18181B' ? 'primary' : 'default'}
+              variant={buttonData.colorTheme !== '#F4F4F5' && buttonData.colorTheme !== '#18181B' ? 'solid' : 'bordered'}
+              color={buttonData.colorTheme !== '#F4F4F5' && buttonData.colorTheme !== '#18181B' ? 'primary' : 'default'}
               className="flex-1"
             >
               Custom
             </Button>
             <input
               type="color"
-              value={buttonData.colorScheme || '#4D90FF'}
-              onChange={(e) => updateButton({ colorScheme: e.target.value })}
+              value={buttonData.colorTheme || '#4D90FF'}
+              onChange={(e) => updateButton({ colorTheme: e.target.value })}
               className="w-12 h-12 rounded-lg border-2 border-gray-300 cursor-pointer bg-transparent"
             />
           </div>

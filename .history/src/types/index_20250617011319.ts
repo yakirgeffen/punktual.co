@@ -59,7 +59,7 @@ export interface ButtonData {
   buttonLayout?: 'dropdown' | 'individual';
   
   // Colors
-  colorScheme?: string;
+  colorTheme?: string;
   textColor?: string;
   
   // Features

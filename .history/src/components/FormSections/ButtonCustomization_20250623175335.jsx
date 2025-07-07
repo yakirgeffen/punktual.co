@@ -88,7 +88,7 @@ export default function ButtonCustomization() {
           {colorOptions.map((color) => (
             <label key={color.id} className="cursor-pointer">
               <input
-                {...register('colorScheme')}
+                {...register('colorTheme')}
                 type="radio"
                 value={color.value}
                 className="sr-only"
@@ -102,7 +102,7 @@ export default function ButtonCustomization() {
           ))}
           <div>
             <input
-              {...register('colorScheme')}
+              {...register('colorTheme')}
               type="color"
               className="w-10 h-10 rounded-full border-2 border-gray-300 cursor-pointer"
             />
