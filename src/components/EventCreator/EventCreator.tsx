@@ -77,7 +77,6 @@ export default function EventCreator() {
                   {USE_CASES.map((useCase) => (
                     <SelectItem 
                       key={useCase.id} 
-                      value={useCase.id}
                       textValue={useCase.name}
                     >
                       <div className="flex items-center gap-2">
