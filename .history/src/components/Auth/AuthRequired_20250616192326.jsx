@@ -52,7 +52,7 @@ export default function AuthRequired({
   return (
     <>
       {/* Mobile: No min-height, Desktop: Full screen with centered content */}
-      <div className="bg-gradient-to-br from-emerald-50 via-white to-emerald-50 lg:min-h-screen lg:flex lg:items-center">
+      <div className="bg-gradient-to-br from-emerald-50 via-white to-blue-50 lg:min-h-screen lg:flex lg:items-center">
         {/* Compact container with optimized spacing */}
         <div className="container mx-auto px-4 py-8 sm:py-12 lg:py-16 w-full">
           <div className="max-w-4xl mx-auto">

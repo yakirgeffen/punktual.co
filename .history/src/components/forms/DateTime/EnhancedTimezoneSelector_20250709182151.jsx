@@ -145,7 +145,7 @@ export default function EnhancedTimezoneSelector({
                 </span>
               </div>
               {tz.isCityMapping && (
-                <div className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
+                <div className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
                   Same timezone
                 </div>
               )}

@@ -192,7 +192,7 @@ ${buttons}
                 key={type.id}
                 className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                   layoutType === type.id
-                    ? 'border-emerald-500 bg-emerald-50'
+                    ? 'border-blue-500 bg-blue-50'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
                 onClick={() => updateButton({ buttonLayout: type.id as 'dropdown' | 'individual' })}

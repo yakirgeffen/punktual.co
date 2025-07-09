@@ -112,7 +112,7 @@ const UseCaseToggle = ({ selectedUseCase, onUseCaseChange, isMobile = false, isC
               `}
             >
               <div className="flex items-center space-x-2 mb-1">
-                <div className={selectedUseCase === useCase.id ? 'text-emerald-600' : 'text-gray-400'}>
+                <div className={selectedUseCase === useCase.id ? 'text-blue-600' : 'text-gray-400'}>
                   {useCase.icon}
                 </div>
                 <span className="font-medium text-sm">{useCase.name}</span>

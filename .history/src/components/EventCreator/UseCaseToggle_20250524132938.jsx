@@ -66,14 +66,14 @@ const UseCaseToggle = ({ selectedUseCase, onUseCaseChange, isMobile = false, isC
             className={`
               w-full p-4 rounded-lg border-2 transition-all duration-200 text-center
               ${selectedUseCase === useCase.id
-                ? 'border-emerald-500 bg-emerald-50 text-emerald-900 shadow-md'
+                ? 'border-blue-500 bg-blue-50 text-blue-900 shadow-md'
                 : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:shadow-sm'
               }
             `}
           >
             {/* Icon with more space */}
             <div className={`
-              mx-auto mb-3 ${selectedUseCase === useCase.id ? 'text-emerald-600' : 'text-gray-400'}
+              mx-auto mb-3 ${selectedUseCase === useCase.id ? 'text-blue-600' : 'text-gray-400'}
             `}>
               {useCase.icon}
             </div>
@@ -86,7 +86,7 @@ const UseCaseToggle = ({ selectedUseCase, onUseCaseChange, isMobile = false, isC
 
             {/* Selection Indicator */}
             {selectedUseCase === useCase.id && (
-              <div className="w-2 h-2 bg-emerald-500 rounded-full mx-auto mt-3"></div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full mx-auto mt-3"></div>
             )}
           </button>
         ))}
@@ -106,13 +106,13 @@ const UseCaseToggle = ({ selectedUseCase, onUseCaseChange, isMobile = false, isC
               className={`
                 p-3 rounded-lg border-2 transition-all duration-200 text-left
                 ${selectedUseCase === useCase.id
-                  ? 'border-emerald-500 bg-emerald-50 text-emerald-900'
+                  ? 'border-blue-500 bg-blue-50 text-blue-900'
                   : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
                 }
               `}
             >
               <div className="flex items-center space-x-2 mb-1">
-                <div className={selectedUseCase === useCase.id ? 'text-emerald-600' : 'text-gray-400'}>
+                <div className={selectedUseCase === useCase.id ? 'text-blue-600' : 'text-gray-400'}>
                   {useCase.icon}
                 </div>
                 <span className="font-medium text-sm">{useCase.name}</span>
@@ -137,7 +137,7 @@ const UseCaseToggle = ({ selectedUseCase, onUseCaseChange, isMobile = false, isC
             className={`
               w-full p-4 rounded-lg border-2 transition-all duration-200 text-left
               ${selectedUseCase === useCase.id
-                ? 'border-emerald-500 bg-emerald-50 text-emerald-900 shadow-md'
+                ? 'border-blue-500 bg-blue-50 text-blue-900 shadow-md'
                 : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:shadow-sm'
               }
             `}
@@ -145,7 +145,7 @@ const UseCaseToggle = ({ selectedUseCase, onUseCaseChange, isMobile = false, isC
             <div className="flex items-start space-x-3">
               {/* Icon */}
               <div className={`
-                mt-0.5 ${selectedUseCase === useCase.id ? 'text-emerald-600' : 'text-gray-400'}
+                mt-0.5 ${selectedUseCase === useCase.id ? 'text-blue-600' : 'text-gray-400'}
               `}>
                 {useCase.icon}
               </div>
@@ -155,7 +155,7 @@ const UseCaseToggle = ({ selectedUseCase, onUseCaseChange, isMobile = false, isC
                 <div className="flex items-center justify-between">
                   <h3 className="font-medium text-sm">{useCase.name}</h3>
                   {selectedUseCase === useCase.id && (
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   )}
                 </div>
                 <p className="text-xs text-gray-500 mt-1">{useCase.description}</p>
