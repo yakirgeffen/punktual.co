@@ -19,7 +19,7 @@ export default function Pricing() {
   ];
 
   return (
-    <section id="pricing" className="py-16 bg-gradient-to-br from-emerald-50 to-emerald-100">
+    <section id="pricing" className="py-16 bg-gradient-to-br from-gray-50 to-blue-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-3">Simple pricing</h2>
@@ -63,7 +63,7 @@ export default function Pricing() {
             <div className="text-center mb-6">
               <h3 className="text-xl font-bold mb-2">Pro</h3>
               <div className="text-4xl font-bold mb-2">$15</div>
-              <p className="text-emerald-100">Everything you need to scale</p>
+              <p className="text-blue-100">Everything you need to scale</p>
             </div>
             
             <ul className="space-y-3 mb-6">

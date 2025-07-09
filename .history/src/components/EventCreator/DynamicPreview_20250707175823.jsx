@@ -194,7 +194,7 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'dropdown-but
                                 toast.success(`Opening ${info.name}!`);
                               }
                             }}
-                            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors shadow-sm"
+                            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm"
                             style={{ backgroundColor: buttonData?.colorTheme || '#4D90FF' }}
                             disabled={!link}
                           >
@@ -221,7 +221,7 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'dropdown-but
                       <h4 className="text-md font-medium text-gray-900">Generated Code</h4>
                       <button
                         onClick={() => copyToClipboard(getGeneratedCode(), 'Code')}
-                        className="px-3 py-1 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 transition-colors"
+                        className="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
                       >
                         📋 {copied ? 'Copied!' : 'Copy Code'}
                       </button>
@@ -247,7 +247,7 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'dropdown-but
                           onClick={() => setActiveTab(tab)}
                           className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                             activeTab === tab
-                              ? 'border-emerald-500 text-emerald-600'
+                              ? 'border-blue-500 text-blue-600'
                               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                           }`}
                         >
@@ -265,7 +265,7 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'dropdown-but
                           <div className="relative inline-block">
                             <button
                               onClick={() => setDropdownOpen(!dropdownOpen)}
-                              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors shadow-sm"
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm"
                               style={{ backgroundColor: buttonData?.colorTheme || '#4D90FF' }}
                             >
                               {buttonData?.showIcons !== false && <span>📅</span>}
@@ -344,7 +344,7 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'dropdown-but
                               </button>
                               <button
                                 onClick={() => link && window.open(link, '_blank')}
-                                className="px-3 py-1 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 transition-colors"
+                                className="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
                                 disabled={!link}
                               >
                                 Open
@@ -365,7 +365,7 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'dropdown-but
                           <select
                             value={codeFormat}
                             onChange={(e) => setCodeFormat(e.target.value as 'html' | 'react' | 'css' | 'js')}
-                            className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           >
                             <option value="html">HTML</option>
                             <option value="react">React</option>
@@ -378,14 +378,14 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'dropdown-but
                               type="checkbox"
                               checked={isMinified}
                               onChange={(e) => setIsMinified(e.target.checked)}
-                              className="w-3 h-3 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+                              className="w-3 h-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                             />
                             <span>Minified</span>
                           </label>
                           
                           <button
                             onClick={() => copyToClipboard(getGeneratedCode(), 'Code')}
-                            className="px-3 py-1 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 transition-colors"
+                            className="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
                           >
                             📋 {copied ? 'Copied!' : 'Copy'}
                           </button>
@@ -466,7 +466,7 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'dropdown-but
                       )}
                       
                       <div className="pt-6">
-                        <button className="px-6 py-3 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors shadow-sm">
+                        <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm">
                           📅 Add to My Calendar
                         </button>
                       </div>

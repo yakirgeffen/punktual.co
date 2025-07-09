@@ -297,7 +297,7 @@ export default PunktualButton;`;
       {/* Header with Options */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Code2 className="text-emerald-500" size={20} />
+          <Code2 className="text-blue-500" size={20} />
           <h3 className="font-semibold text-gray-800">Generated Code</h3>
           <Chip size="sm" color="success" variant="dot">Ready</Chip>
         </div>

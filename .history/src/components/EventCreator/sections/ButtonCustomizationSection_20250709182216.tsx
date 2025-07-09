@@ -192,7 +192,7 @@ ${buttons}
                 key={type.id}
                 className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                   layoutType === type.id
-                    ? 'border-emerald-500 bg-emerald-50'
+                    ? 'border-blue-500 bg-blue-50'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
                 onClick={() => updateButton({ buttonLayout: type.id as 'dropdown' | 'individual' })}
@@ -242,7 +242,7 @@ ${buttons}
                     onClick={() => updateButton({ buttonShape: shape.id })}
                     className={`px-4 py-2 border-2 transition-all ${shape.class} ${
                       buttonShape === shape.id
-                        ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
                         : 'border-gray-200 text-gray-700 hover:border-gray-300'
                     }`}
                   >
@@ -261,7 +261,7 @@ ${buttons}
                     key={theme.id}
                     className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
                       colorTheme === theme.id
-                        ? 'border-emerald-500 bg-emerald-50'
+                        ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                     onClick={() => updateButton({ colorTheme: theme.id })}
@@ -314,7 +314,7 @@ ${buttons}
                     key={option.id}
                     className={`p-3 border-2 rounded-lg cursor-pointer transition-all text-center ${
                       displayOption === option.id
-                        ? 'border-emerald-500 bg-emerald-50'
+                        ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                     onClick={() => updateButton({ displayOption: option.id })}
@@ -336,7 +336,7 @@ ${buttons}
                     onClick={() => updateButton({ buttonShape: shape.id })}
                     className={`px-4 py-2 border-2 transition-all ${shape.class} ${
                       buttonShape === shape.id
-                        ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
                         : 'border-gray-200 text-gray-700 hover:border-gray-300'
                     }`}
                   >
@@ -355,7 +355,7 @@ ${buttons}
                     key={theme.id}
                     className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
                       colorTheme === theme.id
-                        ? 'border-emerald-500 bg-emerald-50'
+                        ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                     onClick={() => updateButton({ colorTheme: theme.id })}

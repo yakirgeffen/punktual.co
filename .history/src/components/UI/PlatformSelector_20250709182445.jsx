@@ -212,7 +212,7 @@ const PlatformSelector = () => {
               />
               
               {isSelected && (
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full flex items-center justify-center">
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-xs leading-none">✓</span>
                 </div>
               )}
@@ -245,7 +245,7 @@ const PlatformSelector = () => {
                   <select
                     value={customization.display}
                     onChange={(e) => updateCustomization('display', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                   >
                     <option value="logos">Logos</option>
                     <option value="names">Names</option>
@@ -258,7 +258,7 @@ const PlatformSelector = () => {
                   <select
                     value={customization.shape}
                     onChange={(e) => updateCustomization('shape', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                   >
                     <option value="rounded">Rounded</option>
                     <option value="pill">Pill</option>
@@ -272,7 +272,7 @@ const PlatformSelector = () => {
                   <select
                     value={customization.size}
                     onChange={(e) => updateCustomization('size', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                   >
                     <option value="36px">Small (36px)</option>
                     <option value="40px">Medium (40px)</option>
@@ -289,7 +289,7 @@ const PlatformSelector = () => {
                   <select
                     value={customization.style}
                     onChange={(e) => updateCustomization('style', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                   >
                     <option value="original">Buttons</option>
                     <option value="textual">Text Links</option>
