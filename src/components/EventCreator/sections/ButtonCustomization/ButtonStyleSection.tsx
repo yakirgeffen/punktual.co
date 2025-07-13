@@ -1,50 +1,61 @@
 'use client';
-import { Select, SelectItem } from '@heroui/react';
 import { useEventFormLogic } from '@/hooks/useEventFormLogic';
 
 export default function ButtonStyleSection() {
   const { buttonData, updateButton } = useEventFormLogic();
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <Select
-        label="Button Style"
-        placeholder="Select button style"
-        selectedKeys={[buttonData.buttonStyle || 'standard']}
-        onSelectionChange={(keys) =>
-          updateButton({ buttonStyle: Array.from(keys)[0] as 'standard' | 'outlined' | 'minimal' | 'pill' | 'gradient' | 'rounded' | 'sharp' })
-        }
-        radius="md"
-        labelPlacement="outside"
-        classNames={{
-          label: "text-sm font-medium text-gray-700 pb-1",
-          trigger: "h-12"
-        }}
-      >
-        <SelectItem key="standard">Standard</SelectItem>
-        <SelectItem key="outlined">Outlined</SelectItem>
-        <SelectItem key="minimal">Minimal</SelectItem>
-        <SelectItem key="pill">Pill-shaped</SelectItem>
-      </Select>
+  const styles = [
+    { label: 'Standard', value: 'standard' },
+    { label: 'Outlined', value: 'outlined' },
+    { label: 'Minimal', value: 'minimal' },
+    { label: 'Pill', value: 'pill' }
+  ] as const;
 
-      <Select
-        label="Button Size"
-        placeholder="Select button size"
-        selectedKeys={[buttonData.buttonSize || 'medium']}
-        onSelectionChange={(keys) =>
-          updateButton({ buttonSize: Array.from(keys)[0] as 'small' | 'sm' | 'md' | 'lg' | 'medium' | 'large' | 'xl' })
-        }
-        radius="md"
-        labelPlacement="outside"
-        classNames={{
-          label: "text-sm font-medium text-gray-700 pb-1",
-          trigger: "h-12"
-        }}
-      >
-        <SelectItem key="small">Small</SelectItem>
-        <SelectItem key="medium">Medium</SelectItem>
-        <SelectItem key="large">Large</SelectItem>
-      </Select>
+  const sizes = [
+    { label: 'Small', value: 'small' },
+    { label: 'Medium', value: 'medium' },
+    { label: 'Large', value: 'large' }
+  ] as const;
+
+  return (
+    <div className="grid grid-cols-2 gap-6">
+      <div>
+        <label className="text-sm font-medium text-gray-700 mb-2 block">Style</label>
+        <div className="flex gap-1 flex-wrap">
+          {styles.map(({ label, value }) => (
+            <button
+              key={value}
+              onClick={() => updateButton({ buttonStyle: value })}
+              className={`px-3 py-1 text-sm rounded-small border transition-colors ${
+                buttonData.buttonStyle === value
+                  ? 'bg-emerald-100 border-emerald-500 text-emerald-700'
+                  : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+      
+      <div>
+        <label className="text-sm font-medium text-gray-700 mb-2 block">Size</label>
+        <div className="flex gap-1">
+          {sizes.map(({ label, value }) => (
+            <button
+              key={value}
+              onClick={() => updateButton({ buttonSize: value })}
+              className={`px-3 py-1 text-sm rounded-small border transition-colors ${
+                buttonData.buttonSize === value
+                  ? 'bg-emerald-100 border-emerald-500 text-emerald-700'
+                  : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

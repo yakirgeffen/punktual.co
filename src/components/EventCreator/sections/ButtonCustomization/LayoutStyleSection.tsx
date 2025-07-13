@@ -34,5 +34,5 @@ export default function LayoutStyleSection() {
         </label>
       </div>
     </div>
-  );
+);
 }
