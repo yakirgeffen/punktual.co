@@ -6,6 +6,7 @@ import { Tabs, Tab } from '@heroui/react';
 import BasicInformationSection from './sections/BasicInformationSection';
 import EventDetailsSection from './sections/EventDetailsSection';
 import PlatformSelectionSection from './sections/PlatformSelectionSection';
+import ButtonCustomizationIndex from './sections/ButtonCustomization';
 
 const FormTabWrapper: React.FC = () => {
   return (
@@ -30,7 +31,23 @@ const FormTabWrapper: React.FC = () => {
         </Tab>
         
         <Tab key="platforms-button" title="Platforms & Button">
-          <PlatformSelectionSection />
+          <div className="space-y-8">
+            <div>
+              <h3 className="text-base font-medium text-gray-900 mb-4">
+                Select Calendar Platforms
+              </h3>
+              <PlatformSelectionSection />
+            </div>
+
+            <hr className="border-gray-200" />
+
+            <div>
+              <h3 className="text-base font-medium text-gray-900 mb-4">
+                Customize Button Appearance
+              </h3>
+              <ButtonCustomizationIndex />
+            </div>
+          </div>
         </Tab>
       </Tabs>
     </div>
