@@ -1,0 +1,1 @@
+grep -r "FormSections\|PlatformSelector\|CollapsibleSection\|ValidationError\|ConfirmDialog\|ButtonPreview\|CodeOutput\|AdvancedCustomization\|LivePreview" src/ --exclude-dir=node_modules || echo "No references found - safe to delete"
