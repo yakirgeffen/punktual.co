@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Calendar, Zap, ArrowRight, Play, Check, Copy, Users, Star } from 'lucide-react';
+import { Calendar, Zap, ArrowRight, Check, Copy, Users, } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -132,7 +132,7 @@ export default function Hero() {
                     </button>
                   </div>
                   <code className="text-xs text-gray-600 block">
-                    &lt;button class="Punktual-btn"&gt;Add to Calendar&lt;/button&gt;
+                    &lt;button class=&quot;Punktual-btn&quot;&gt;Add to Calendar&lt;/button&gt;
                   </code>
                 </div>
               </div>
