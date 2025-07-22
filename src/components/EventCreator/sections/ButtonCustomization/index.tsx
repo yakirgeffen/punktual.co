@@ -1,7 +1,9 @@
+//src/components/EventCreator/sections/ButtonCustomization/index.tsx
+
 // import LayoutStyleSection from './LayoutStyleSection';
 import StyleSection from './StyleSection';
 import SizeSection from './SizeSection';
-// import ButtonColorSection from './ButtonColorSection';
+import ButtonColorSection from './ButtonColorSection';
 import AdditionalOptionsSection from './AdditionalOptionsSection';
 
 
@@ -20,7 +22,8 @@ export default function ButtonCustomizationIndex() {
         </div>
         
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-2">Color</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-2">Color</h4>
+            <ButtonColorSection />
           {/* <ButtonColorSection /> */}
         </div>
       </div>
