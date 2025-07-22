@@ -211,6 +211,7 @@ export default function Navbar() {
         isOpen={isOpen} 
         onClose={onClose} 
         defaultTab={authMode}
+        redirectTo={undefined} 
       />
     </>
   );
