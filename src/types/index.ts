@@ -71,6 +71,9 @@ export interface ButtonData {
   ctaText?: string;
   displayOption?: 'names' | 'icons' | 'both';
   
+  //CustomText
+    customText?: string;
+
   // Platform Selection
   selectedPlatforms?: {
     google?: boolean;
