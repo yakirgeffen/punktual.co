@@ -9,7 +9,7 @@ import AuthModal from './AuthModal';
  * AuthRequired - Enhanced component with optimized mobile experience
  */
 export default function AuthRequired({ 
-  // redirectTo, 
+  redirectTo, 
   title = "Almost there!",
   subtitle = "Create an account to start building calendar buttons that work everywhere."
 }) {
@@ -197,6 +197,7 @@ export default function AuthRequired({
         isOpen={isOpen} 
         onClose={onClose} 
         defaultTab={authMode}
+        redirectTo={redirectTo}
       />
     </>
   );
