@@ -9,7 +9,7 @@ export default function CTA() {
           Ready to become unforgettable?
         </h2>
         <p className="text-lg text-white mb-6 leading-relaxed">
-          Join the marketers who've decided to make forgetting impossible.
+          Join the marketers who&apos;ve decided to make forgetting impossible.
           <br />
           <span className="font-semibold text-white">Start free • 5 buttons included • No credit card required</span>
         </p>

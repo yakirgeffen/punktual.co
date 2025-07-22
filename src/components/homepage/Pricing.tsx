@@ -7,14 +7,14 @@ export default function Pricing() {
     "All calendar platforms",
     "Basic customization",
     "Copy-paste HTML code",
-    "Community support"
+    // "Community support"
   ];
 
   const proFeatures = [
     "Unlimited calendar buttons",
     "Custom branding & styling",
     "Click analytics & insights",
-    "Priority email support",
+    // "Priority email support",
     "Advanced customization",
   ];
 
@@ -23,7 +23,7 @@ export default function Pricing() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-3">Simple pricing</h2>
-          <p className="text-lg text-gray-600">Start free, upgrade when you're ready to scale</p>
+          <p className="text-lg text-gray-600">Start free, upgrade when you&apos;re ready to scale</p>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-4xl mx-auto">
@@ -55,14 +55,14 @@ export default function Pricing() {
           {/* Pro Plan */}
           <div className="bg-gradient-to-br from-emerald-600 to-emerald-400 rounded-2xl p-6 relative text-white transform shadow-xl">
             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <span className="bg-yellow-400 text-gray-900 px-4 py-1 rounded-full text-xs font-bold">
-                Most Popular
+              <span className="bg-yellow-400 text-gray-900 px-4 py-1 rounded-full text-md font-bold">
+                Coming soon!
               </span>
             </div>
             
             <div className="text-center mb-6">
               <h3 className="text-xl font-bold mb-2">Pro</h3>
-              <div className="text-4xl font-bold mb-2">$15</div>
+              <div className="text-4xl font-bold mb-2">{'\u{1F440}'}</div>
               <p className="text-emerald-100">Everything you need to scale</p>
             </div>
             
@@ -79,7 +79,7 @@ export default function Pricing() {
               href="/create"
               className="w-full bg-white text-emerald-500 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors text-center block"
             >
-              Start 14-Day Free Trial
+              Enjoy the free plan for now!
             </Link>
           </div>
         </div>

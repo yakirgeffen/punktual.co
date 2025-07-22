@@ -245,7 +245,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = 'login' }) {
                   Forgot your password?
                 </Link>
                 <p className="text-sm text-gray-600">
-                  Don't have an account?{' '}
+                  Don&apos;t have an account?{' '}
                   <button
                     onClick={() => switchTab('signup')}
                     className="text-emerald-600 hover:text-emerald-500 font-medium"

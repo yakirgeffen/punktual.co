@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useEventContext } from '@/contexts/EventContext';
 import { generateCalendarCode } from '@/utils/calendarGenerator';
 import toast from 'react-hot-toast';
+import Image from 'next/image';
 
 interface DynamicPreviewProps {
   useCase?: string;
@@ -165,11 +166,6 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'button-widge
         <div className="bg-gray-50 border-b border-gray-200 p-4 rounded-t-lg">
           <div className="flex justify-between items-center mb-2">
             <h3 className="text-lg font-semibold text-gray-900">{useCaseInfo.title}</h3>
-            {/* {isComplete && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                Ready
-              </span>
-            )} */}
           </div>
           <p className="text-sm text-gray-600">{useCaseInfo.description}</p>
         </div>
@@ -209,10 +205,12 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'button-widge
                             disabled={!link}
                           >
                             {buttonData?.showIcons !== false && (
-                              <img 
+                              <Image 
                                 src={info.logo} 
                                 alt={info.name}
-                                className="w-4 h-4 brightness-0 invert"
+                                width={16}
+                                height={16}
+                                className="brightness-0 invert"
                                 onError={(e) => {
                                   e.currentTarget.src = '/icons/platforms/icon-calendar.svg';
                                 }}
@@ -303,10 +301,11 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'button-widge
                                       }}
                                       className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg transition-colors"
                                     >
-                                      <img 
+                                      <Image 
                                         src={info.logo} 
                                         alt={info.name}
-                                        className="w-4 h-4"
+                                        width={16}
+                                        height={16}
                                         onError={(e) => {
                                           e.currentTarget.src = '/icons/platforms/icon-calendar.svg';
                                         }}
@@ -334,10 +333,12 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'button-widge
                         return (
                           <div key={platform} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
                             <div className="flex items-center">
-                              <img 
+                              <Image 
                                 src={info.logo} 
                                 alt={info.name}
-                                className="w-5 h-5 mr-3"
+                                width={20}
+                                height={20}
+                                className="mr-3"
                                 onError={(e) => {
                                   e.currentTarget.src = '/icons/platforms/icon-calendar.svg';
                                 }}
@@ -434,10 +435,12 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'button-widge
                         <div key={platform} className="p-4 bg-gray-50 rounded-lg border">
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center">
-                              <img 
+                              <Image 
                                 src={info.logo} 
                                 alt={info.name}
-                                className="w-5 h-5 mr-3"
+                                width={20}
+                                height={20}
+                                className="mr-3"
                                 onError={(e) => {
                                   e.currentTarget.src = '/icons/platforms/icon-calendar.svg';
                                 }}
@@ -474,10 +477,12 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'button-widge
                       <div key={platform} className="p-4 bg-gray-50 rounded-lg border">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center">
-                            <img 
+                            <Image 
                               src={info.logo} 
                               alt={info.name}
-                              className="w-5 h-5 mr-3"
+                              width={20}
+                              height={20}
+                              className="mr-3"
                               onError={(e) => {
                                 e.currentTarget.src = '/icons/platforms/icon-calendar.svg';
                               }}
