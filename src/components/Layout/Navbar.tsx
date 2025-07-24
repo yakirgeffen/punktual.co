@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { Calendar, User, LogOut, Settings, CreditCard } from 'lucide-react';
+import { Calendar, User, LogOut, Settings, } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { 
@@ -85,7 +85,7 @@ export default function Navbar() {
       {/* DEBUG INFO - Remove this in production */}
       {process.env.NODE_ENV === 'development' && debugInfo}
       
-      <header className="border-b border-gray-100 bg-white sticky top-0 z-50 backdrop-blur-sm bg-white/95">
+      <header className="border-b-2 border-emerald-400 bg-white sticky top-0 z-50 backdrop-blur-xl bg-white/55">
         <div className="max-w-7xl mx-auto px-8 sm:px-6 lg:px-12">
           <div className="flex justify-between items-center py-4">
             <Link href="/" className="flex items-center">
@@ -98,11 +98,11 @@ export default function Navbar() {
               />
             </Link>
             
-            <nav className="hidden md:flex space-x-8">
+            {/* <nav className="hidden md:flex space-x-8">
               <a href="#problem" className="text-gray-600 hover:text-emerald-500 transition-colors">Why Punktual</a>
               <a href="#pricing" className="text-gray-600 hover:text-emerald-500 transition-colors">Pricing</a>
               <a href="#docs" className="text-gray-600 hover:text-emerald-500 transition-colors">Docs</a>
-            </nav>
+            </nav> */}
             
             <div className="flex items-center space-x-3">
               {user ? (
@@ -154,13 +154,13 @@ export default function Navbar() {
                         >
                           Settings
                         </DropdownItem>
-                        <DropdownItem
+                        {/* <DropdownItem
                           key="billing"
                           startContent={<CreditCard className="w-4 h-4" />}
                           href="/billing"
                         >
                           Billing
-                        </DropdownItem>
+                        </DropdownItem> */}
                       </DropdownSection>
                       
                       <DropdownSection>
@@ -188,14 +188,14 @@ export default function Navbar() {
                   <Button
                     variant="ghost"
                     onClick={() => handleAuthClick('login')}
-                    className="text-gray-600 hover:text-emerald-500 transition-colors"
+                    className="bg-white border-b-2 text-gray-500 rounded-lg hover:text-emerald-500 transition-colors font-medium"
                   >
                     Sign In
                   </Button>
                   <Button
                     color="primary"
                     onClick={() => handleAuthClick('signup')}
-                    className="bg-emerald-500 text-white px-4 py-2.5 rounded-lg hover:bg-emerald-400 transition-colors font-medium"
+                    className="bg-emerald-500 text-white rounded-lg hover:bg-emerald-400 transition-colors font-medium"
                   >
                     Start Free
                   </Button>

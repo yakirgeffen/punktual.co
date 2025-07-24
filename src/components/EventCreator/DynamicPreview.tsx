@@ -267,8 +267,8 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'button-widge
 
                   {/* Button Preview */}
                   {activeTab === 'button' && (
-                    <div className="space-y-4">
-                      <div className="bg-gray-50 rounded-lg p-8 border-2 border-dashed border-gray-200">
+                    <div className="space-y-6">
+                      <div className="bg-gray-50 rounded-lg p-8 border-2 border-dashed border-gray-200 h-40 flex items-center justify-center">
                         <div className="text-center">
                           <div className="relative inline-block">
                             <button
@@ -380,8 +380,8 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'button-widge
                           >
                             <option value="html">HTML</option>
                             <option value="react">React</option>
-                            <option value="css">CSS Only</option>
-                            <option value="js">JS Only</option>
+                            {/* <option value="css">CSS Only</option> */}
+                            {/* <option value="js">JS Only</option> */}
                           </select>
                           
                           <label className="flex items-center gap-2 text-xs">

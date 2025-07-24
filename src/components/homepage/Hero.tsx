@@ -66,7 +66,7 @@ export default function Hero() {
               </div>
               <div className="flex items-center">
                 <Check className="w-4 h-4 text-green-500 mr-1" />
-                No credit card
+                No credit card required
               </div>
               <div className="flex items-center">
                 <Check className="w-4 h-4 text-green-500 mr-1" />

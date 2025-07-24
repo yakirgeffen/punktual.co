@@ -19,7 +19,7 @@ export default function CTA() {
             href="/create"
             className="bg-white text-emerald-500 px-8 py-3 rounded-xl font-medium transition-colors shadow-md"
           >
-            Create Your First Button
+            Create an event now!
           </Link>
         </div>
       </div>

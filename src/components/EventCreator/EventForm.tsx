@@ -62,7 +62,7 @@ import FormTabWrapper from './FormTabWrapper';
  */
 const EventForm: React.FC = () => {
   return (
-    <div className="pt-4">
+    <div className="pt-4 p-6">
       <FormTabWrapper />
     </div>
   );

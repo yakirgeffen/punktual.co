@@ -4,7 +4,7 @@
 import StyleSection from './StyleSection';
 import SizeSection from './SizeSection';
 import ButtonColorSection from './ButtonColorSection';
-import AdditionalOptionsSection from './AdditionalOptionsSection';
+// import AdditionalOptionsSection from './AdditionalOptionsSection';
 import CustomTextSection from './CustomTextSection';
 
 
@@ -56,7 +56,7 @@ export default function ButtonCustomizationIndex() {
       </div>
 
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-2">Custom Text</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Custom CTA</h4>
         <CustomTextSection />
       </div>
     </div>  
