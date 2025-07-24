@@ -51,9 +51,9 @@ export function EventContextProvider({ children }: EventContextProviderProps) {
     const currentTime = getRoundedNextTime();
     
     return {
-      title: 'Sample Product Launch',
-      description: 'Join us for an exciting product launch event!',
-      location: 'Online Event',
+      // title: 'Sample Product Launch',
+      // description: 'Join us for an exciting product launch event!',
+      // location: 'Online Event',
       organizer: '',
       startDate: currentDate,
       startTime: currentTime,

@@ -52,7 +52,7 @@ export default function AuthRequired({
   return (
     <>
       {/* Mobile: No min-height, Desktop: Full screen with centered content */}
-      <div className="bg-gradient-to-br from-emerald-50 via-white to-emerald-50 lg:min-h-screen lg:flex lg:items-center">
+      <div className="bg-gradient-to-br from-emerald-50 via-white to-emerald-50 lg:min-h-screen xs:flex lg:items-center">
         {/* Compact container with optimized spacing */}
         <div className="container mx-auto px-4 py-8 sm:py-12 lg:py-16 w-full">
           <div className="max-w-4xl mx-auto">
@@ -81,7 +81,7 @@ export default function AuthRequired({
                 {/* Mobile-optimized trust badge */}
                 <div className="flex items-center justify-center lg:justify-start mb-6 sm:mb-8">
                   <div className="flex items-center bg-emerald-100 text-emerald-700 px-3 sm:px-4 py-2 rounded-full text-sm font-semibold">
-                    <span className="whitespace-nowrap">Start for free • No credit card</span>
+                    <span className="whitespace-nowrap">Start for free • No credit card required</span>
                   </div>
                 </div>
 
@@ -172,18 +172,6 @@ export default function AuthRequired({
                         </div>
                       </div>
                     ))}
-                  </div>
-
-                  {/* Upgrade hint - more compact */}
-                  <div className="mt-6 pt-4 border-t border-gray-100">
-                    <div className="text-center">
-                      <p className="text-xs text-gray-500 mb-1">
-                        Need more? Upgrade anytime for unlimited events
-                      </p>
-                      <div className="text-xs text-gray-400">
-                        Starting at $9/month
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>

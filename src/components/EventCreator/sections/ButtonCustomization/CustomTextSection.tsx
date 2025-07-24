@@ -11,10 +11,10 @@ export default function CustomTextSection() {
       value={buttonData.customText || ''}
       onChange={(e) => updateButton({ customText: e.target.value })}
       size="sm"
-      variant="bordered"
+      variant="flat"
       classNames={{
-        input: "text-sm",
-        inputWrapper: "h-10"
+            label: "text-size-12 font-medium text-gray-500",
+            input: 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
       }}
     />
   );

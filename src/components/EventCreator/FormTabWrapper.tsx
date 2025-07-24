@@ -19,7 +19,7 @@ const FormTabWrapper: React.FC = () => {
           tabList: "w-full bg-white border border-gray-200 rounded-lg p-1",
           tab: "h-12 px-6 text-md font-medium",
           tabContent: "text-gray-400 hover:text-emerald-700 transition- group-data-[selected=true]:text-emerald-500",
-          panel: "bg-white rounded-lg border border-gray-400 p-6 min-h-[400px] mt-4"
+          panel: "bg-white rounded-lg border border-gray-200 p-6 min-h-[400px] mt-4"
         }}
       >
         <Tab key="basic-info" title="Basic Information">
