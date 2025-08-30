@@ -90,7 +90,7 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'button-widge
   // Get dynamic button properties
 const buttonSize = buttonData?.buttonSize || 'medium';
 const buttonStyle = buttonData?.buttonStyle || 'standard';
-const colorScheme = buttonData?.colorScheme || '#10b981';
+const colorScheme = buttonData?.colorTheme || '#10b981';
 const buttonText = buttonData?.ctaText || 'Add to Calendar';
 
 const buttonClasses = `
