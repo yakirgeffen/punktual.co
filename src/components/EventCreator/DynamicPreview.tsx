@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useEventContext } from '@/contexts/EventContext';
 import { generateCalendarCode } from '@/utils/calendarGenerator';
+import { isShortLink } from '@/utils/shortLinks';
 import toast from 'react-hot-toast';
 import Image from 'next/image';
 
@@ -10,14 +11,96 @@ interface DynamicPreviewProps {
 }
 
 const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'button-widget' }) => {
-  const { eventData, buttonData, calendarLinks } = useEventContext();
+  const { eventData, buttonData, calendarLinks, savedShortLinks } = useEventContext();
   
+  // Use saved short links if available, otherwise use regular calendar links
+  const displayLinks = savedShortLinks || calendarLinks;
+  
+  // Debug logging
+  console.log('DynamicPreview - savedShortLinks:', savedShortLinks);
+  console.log('DynamicPreview - calendarLinks:', calendarLinks);
+  console.log('DynamicPreview - displayLinks:', displayLinks);
   const [copied, setCopied] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('button');
   const [isMinified, setIsMinified] = useState(false);
   const [codeFormat, setCodeFormat] = useState<'html' | 'react' | 'css' | 'js'>('html');
 
+  const getButtonSizeClasses = (size: string) => {
+    const sizeClasses = {
+      small: 'px-3 py-1.5 text-sm',
+      medium: 'px-4 py-2 text-base', 
+      large: 'px-5 py-2.5 text-lg'
+    };
+    return sizeClasses[size as keyof typeof sizeClasses] || sizeClasses.medium;
+  };
+
+  const getButtonStyleClasses = (style: string) => {
+    const styleClasses = {
+      standard: 'shadow-sm border border-transparent',
+      outlined: 'border-2 bg-transparent', 
+      minimal: 'border-0 shadow-none',
+      pill: 'rounded-full'
+    };
+    return styleClasses[style as keyof typeof styleClasses] || styleClasses.standard;
+  };
+
+  const getContrastColor = (hexColor: string): string => {
+  // Remove # if present
+    const color = hexColor.replace('#', '');
+    
+    // Convert to RGB
+    const r = parseInt(color.substring(0, 2), 16);
+    const g = parseInt(color.substring(2, 4), 16);  
+    const b = parseInt(color.substring(4, 6), 16);
+
+    // WCAG relative luminance formula
+    const sRGB = [r, g, b].map(c => {
+      c = c / 255;
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    });
+    
+    const luminance = 0.2126 * sRGB[0] + 0.7152 * sRGB[1] + 0.0722 * sRGB[2];
+    
+    // Return dark text for light backgrounds, light text for dark backgrounds
+    return luminance > 0.179 ? '#374151' : '#FFFFFF';
+  };
+
+  const getButtonStyles = (style: string, colorScheme: string): React.CSSProperties => {
+    const styles: React.CSSProperties = {};
+    
+    switch (style) {
+      case 'outlined':
+        //styles.borderColor = colorScheme || '#10b981';
+        styles.color = getContrastColor(colorScheme || '#10b981'); 
+        styles.backgroundColor = 'transparent';
+        break;
+      case 'minimal':
+        styles.backgroundColor = '#f3f4f6';
+        styles.color = '#374151';
+        break;
+      default:
+        styles.backgroundColor = colorScheme || '#10b981';
+        styles.color = getContrastColor(colorScheme || '#10b981');
+        break;
+    }
+    return styles;
+  };
+
+  // Get dynamic button properties
+const buttonSize = buttonData?.buttonSize || 'medium';
+const buttonStyle = buttonData?.buttonStyle || 'standard';
+const colorScheme = buttonData?.colorScheme || '#10b981';
+const buttonText = buttonData?.ctaText || 'Add to Calendar';
+
+const buttonClasses = `
+  inline-flex items-center justify-center font-medium transition-colors duration-200
+  ${getButtonSizeClasses(buttonSize)}
+  ${getButtonStyleClasses(buttonStyle)}
+  ${buttonStyle !== 'pill' ? 'rounded-lg' : ''}
+`.trim();
+
+const buttonStyles = getButtonStyles(buttonStyle, colorScheme);
   // Platform info with fallbacks
   const platformInfo: Record<string, { name: string; logo: string }> = {
     google: { name: 'Google Calendar', logo: '/icons/platforms/icon-google.svg' },
@@ -110,9 +193,9 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'button-widge
     };
   };
 
-  // Safe calendar link access
+  // Safe calendar link access - use saved short links when available
   const getCalendarLink = (platform: string): string => {
-    return calendarLinks?.[platform as keyof typeof calendarLinks] || '';
+    return displayLinks?.[platform as keyof typeof displayLinks] || '';
   };
 
   // Get use case title and description
@@ -329,33 +412,51 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'button-widge
                       {selectedPlatforms.map(platform => {
                         const info = getPlatformInfo(platform);
                         const link = getCalendarLink(platform);
+                        const isShort = isShortLink(link);
                         
                         return (
                           <div key={platform} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
-                            <div className="flex items-center">
+                            <div className="flex items-center min-w-0 flex-1">
                               <Image 
                                 src={info.logo} 
                                 alt={info.name}
                                 width={20}
                                 height={20}
-                                className="mr-3"
+                                className="mr-3 flex-shrink-0"
                                 onError={(e) => {
                                   e.currentTarget.src = '/icons/platforms/icon-calendar.svg';
                                 }}
                               />
-                              <span className="font-medium text-gray-900">{info.name}</span>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-gray-900">{info.name}</span>
+                                  {isShort && (
+                                    <span className="px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700 rounded">
+                                      Short Link
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-xs text-gray-500 font-mono truncate mt-1">
+                                  {link ? (
+                                    isShort ? link.replace('https://', '') : new URL(link).hostname
+                                  ) : 'Generating link...'}
+                                </div>
+                              </div>
                             </div>
                             
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 ml-3">
                               <button
                                 onClick={() => copyToClipboard(link, info.name)}
-                                className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                                className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
+                                  copied ? 'text-emerald-700 bg-emerald-100 border border-emerald-200' : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                                disabled={!link}
                               >
-                                {copied ? 'Copied!' : 'Copy'}
+                                {copied ? '✓' : '📋'}
                               </button>
                               <button
                                 onClick={() => link && window.open(link, '_blank')}
-                                className="px-3 py-1 text-xs font-medium text-white bg-emerald-500 rounded hover:bg-emerald-700 transition-colors"
+                                className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 disabled={!link}
                               >
                                 Open
@@ -425,53 +526,11 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'button-widge
 
               {/* Email Links */}
               {useCase === 'email-links' && (
-                <div className="space-y-4">
-                  <div className="space-y-3">
-                    {selectedPlatforms.map(platform => {
-                      const info = getPlatformInfo(platform);
-                      const link = getCalendarLink(platform);
-                      
-                      return (
-                        <div key={platform} className="p-4 bg-gray-50 rounded-lg border">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center">
-                              <Image 
-                                src={info.logo} 
-                                alt={info.name}
-                                width={20}
-                                height={20}
-                                className="mr-3"
-                                onError={(e) => {
-                                  e.currentTarget.src = '/icons/platforms/icon-calendar.svg';
-                                }}
-                              />
-                              <span className="font-medium text-gray-900">{info.name}</span>
-                            </div>
-                            
-                            <button
-                              onClick={() => copyToClipboard(link, info.name)}
-                              className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
-                            >
-                              {copied ? 'Copied!' : 'Copy Link'}
-                            </button>
-                          </div>
-                          
-                          <div className="text-xs text-gray-600 font-mono bg-white p-2 rounded border break-all">
-                            {link || 'No link generated'}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Direct Links */}
-              {useCase === 'direct-links' && (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {selectedPlatforms.map(platform => {
                     const info = getPlatformInfo(platform);
                     const link = getCalendarLink(platform);
+                    const isShort = isShortLink(link);
                     
                     return (
                       <div key={platform} className="p-4 bg-gray-50 rounded-lg border">
@@ -487,7 +546,63 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'button-widge
                                 e.currentTarget.src = '/icons/platforms/icon-calendar.svg';
                               }}
                             />
-                            <span className="font-medium text-gray-900">{info.name}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-gray-900">{info.name}</span>
+                              {isShort && (
+                                <span className="px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700 rounded">
+                                  Short Link
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <button
+                            onClick={() => copyToClipboard(link, info.name)}
+                            className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                          >
+                            {copied ? 'Copied!' : 'Copy Link'}
+                          </button>
+                        </div>
+                        
+                        <div className="text-xs text-gray-600 font-mono bg-white p-2 rounded border break-all">
+                          {link || 'Generating link...'}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Direct Links */}
+              {useCase === 'direct-links' && (
+                <div className="space-y-3">
+                  {selectedPlatforms.map(platform => {
+                    const info = getPlatformInfo(platform);
+                    const link = getCalendarLink(platform);
+                    const isShort = isShortLink(link);
+                    
+                    return (
+                      <div key={platform} className="p-4 bg-gray-50 rounded-lg border">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Image 
+                              src={info.logo} 
+                              alt={info.name}
+                              width={20}
+                              height={20}
+                              className="mr-3"
+                              onError={(e) => {
+                                e.currentTarget.src = '/icons/platforms/icon-calendar.svg';
+                              }}
+                            />
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-gray-900">{info.name}</span>
+                              {isShort && (
+                                <span className="px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700 rounded">
+                                  Short Link
+                                </span>
+                              )}
+                            </div>
                           </div>
                           
                           <button
@@ -499,7 +614,7 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'button-widge
                         </div>
                         
                         <div className="text-xs text-emerald-400 font-mono bg-neutral-950 p-2 rounded border break-all">
-                          {link || 'No link generated'}
+                          {link || 'Generating link...'}
                         </div>
                       </div>
                     );

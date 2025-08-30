@@ -94,6 +94,7 @@ export function EventContextProvider({ children }: EventContextProviderProps) {
   const [outputType, setOutputType] = useState<string>('links');
   const [generatedCode, setGeneratedCode] = useState<string>('');
   const [calendarLinks, setCalendarLinks] = useState<CalendarLinks>({});
+  const [savedShortLinks, setSavedShortLinksState] = useState<CalendarLinks | null>(null);
 
   // FIXED: Simplified updateEvent function without competing smart logic
   const updateEvent = useCallback((data: Partial<EventData>) => {
@@ -127,6 +128,16 @@ export function EventContextProvider({ children }: EventContextProviderProps) {
     setOutputType(type);
   }, []); // Empty dependency array - function never changes
 
+  const setSavedShortLinks = useCallback((links: CalendarLinks) => {
+    console.log('Setting saved short links:', links);
+    setSavedShortLinksState(links);
+  }, []);
+
+  const clearShortLinks = useCallback(() => {
+    console.log('Clearing saved short links');
+    setSavedShortLinksState(null);
+  }, []);
+
   // Generate code and links whenever data changes
   useEffect(() => {
     console.log('Generating calendar data...', { eventData, buttonData, outputType });
@@ -154,9 +165,12 @@ export function EventContextProvider({ children }: EventContextProviderProps) {
     outputType,
     generatedCode,
     calendarLinks,
+    savedShortLinks,
     updateEvent,
     updateButton,
     setOutput,
+    setSavedShortLinks,
+    clearShortLinks,
     isLoading: false
   }), [
     eventData,
@@ -164,9 +178,12 @@ export function EventContextProvider({ children }: EventContextProviderProps) {
     outputType,
     generatedCode,
     calendarLinks,
+    savedShortLinks,
     updateEvent,
     updateButton,
-    setOutput
+    setOutput,
+    setSavedShortLinks,
+    clearShortLinks
   ]);
 
   return (

@@ -236,11 +236,14 @@ export interface EventContextType {
   outputType: string;
   generatedCode: string;
   calendarLinks: CalendarLinks;
+  savedShortLinks: CalendarLinks | null;
   
   // Actions
   updateEvent: (data: Partial<EventData>) => void;
   updateButton: (data: Partial<ButtonData>) => void;
   setOutput: (type: string) => void;
+  setSavedShortLinks: (links: CalendarLinks) => void;
+  clearShortLinks: () => void;
   
   // State
   isLoading: boolean;
@@ -336,4 +339,31 @@ declare global {
     gtag: GtagFunction;
     dataLayer: unknown[];
   }
+}
+
+// ============================================================================
+// SHORT LINK TYPES
+// ============================================================================
+
+export interface ShortLink {
+  id: string;
+  short_id: string;
+  original_url: string;
+  created_at: string;
+  click_count: number;
+  user_id?: string;
+  event_title?: string;
+  is_active: boolean;
+}
+
+export interface CreateShortLinkRequest {
+  originalUrl: string;
+  eventTitle?: string;
+  userId?: string;
+}
+
+export interface CreateShortLinkResponse {
+  success: boolean;
+  shortUrl: string;
+  shortId: string;
 }
