@@ -8,7 +8,6 @@ export default function StyleSection() {
 
   const styles = [
     { label: 'Standard', value: 'standard' },
-    { label: 'Outlined', value: 'outlined' },
     { label: 'Minimal', value: 'minimal' },
     { label: 'Pill', value: 'pill' }
   ] as const;

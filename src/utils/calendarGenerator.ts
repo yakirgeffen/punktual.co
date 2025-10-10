@@ -143,10 +143,35 @@ export const generateCalendarLinks = (eventData: EventData): CalendarLinks => {
 };
 
 /**
+ * Calculate contrast color for accessibility
+ */
+const getContrastColor = (hexColor: string): string => {
+  // Remove # if present
+  const color = hexColor.replace('#', '');
+  
+  // Convert to RGB
+  const r = parseInt(color.substring(0, 2), 16);
+  const g = parseInt(color.substring(2, 4), 16);  
+  const b = parseInt(color.substring(4, 6), 16);
+
+  // WCAG relative luminance formula
+  const sRGB = [r, g, b].map(c => {
+    c = c / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+  
+  const luminance = 0.2126 * sRGB[0] + 0.7152 * sRGB[1] + 0.0722 * sRGB[2];
+  
+  // Return dark text for light backgrounds, light text for dark backgrounds
+  return luminance > 0.179 ? '#374151' : '#FFFFFF';
+};
+
+/**
  * Generate CSS styles
  */
 const generateButtonCSS = (buttonData: ButtonData, minified: boolean = false): string => {
-  const { buttonSize = 'medium', colorTheme = '#4D90FF', textColor = '#FFFFFF', buttonStyle = 'standard' } = buttonData;
+  const { buttonSize = 'medium', colorTheme = '#4D90FF', buttonStyle = 'standard' } = buttonData;
+  const textColor = buttonData.textColor || getContrastColor(colorTheme);
   
   const sizeStyles = {
     small: { padding: '8px 12px', fontSize: '14px' },
@@ -155,6 +180,28 @@ const generateButtonCSS = (buttonData: ButtonData, minified: boolean = false): s
   };
 
   const size = sizeStyles[buttonSize as keyof typeof sizeStyles] || sizeStyles.medium;
+
+  // Generate style-specific CSS
+  const getStyleCSS = () => {
+    switch (buttonStyle) {
+      case 'minimal':
+        return `
+  background-color: transparent;
+  color: ${colorTheme};
+  border: 1px solid ${colorTheme};`;
+      case 'pill':
+        return `
+  background-color: ${colorTheme};
+  color: ${textColor};
+  border-radius: 25px;
+  border: none;`;
+      default: // standard
+        return `
+  background-color: ${colorTheme};
+  color: ${textColor};
+  border: none;`;
+    }
+  };
 
   const css = `
 .punktual-container {
@@ -169,15 +216,10 @@ const generateButtonCSS = (buttonData: ButtonData, minified: boolean = false): s
   padding: ${size.padding};
   font-size: ${size.fontSize};
   font-weight: 600;
-  border-radius: 6px;
+  border-radius: ${buttonStyle === 'pill' ? '25px' : '6px'};
   cursor: pointer;
   transition: all 0.2s ease;
-  text-decoration: none;
-  border: none;
-  ${buttonStyle === 'outlined' ? 
-    `background-color: transparent; color: ${colorTheme}; border: 2px solid ${colorTheme};` :
-    `background-color: ${colorTheme}; color: ${textColor};`
-  }
+  text-decoration: none;${getStyleCSS()}
 }
 
 .punktual-button:hover {
@@ -308,7 +350,7 @@ const generateHTMLCode = (activePlatforms: PlatformInfo[], buttonId: string, but
   let html = `<!-- Punktual Calendar Button -->
 <div class="punktual-container">
   <button class="punktual-button" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block'">
-    📅 Add to Calendar ▼
+    📅 ${buttonData.customText || 'Add to Calendar'} ▼
   </button>
   <div class="punktual-dropdown">
     ${dropdownItems}
@@ -331,6 +373,39 @@ const generateHTMLCode = (activePlatforms: PlatformInfo[], buttonId: string, but
 };
 
 const generateReactComponent = (eventData: EventData, buttonData: ButtonData, activePlatforms: PlatformInfo[], minified: boolean = false): string => {
+  const colorTheme = buttonData.colorTheme || '#4D90FF';
+  const textColor = buttonData.textColor || getContrastColor(colorTheme);
+  const buttonStyle = buttonData.buttonStyle || 'standard';
+  
+  // Generate style-specific properties
+  const getStyleProps = () => {
+    switch (buttonStyle) {
+      case 'minimal':
+        return {
+          backgroundColor: 'transparent',
+          color: colorTheme,
+          border: `1px solid ${colorTheme}`,
+          borderRadius: '6px'
+        };
+      case 'pill':
+        return {
+          backgroundColor: colorTheme,
+          color: textColor,
+          border: 'none',
+          borderRadius: '25px'
+        };
+      default: // standard
+        return {
+          backgroundColor: colorTheme,
+          color: textColor,
+          border: 'none',
+          borderRadius: '6px'
+        };
+    }
+  };
+  
+  const styleProps = getStyleProps();
+  
   const component = `import React, { useState } from 'react';
 
 const PunktualButton = () => {
@@ -344,13 +419,13 @@ const PunktualButton = () => {
     padding: '${buttonData.buttonSize === 'small' ? '8px 12px' : buttonData.buttonSize === 'large' ? '12px 20px' : '10px 16px'}',
     fontSize: '${buttonData.buttonSize === 'small' ? '14px' : buttonData.buttonSize === 'large' ? '18px' : '16px'}',
     fontWeight: 600,
-    borderRadius: '6px',
+    borderRadius: '${styleProps.borderRadius}',
     cursor: 'pointer',
     transition: 'all 0.2s ease',
     textDecoration: 'none',
-    border: 'none',
-    backgroundColor: '${buttonData.colorTheme || '#4D90FF'}',
-    color: '${buttonData.textColor || '#FFFFFF'}'
+    border: '${styleProps.border}',
+    backgroundColor: '${styleProps.backgroundColor}',
+    color: '${styleProps.color}'
   };
 
   return (
@@ -359,7 +434,7 @@ const PunktualButton = () => {
         style={buttonStyle}
         onClick={() => setIsOpen(!isOpen)}
       >
-        📅 Add to Calendar ▼
+        📅 {buttonData.customText || 'Add to Calendar'} ▼
       </button>
       
       {isOpen && (
@@ -429,7 +504,7 @@ export const generateDirectLinks = (eventData: EventData, buttonData: ButtonData
   }
 
   const linkItems = activePlatforms.map(platform => 
-    `<li><a href="${platform.url}" target="_blank">📅 Add to ${platform.name}</a></li>`
+    `<li><a href="${platform.url}" target="_blank">📅 ${buttonData.customText || `Add to ${platform.name}`}</a></li>`
   ).join(minified ? '' : '\n  ');
 
   let html = `<!-- Punktual Direct Links -->

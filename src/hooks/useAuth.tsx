@@ -119,11 +119,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
           console.log('✅ Session user found, updating state...');
           setUser(session.user);
           setSession(session);
-          
+
           // Create user profile if it doesn't exist (for new signups)
           if ((event as string) === 'SIGNED_UP' || (event as string) === 'SIGNED_IN') {
             console.log('👤 New signup/signin, creating profile...');
             await createUserProfile(session.user);
+
+            // Track signup for OAuth (Google)
+            if ((event as string) === 'SIGNED_UP' && session.user.app_metadata?.provider === 'google') {
+              const { trackSignUp } = await import('@/lib/analytics');
+              trackSignUp('google');
+            }
           }
         } else {
           console.log('❌ No session user, clearing state...');
@@ -156,13 +162,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
           data: options.data || {}
         }
       });
-      
+
       if (error) {
         console.error('❌ Signup error:', error);
         throw error;
       }
-      
+
       console.log('✅ Signup successful');
+
+      // Track signup event
+      if (typeof window !== 'undefined') {
+        const { trackSignUp } = await import('@/lib/analytics');
+        trackSignUp('email');
+      }
+
       return { user: data.user, session: data.session };
     } finally {
       setLoading(false);
@@ -202,12 +215,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
       }
     });
-    
+
     if (error) {
       console.error('❌ Google OAuth error:', error);
       throw error;
     }
-    
+
     console.log('✅ Google OAuth redirect initiated');
     return { user: null, session: null };
   };

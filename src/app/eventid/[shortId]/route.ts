@@ -1,13 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createServiceRoleClient } from '@/lib/supabase/server';
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ shortId: string }> }
 ) {
   try {
@@ -19,6 +14,10 @@ export async function GET(
         { status: 400 }
       );
     }
+
+    // Create service role client for this operation
+    // (public redirect endpoint, no user auth required)
+    const supabase = createServiceRoleClient();
 
     // Look up the short link
     const { data, error } = await supabase
@@ -38,8 +37,8 @@ export async function GET(
     // Increment click count (fire and forget - no await)
     supabase
       .from('short_links')
-      .update({ 
-        click_count: (data.click_count || 0) + 1 
+      .update({
+        click_count: (data.click_count || 0) + 1
       })
       .eq('short_id', shortId)
       .then();

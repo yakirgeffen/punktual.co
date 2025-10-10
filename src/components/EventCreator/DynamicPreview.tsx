@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useEventContext } from '@/contexts/EventContext';
 import { generateCalendarCode } from '@/utils/calendarGenerator';
 import { isShortLink } from '@/utils/shortLinks';
+import { trackCalendarLinkClick } from '@/lib/analytics';
 import toast from 'react-hot-toast';
 import Image from 'next/image';
 
@@ -38,8 +39,7 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'button-widge
   const getButtonStyleClasses = (style: string) => {
     const styleClasses = {
       standard: 'shadow-sm border border-transparent',
-      outlined: 'border-2 bg-transparent', 
-      minimal: 'border-0 shadow-none',
+      minimal: 'shadow-none', // Remove border-0 to allow custom border from getButtonStyles
       pill: 'rounded-full'
     };
     return styleClasses[style as keyof typeof styleClasses] || styleClasses.standard;
@@ -68,30 +68,43 @@ const DynamicPreview: React.FC<DynamicPreviewProps> = ({ useCase = 'button-widge
 
   const getButtonStyles = (style: string, colorScheme: string): React.CSSProperties => {
     const styles: React.CSSProperties = {};
+    const backgroundColor = colorScheme || '#10b981';
     
     switch (style) {
-      case 'outlined':
-        //styles.borderColor = colorScheme || '#10b981';
-        styles.color = getContrastColor(colorScheme || '#10b981'); 
-        styles.backgroundColor = 'transparent';
-        break;
       case 'minimal':
-        styles.backgroundColor = '#f3f4f6';
-        styles.color = '#374151';
+        // For minimal style, use the chosen color but with reduced opacity for minimal feel
+        styles.backgroundColor = 'transparent';
+        styles.color = backgroundColor;
+        styles.border = `1px solid ${backgroundColor}`;
         break;
       default:
-        styles.backgroundColor = colorScheme || '#10b981';
-        styles.color = getContrastColor(colorScheme || '#10b981');
+        // Use dynamic contrast calculation for all non-minimal styles
+        styles.backgroundColor = backgroundColor;
+        styles.color = getContrastColor(backgroundColor);
         break;
     }
     return styles;
+  };
+
+  const getIconClasses = (style: string, colorScheme: string): string => {
+    const backgroundColor = colorScheme || '#10b981';
+    
+    if (style === 'minimal') {
+      // For minimal style, icons should match the border/text color
+      // Use filter to tint the icon to the chosen color
+      return 'brightness-0';
+    }
+    
+    // Use contrast calculation for other styles
+    const textColor = getContrastColor(backgroundColor);
+    return textColor === '#FFFFFF' ? 'brightness-0 invert' : 'brightness-0';
   };
 
   // Get dynamic button properties
 const buttonSize = buttonData?.buttonSize || 'medium';
 const buttonStyle = buttonData?.buttonStyle || 'standard';
 const colorScheme = buttonData?.colorTheme || '#10b981';
-const buttonText = buttonData?.ctaText || 'Add to Calendar';
+// const buttonText = buttonData?.ctaText || 'Add to Calendar'; // Unused, keeping for future reference
 
 const buttonClasses = `
   inline-flex items-center justify-center font-medium transition-colors duration-200
@@ -279,12 +292,13 @@ const buttonStyles = getButtonStyles(buttonStyle, colorScheme);
                             key={platform}
                             onClick={() => {
                               if (link) {
+                                trackCalendarLinkClick(platform, 'generator');
                                 window.open(link, '_blank');
                                 toast.success(`Opening ${info.name}!`);
                               }
                             }}
-                            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-emerald-500 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors shadow-sm"
-                            style={{ backgroundColor: buttonData?.colorTheme || '#4D90FF' }}
+                            className={`w-full flex items-center justify-center gap-3 font-medium hover:opacity-90 transition-all shadow-sm ${buttonClasses}`}
+                            style={buttonStyles}
                             disabled={!link}
                           >
                             {buttonData?.showIcons !== false && (
@@ -293,13 +307,13 @@ const buttonStyles = getButtonStyles(buttonStyle, colorScheme);
                                 alt={info.name}
                                 width={16}
                                 height={16}
-                                className="brightness-0 invert"
+                                className={getIconClasses(buttonStyle, colorScheme)}
                                 onError={(e) => {
                                   e.currentTarget.src = '/icons/platforms/icon-calendar.svg';
                                 }}
                               />
                             )}
-                            <span>Add to {info.name}</span>
+                            <span>{buttonData?.customText || `Add to ${info.name}`}</span>
                           </button>
                         );
                       })}
@@ -356,11 +370,11 @@ const buttonStyles = getButtonStyles(buttonStyle, colorScheme);
                           <div className="relative inline-block">
                             <button
                               onClick={() => setDropdownOpen(!dropdownOpen)}
-                              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-lg font-medium hover:bg-emerald-600 transition-colors shadow-sm"
-                              style={{ backgroundColor: buttonData?.colorTheme || '#4D90FF' }}
+                              className={`inline-flex items-center gap-2 font-medium hover:opacity-90 transition-all shadow-sm ${buttonClasses}`}
+                              style={buttonStyles}
                             >
                               {buttonData?.showIcons !== false && <span>📅</span>}
-                              <span>Add to Calendar</span>
+                              <span>{buttonData?.customText || 'Add to Calendar'}</span>
                               <span className={`transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}>
                                 ▼
                               </span>
@@ -377,6 +391,7 @@ const buttonStyles = getButtonStyles(buttonStyle, colorScheme);
                                       key={platform}
                                       onClick={() => {
                                         if (link) {
+                                          trackCalendarLinkClick(platform, 'generator');
                                           window.open(link, '_blank');
                                           toast.success(`Opening ${info.name}!`);
                                         }
@@ -455,7 +470,12 @@ const buttonStyles = getButtonStyles(buttonStyle, colorScheme);
                                 {copied ? '✓' : '📋'}
                               </button>
                               <button
-                                onClick={() => link && window.open(link, '_blank')}
+                                onClick={() => {
+                                  if (link) {
+                                    trackCalendarLinkClick(platform, 'generator');
+                                    window.open(link, '_blank');
+                                  }
+                                }}
                                 className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 disabled={!link}
                               >
@@ -637,8 +657,11 @@ const buttonStyles = getButtonStyles(buttonStyle, colorScheme);
                       )}
                       
                       <div className="pt-6">
-                        <button className="px-6 py-3 bg-emerald-500 text-white rounded-lg font-medium hover:bg-emerald-500 transition-colors shadow-sm">
-                          📅 Add to My Calendar
+                        <button 
+                          className={`font-medium hover:opacity-90 transition-all shadow-sm ${buttonClasses}`}
+                          style={buttonStyles}
+                        >
+                          📅 {buttonData?.customText || 'Add to My Calendar'}
                         </button>
                       </div>
                     </div>

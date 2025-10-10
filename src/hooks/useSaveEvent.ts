@@ -122,15 +122,21 @@ export function useSaveEvent(): SaveEventReturn {
         shortLinks = calendarLinks; // Fallback to original links
       }
 
-      logger.info('Event saved successfully', 'EVENT_SAVE', { 
-        eventId: savedEvent.id, 
+      logger.info('Event saved successfully', 'EVENT_SAVE', {
+        eventId: savedEvent.id,
         userId: user.id,
         title: eventData.title,
         hasShortLinks: Object.keys(shortLinks).length > 0
       });
 
+      // Track event creation
+      if (typeof window !== 'undefined') {
+        const { trackCalendarEventCreated } = await import('@/lib/analytics');
+        trackCalendarEventCreated('generator');
+      }
+
       toast.success(`"${eventData.title}" saved with calendar links!`);
-      
+
       return {
         eventId: savedEvent.id,
         shortLinks

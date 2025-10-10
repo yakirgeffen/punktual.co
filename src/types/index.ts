@@ -54,7 +54,7 @@ export interface EventData {
 
 export interface ButtonData {
   // Style Options
-  buttonStyle?: 'standard' | 'outlined' | 'minimal' | 'pill' | 'gradient' | 'rounded' | 'sharp';
+  buttonStyle?: 'standard' | 'minimal' | 'pill' | 'gradient' | 'rounded' | 'sharp';
   buttonSize?: 'small' | 'medium' | 'large' | 'sm' | 'md' | 'lg' | 'xl';
   buttonLayout?: 'dropdown' | 'individual' | 'single';
   buttonShape?: 'squared' | 'rounded' | 'pill';
@@ -263,7 +263,7 @@ export interface CodeGenerationOptions {
 export type OutputType = 'button' | 'links' | 'direct' | 'page';
 
 export type ButtonSize = 'small' | 'medium' | 'large';
-export type ButtonStyle = 'standard' | 'outlined' | 'minimal' | 'pill';
+export type ButtonStyle = 'standard' | 'minimal' | 'pill';
 export type RecurrencePattern = 'daily' | 'weekly' | 'monthly' | 'yearly';
 export type MonthlyOption = 'date' | 'weekday';
 export type PlatformId = 'google' | 'apple' | 'outlook' | 'office365' | 'outlookcom' | 'yahoo';

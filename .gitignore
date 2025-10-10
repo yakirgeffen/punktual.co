@@ -44,3 +44,7 @@ next-env.d.ts
 .history/
 **/.history/
 _archive
+
+# Claude
+.claude/
+.claude/** 

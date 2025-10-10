@@ -54,3 +54,27 @@ export const trackConversion = (conversionType, value = 1) => {
     value: value,
   });
 };
+
+// Push a custom event to the dataLayer
+export const dlPush = (event, params = {}) => {
+  if (typeof window === 'undefined') return;
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({ event, ...params });
+};
+
+// 1) SIGN UP
+export const trackSignUp = (method = 'email') => {
+  dlPush('sign_up', { method });
+};
+
+// 2) CALENDAR LINK CLICK
+//    provider: 'google' | 'apple' | 'outlook' | 'ical' | etc.
+//    placement: 'hero' | 'footer' | 'generator' | etc.
+export const trackCalendarLinkClick = (provider, placement) => {
+  dlPush('calendar_link_click', { calendar_provider: provider, placement });
+};
+
+// 3) EVENT CREATED (when a user generates an Add-to-Calendar button)
+export const trackCalendarEventCreated = (context = 'generator') => {
+  dlPush('calendar_event_created', { context });
+};

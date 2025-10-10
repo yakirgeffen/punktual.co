@@ -6,7 +6,6 @@ export default function ButtonStyleSection() {
 
   const styles = [
     { label: 'Standard', value: 'standard' },
-    { label: 'Outlined', value: 'outlined' },
     { label: 'Minimal', value: 'minimal' },
     { label: 'Pill', value: 'pill' }
   ] as const;

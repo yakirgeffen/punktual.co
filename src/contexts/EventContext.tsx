@@ -73,7 +73,7 @@ export function EventContextProvider({ children }: EventContextProviderProps) {
     buttonSize: 'medium',
     buttonLayout: 'single',
     buttonShape: 'rounded',
-    colorTheme: 'brand',
+    colorTheme: '#10b981',
     textColor: '#FFFFFF',
     customBrandColor: '#4D90FF',
     ctaText: 'Add to Calendar',
