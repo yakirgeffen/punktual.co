@@ -3,8 +3,6 @@ import { Nunito } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/hooks/useAuth';
 import { Toaster } from 'react-hot-toast';
-import Navbar from '@/components/Layout/Navbar';
-import Footer from '@/components/Layout/Footer';
 import TrafficTracker from '@/components/TrafficTracker';
 import CookieConsent from '@/components/CookieConsent';
 
@@ -27,14 +25,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${nunito.variable} font-sans min-h-screen bg-white`}>
-        
         <AuthProvider>
           <TrafficTracker />
-          <Navbar />
           {children}
-          <Footer />
           <CookieConsent />
-          <Toaster 
+          <Toaster
             position="top-right"
             toastOptions={{
               duration: 4000,

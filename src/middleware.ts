@@ -50,7 +50,6 @@ export function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/api/')) {
     // Get client IP address
     const ip =
-      request.ip ||
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       request.headers.get('x-real-ip') ||
       'unknown';
