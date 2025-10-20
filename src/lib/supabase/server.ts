@@ -129,7 +129,14 @@ export async function createServerClient() {
  */
 export async function requireAuth(request: Request) {
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get('sb-access-token')?.value;
+  let accessToken = cookieStore.get('sb-access-token')?.value;
+
+  if (!accessToken) {
+    const authHeader = request.headers.get('authorization');
+    if (authHeader?.startsWith('Bearer ')) {
+      accessToken = authHeader.slice(7).trim();
+    }
+  }
 
   if (!accessToken) {
     throw new Error('Authentication required');

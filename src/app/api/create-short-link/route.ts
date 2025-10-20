@@ -4,12 +4,77 @@ import type { CreateShortLinkRequest, CreateShortLinkResponse } from '@/types';
 import { randomBytes } from 'crypto';
 import { z } from 'zod';
 import { logAuditEvent, getClientIp, getUserAgent } from '@/lib/audit';
+import { validateCSRFMiddleware } from '@/lib/csrf';
+
+/**
+ * Validate URL to prevent SSRF attacks
+ *
+ * Blocks:
+ * - Localhost and 127.0.0.1
+ * - Private IP ranges (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16)
+ * - Metadata endpoints (169.254.169.254)
+ * - Non-HTTP(S) protocols
+ */
+function isValidRedirectUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+
+    // Only allow HTTP and HTTPS
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      console.warn('[SECURITY] Blocked non-HTTP protocol:', parsed.protocol);
+      return false;
+    }
+
+    const hostname = parsed.hostname;
+
+    // Block localhost and loopback addresses
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+      console.warn('[SECURITY] Blocked localhost URL:', url);
+      return false;
+    }
+
+    // Block AWS metadata endpoint
+    if (hostname === '169.254.169.254') {
+      console.warn('[SECURITY] Blocked AWS metadata endpoint:', url);
+      return false;
+    }
+
+    // Block private IP ranges
+    if (hostname.startsWith('192.168.') || hostname.startsWith('10.')) {
+      console.warn('[SECURITY] Blocked private IP:', hostname);
+      return false;
+    }
+
+    // Block 172.16.0.0 - 172.31.255.255 (private range)
+    if (hostname.startsWith('172.')) {
+      const parts = hostname.split('.');
+      if (parts.length === 4) {
+        const second = parseInt(parts[1], 10);
+        if (second >= 16 && second <= 31) {
+          console.warn('[SECURITY] Blocked private IP range:', hostname);
+          return false;
+        }
+      }
+    }
+
+    // Block 0.0.0.0
+    if (hostname === '0.0.0.0' || hostname === '::') {
+      console.warn('[SECURITY] Blocked 0.0.0.0:', url);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('[SECURITY] Error parsing URL:', error);
+    return false;
+  }
+}
 
 /**
  * Input validation schema for short link creation
  *
  * Enforces:
- * - originalUrl must be a valid URL (max 2048 chars)
+ * - originalUrl must be a valid, safe URL (max 2048 chars)
  * - eventTitle is optional (max 255 chars)
  * - userId must be a valid UUID if provided
  */
@@ -17,7 +82,11 @@ const CreateShortLinkSchema = z.object({
   originalUrl: z
     .string()
     .url({ message: 'Original URL must be a valid URL' })
-    .max(2048, { message: 'URL cannot exceed 2048 characters' }),
+    .max(2048, { message: 'URL cannot exceed 2048 characters' })
+    .refine(
+      (url) => isValidRedirectUrl(url),
+      'URL points to a blocked destination (localhost, private IP, metadata endpoint)'
+    ),
   eventTitle: z
     .string()
     .max(255, { message: 'Event title cannot exceed 255 characters' })
@@ -52,8 +121,26 @@ export async function POST(request: NextRequest) {
     // Verify authentication
     const user = await requireAuth(request);
 
-    // Parse and validate request body
+    // Parse request body
     const body: CreateShortLinkRequest = await request.json();
+
+    // Validate CSRF token
+    const csrfValidation = await validateCSRFMiddleware(
+      request.method,
+      request.headers,
+      body
+    );
+
+    if (!csrfValidation.valid) {
+      console.warn(`[CSRF] Validation failed for user ${user.id} creating short link`);
+      return NextResponse.json(
+        {
+          error: 'Invalid CSRF token',
+          message: 'Security validation failed. Please refresh and try again.',
+        },
+        { status: 403 }
+      );
+    }
 
     // Validate input with Zod schema
     const validationResult = CreateShortLinkSchema.safeParse(body);

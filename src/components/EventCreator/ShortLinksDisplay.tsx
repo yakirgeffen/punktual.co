@@ -13,14 +13,10 @@ import { isShortLink, extractShortId } from '@/utils/shortLinks';
 
 interface ShortLinksDisplayProps {
   className?: string;
-  showToggle?: boolean;
 }
 
-const ShortLinksDisplay: React.FC<ShortLinksDisplayProps> = ({ 
-  className = '',
-  showToggle = false
-}) => {
-  const { eventData, buttonData, calendarLinks, savedShortLinks } = useEventContext();
+const ShortLinksDisplay: React.FC<ShortLinksDisplayProps> = ({ className = '' }) => {
+  const { buttonData, calendarLinks, savedShortLinks } = useEventContext();
   const [displayLinks, setDisplayLinks] = useState(calendarLinks);
   const [copied, setCopied] = useState<string | null>(null);
 

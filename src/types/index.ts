@@ -367,3 +367,119 @@ export interface CreateShortLinkResponse {
   shortUrl: string;
   shortId: string;
 }
+
+// ============================================================================
+// BLOG TYPES
+// ============================================================================
+
+export interface BlogFrontmatter {
+  title: string;
+  description: string;
+  date: string;
+  author: string;
+  category: string;
+  tags: string[];
+  featured?: boolean;
+  image?: string;
+
+  // SEO & AI Optimization
+  seo?: {
+    metaTitle?: string;
+    metaDescription?: string;
+    keywords?: string[];
+    canonicalUrl?: string;
+    ogImage?: string;
+  };
+
+  // AI Citation Optimization
+  aiOptimization?: {
+    directAnswer?: string;
+    keyFacts?: string[];
+    relatedQueries?: string[];
+    technicalDetails?: string;
+  };
+
+  // Content Classification
+  contentType?: 'tutorial' | 'guide' | 'comparison' | 'case-study' | 'news' | 'opinion';
+  targetAudience?: string[];
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  estimatedReadTime?: number;
+
+  // Interactive Features
+  hasLiveDemo?: boolean;
+  hasCodeSamples?: boolean;
+  hasCalculator?: boolean;
+
+  // Analytics
+  publishedAt?: string;
+  updatedAt?: string;
+  version?: string;
+
+  // NEW: Custom Images (Spotify-style)
+  heroImage?: string;        // Full-width hero image for post page (1920x800px)
+  thumbnailImage?: string;   // Thumbnail for blog cards (800x600px)
+
+  // NEW: TL;DR Section
+  tldr?: string[];           // 3-5 key takeaway bullet points
+
+  // NEW: FAQ Section
+  faq?: Array<{
+    question: string;
+    answer: string;
+  }>;
+}
+
+export interface BlogPost {
+  slug: string;
+  frontmatter: BlogFrontmatter;
+  content: string;
+  readingTime: {
+    text: string;
+    minutes: number;
+    words: number;
+  };
+  excerpt?: string;
+}
+
+export interface BlogMetadata {
+  title: string;
+  description: string;
+  slug: string;
+  date: string;
+  author: string;
+  category: string;
+  tags: string[];
+  featured?: boolean;
+  image?: string;
+  readingTime: string;
+  heroImage?: string;
+  thumbnailImage?: string;
+}
+
+export interface BlogCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  postCount?: number;
+}
+
+export interface BlogAuthor {
+  name: string;
+  bio?: string;
+  avatar?: string;
+  social?: {
+    twitter?: string;
+    github?: string;
+    linkedin?: string;
+  };
+}
+
+// Analytics for blog interactions
+export interface BlogAnalyticsEvent {
+  eventType: 'code_copy' | 'demo_interaction' | 'calculator_use' | 'link_click' | 'share';
+  postSlug: string;
+  metadata?: Record<string, string | number | boolean>;
+  timestamp: string;
+  userId?: string;
+}

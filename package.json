@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -16,14 +16,22 @@
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.50.0",
+    "@upstash/ratelimit": "^2.0.6",
+    "@upstash/redis": "^1.35.6",
+    "csrf": "^3.1.0",
     "date-fns": "^4.1.0",
     "framer-motion": "^11.18.2",
+    "isomorphic-dompurify": "^2.29.0",
     "lucide-react": "^0.511.0",
+    "marked": "^16.4.1",
     "next": "^15.3.2",
+    "qs": "^6.14.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.56.4",
     "react-hot-toast": "^2.5.2",
+    "reading-time": "^1.5.0",
+    "shiki": "^3.13.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

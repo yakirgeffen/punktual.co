@@ -158,6 +158,27 @@ export function EventContextProvider({ children }: EventContextProviderProps) {
     }
   }, [eventData, buttonData, outputType]); // These dependencies are fine since they're state values
 
+  // Check for prefill data from blog GenerateButton (runs once on mount)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      const prefillData = localStorage.getItem('prefill_event');
+      if (prefillData) {
+        const parsedData: Partial<EventData> = JSON.parse(prefillData);
+        console.log('Loading prefill data from blog:', parsedData);
+
+        // Update event with prefill data
+        updateEvent(parsedData);
+
+        // Clear the prefill data after loading
+        localStorage.removeItem('prefill_event');
+      }
+    } catch (error) {
+      console.error('Failed to load prefill data:', error);
+    }
+  }, [updateEvent]); // Run once on mount
+
   // Memoize the context value to prevent unnecessary re-renders
   const contextValue = useMemo<EventContextType>(() => ({
     eventData,

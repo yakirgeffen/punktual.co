@@ -1,0 +1,14 @@
+{
+  "collectionName": "components_marketing_ctas",
+  "info": { "displayName": "CTA Block", "icon": "cursor" },
+  "options": {},
+  "attributes": {
+    "label": { "type": "string", "required": true },
+    "url": { "type": "string", "required": true },
+    "utmSource": { "type": "string", "default": "blog" },
+    "utmMedium": { "type": "string", "default": "post" },
+    "utmCampaign": { "type": "string", "default": "{slug}" },
+    "variant": { "type": "enumeration", "enum": ["primary", "secondary", "link"], "default": "primary" },
+    "position": { "type": "enumeration", "enum": ["mid", "end"], "default": "end" }
+  }
+}

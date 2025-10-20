@@ -23,5 +23,11 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "_archive"]
+  "exclude": [
+    "node_modules",
+    "_archive",
+    "_backup_api_strapi_starter",
+    "my-strapi-project",
+    "src/api"
+  ]
 }

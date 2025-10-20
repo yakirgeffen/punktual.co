@@ -89,6 +89,48 @@ export default function Dashboard() {
     // For now, we'll just update the last used timestamp
   };
 
+  // Auth guard: show loading state while auth initializes
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 text-sm">Loading your dashboard…</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Encourage sign-in when no authenticated user is present
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-6">
+        <div className="max-w-md text-center bg-white border border-emerald-100 shadow-sm rounded-2xl p-10 space-y-4">
+          <div className="w-14 h-14 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl">
+            🔒
+          </div>
+          <h2 className="text-2xl font-semibold text-slate-900">Sign in to view your events</h2>
+          <p className="text-slate-600">
+            The dashboard lists the campaigns you have saved. Sign in from the main navigation to
+            pick up where you left off.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
+            <Link href="/" className="inline-flex justify-center">
+              <Button className="bg-emerald-500 hover:bg-emerald-600 text-white px-5">
+                Go to Homepage
+              </Button>
+            </Link>
+            <Link href="/create" className="inline-flex justify-center">
+              <Button variant="ghost" className="text-emerald-600 border border-emerald-200 px-5">
+                Start an Event
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Show error state if there's an error
   if (error) {
     return (

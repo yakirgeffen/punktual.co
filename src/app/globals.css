@@ -30,9 +30,57 @@
   .card {
     @apply bg-white rounded-lg shadow-sm border border-gray-200 p-3;
   }
-  
+
   .section-title {
     @apply text-base font-semibold text-gray-900 mb-2;
+  }
+
+  .article-content {
+    @apply space-y-6 text-slate-700 leading-relaxed;
+  }
+
+  .article-content h2 {
+    @apply text-2xl font-semibold text-slate-900 mt-10;
+  }
+
+  .article-content h3 {
+    @apply text-xl font-semibold text-slate-900 mt-8;
+  }
+
+  .article-content h4 {
+    @apply text-lg font-semibold text-slate-900 mt-6;
+  }
+
+  .article-content p {
+    @apply text-base leading-7;
+  }
+
+  .article-content ul {
+    @apply list-disc pl-5 space-y-2;
+  }
+
+  .article-content ol {
+    @apply list-decimal pl-5 space-y-2;
+  }
+
+  .article-content li {
+    @apply text-base;
+  }
+
+  .article-content blockquote {
+    @apply border-l-4 border-emerald-400 bg-emerald-50/70 px-6 py-4 italic rounded-r-lg text-slate-700;
+  }
+
+  .article-content code {
+    @apply bg-slate-100 px-1.5 py-0.5 rounded text-sm font-mono text-emerald-700;
+  }
+
+  .article-content pre {
+    @apply bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto text-sm;
+  }
+
+  .article-content a {
+    @apply text-emerald-600 underline hover:text-emerald-700;
   }
 }
 

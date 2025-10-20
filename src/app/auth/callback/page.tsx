@@ -4,6 +4,57 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle, XCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import DOMPurify from 'isomorphic-dompurify';
+
+// Allowed redirect URLs after OAuth callback
+const ALLOWED_REDIRECTS = ['/', '/create', '/dashboard'];
+
+/**
+ * Safely parse and validate redirect URL
+ * Prevents open redirect vulnerabilities
+ */
+function getSafeRedirect(url: string | null, fallback: string = '/'): string {
+  if (!url) return fallback;
+
+  try {
+    // Only allow internal paths (no protocol/domain)
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      console.warn('[SECURITY] Blocked external redirect attempt:', url);
+      return fallback;
+    }
+
+    // Extract path component
+    const path = url.split('?')[0].split('#')[0];
+
+    // Only allow whitelisted paths
+    if (ALLOWED_REDIRECTS.includes(path)) {
+      return path;
+    }
+
+    console.warn('[SECURITY] Redirect to non-whitelisted path:', path);
+    return fallback;
+  } catch (error) {
+    console.error('[SECURITY] Error parsing redirect URL:', error);
+    return fallback;
+  }
+}
+
+/**
+ * Sanitize error messages to prevent XSS
+ * Removes HTML/scripts from error display
+ */
+function getSafeErrorMessage(message: string | null): string {
+  if (!message) return 'Authentication failed';
+
+  // Remove anything that looks like HTML/script
+  const sanitized = DOMPurify.sanitize(message, {
+    ALLOWED_TAGS: [],
+    ALLOWED_ATTR: []
+  });
+
+  // Truncate very long messages
+  return sanitized.slice(0, 200);
+}
 
 function AuthCallbackContent() {
   const router = useRouter();
@@ -29,9 +80,10 @@ function AuthCallbackContent() {
 
         if (error_code) {
           console.error('❌ OAuth Error:', error_description);
-          setError(error_description || 'Authentication failed');
+          const safeError = getSafeErrorMessage(error_description);
+          setError(safeError);
           setTimeout(() => {
-            router.replace('/?auth_error=' + encodeURIComponent(error_description || 'Authentication failed'));
+            router.replace('/?auth_error=' + encodeURIComponent(safeError));
           }, 3000);
           return;
         }
@@ -61,10 +113,11 @@ function AuthCallbackContent() {
 
       } catch (err: unknown) {
         console.error('❌ OAuth Callback: Error:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
-        setError(errorMessage);
+        const rawMessage = err instanceof Error ? err.message : 'Authentication failed';
+        const safeError = getSafeErrorMessage(rawMessage);
+        setError(safeError);
         setTimeout(() => {
-          router.replace('/?auth_error=' + encodeURIComponent(errorMessage));
+          router.replace('/?auth_error=' + encodeURIComponent(safeError));
         }, 3000);
       }
     };
@@ -75,11 +128,11 @@ function AuthCallbackContent() {
   // Separate timeout effect that can be properly cleaned up
   useEffect(() => {
     if (hasRedirected) return;
-    
+
     const timeoutId = setTimeout(() => {
       if (!hasRedirected) {
         console.log('⏰ Timeout reached, redirecting home');
-        router.replace('/?auth_error=' + encodeURIComponent('Authentication timeout'));
+        router.replace(getSafeRedirect('/'));
       }
     }, 15000);
 
@@ -92,11 +145,11 @@ function AuthCallbackContent() {
   // Watch for auth state changes and redirect when user is authenticated
   useEffect(() => {
     if (initialized && user && !hasRedirected) {
-      console.log('✅ User authenticated, redirecting to /create...', user.email);
+      console.log('✅ User authenticated, redirecting...', user.email);
       setHasRedirected(true);
-      
+
       setTimeout(() => {
-        router.replace('/create');
+        router.replace(getSafeRedirect('/create'));
       }, 500);
     }
   }, [user, initialized, hasRedirected, router]);

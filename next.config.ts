@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+    ],
+  },
+
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -53,9 +62,21 @@ const nextConfig: NextConfig = {
               "form-action 'self'",
             ].join('; '),
           },
+          // HTTP Strict Transport Security - enforce HTTPS
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains; preload',
+          },
         ],
       },
     ];
+  },
+
+  // Request size limits for security
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '1mb',
+    },
   },
 };
 

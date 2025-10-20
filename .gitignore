@@ -54,4 +54,11 @@ _archive
 
 # Claude
 .claude/
-.claude/** 
+.claude/**
+
+# Local development files (keep locally, don't commit)
+.strapi-updater.json
+lead-developer-agent.yaml
+punktual_blog_agent.yaml
+public/ai.txt
+strapi.log 

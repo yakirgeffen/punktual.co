@@ -28,7 +28,10 @@ export type AuditEventType =
   | 'UNAUTHORIZED_ACCESS'
   | 'RATE_LIMIT_EXCEEDED'
   | 'INPUT_VALIDATION_FAILED'
-  | 'SUSPICIOUS_ACTIVITY';
+  | 'SUSPICIOUS_ACTIVITY'
+  | 'DATA_EXPORT'
+  | 'DATA_DELETION'
+  | 'CSRF_VALIDATION_FAILED';
 
 export interface AuditEvent {
   /** Type of security event */

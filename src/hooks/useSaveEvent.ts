@@ -12,12 +12,6 @@ import { generateCalendarLinks } from '@/utils/calendarGenerator';
 import { createCalendarShortLinks } from '@/utils/shortLinks';
 import type { EventData, CalendarLinks } from '@/types';
 
-interface UsageData {
-  events_created: number;
-  user_id: string;
-  month: string;
-}
-
 interface SaveEventReturn {
   saveEvent: (eventData: EventData) => Promise<{
     eventId: string;
