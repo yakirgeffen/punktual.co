@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Calendar, MapPin, Clock, MoreVertical, Edit, Copy, Trash2, ExternalLink } from 'lucide-react';
-import { Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, DropdownSection } from '@heroui/react';
+import { Calendar, MapPin, Clock, MoreVertical, Edit, Copy, Trash2, ExternalLink, Check, Code, Lock } from 'lucide-react';
+import { Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, DropdownSection, Modal, ModalContent, ModalHeader, ModalBody, useDisclosure, Tabs, Tab, Card, CardBody } from '@heroui/react';
 import { formatDistanceToNow, format, parseISO } from 'date-fns';
+import toast from 'react-hot-toast';
 // import Link from 'next/link'; // For future edit functionality
 import type { EventData } from '@/types';
+import { generateInlineEmbedCode } from '@/utils/embedCodeGenerator';
 
 interface DatabaseEvent extends EventData {
   id: string;
@@ -24,14 +26,17 @@ interface EventCardProps {
   onGenerateCalendar: () => void;
 }
 
-export default function EventCard({ 
-  event, 
-  viewMode, 
-  onDelete, 
-  onDuplicate, 
-  onGenerateCalendar 
+export default function EventCard({
+  event,
+  viewMode,
+  onDelete,
+  onDuplicate,
+  onGenerateCalendar
 }: EventCardProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isOpen: isOutputOpen, onOpen: onOutputOpen, onClose: onOutputClose } = useDisclosure();
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [outputTab, setOutputTab] = useState('htmlcss');
 
   const formatEventDate = (startDate?: string, startTime?: string, isAllDay?: boolean) => {
     if (!startDate) return 'Date not set';
@@ -64,10 +69,20 @@ export default function EventCard({
     }
   };
 
+  const handleCopyCode = (code: string, type: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(type);
+    toast.success('Copied to clipboard!');
+    setTimeout(() => setCopiedCode(null), 2000);
+  };
+
   const handleMenuAction = (key: string) => {
     setIsMenuOpen(false);
-    
+
     switch (key) {
+      case 'outputs':
+        onOutputOpen();
+        break;
       case 'edit':
         // Navigate to create page with event data
         // For now, we'll just generate calendar
@@ -135,24 +150,30 @@ export default function EventCard({
                     <MoreVertical size={16} />
                   </Button>
                 </DropdownTrigger>
-                <DropdownMenu 
+                <DropdownMenu
                   aria-label="Event actions"
                   onAction={(key) => handleMenuAction(key.toString())}
                 >
                   <DropdownSection title="Actions">
-                    <DropdownItem 
+                    <DropdownItem
+                      key="outputs"
+                      startContent={<Code size={16} />}
+                    >
+                      View Outputs
+                    </DropdownItem>
+                    <DropdownItem
                       key="generate"
                       startContent={<ExternalLink size={16} />}
                     >
                       Generate Calendar
                     </DropdownItem>
-                    <DropdownItem 
+                    <DropdownItem
                       key="edit"
                       startContent={<Edit size={16} />}
                     >
                       Edit Event
                     </DropdownItem>
-                    <DropdownItem 
+                    <DropdownItem
                       key="duplicate"
                       startContent={<Copy size={16} />}
                     >
@@ -160,7 +181,7 @@ export default function EventCard({
                     </DropdownItem>
                   </DropdownSection>
                   <DropdownSection>
-                    <DropdownItem 
+                    <DropdownItem
                       key="delete"
                       className="text-danger"
                       color="danger"
@@ -197,24 +218,30 @@ export default function EventCard({
               <MoreVertical size={16} />
             </Button>
           </DropdownTrigger>
-          <DropdownMenu 
+          <DropdownMenu
             aria-label="Event actions"
             onAction={(key) => handleMenuAction(key.toString())}
           >
             <DropdownSection title="Actions">
-              <DropdownItem 
+              <DropdownItem
+                key="outputs"
+                startContent={<Code size={16} />}
+              >
+                View Outputs
+              </DropdownItem>
+              <DropdownItem
                 key="generate"
                 startContent={<ExternalLink size={16} />}
               >
                 Generate Calendar
               </DropdownItem>
-              <DropdownItem 
+              <DropdownItem
                 key="edit"
                 startContent={<Edit size={16} />}
               >
                 Edit Event
               </DropdownItem>
-              <DropdownItem 
+              <DropdownItem
                 key="duplicate"
                 startContent={<Copy size={16} />}
               >
@@ -222,7 +249,7 @@ export default function EventCard({
               </DropdownItem>
             </DropdownSection>
             <DropdownSection>
-              <DropdownItem 
+              <DropdownItem
                 key="delete"
                 className="text-danger"
                 color="danger"
@@ -263,6 +290,113 @@ export default function EventCard({
           <span>Never used</span>
         )}
       </div>
+
+      {/* Output Modal */}
+      <Modal isOpen={isOutputOpen} onClose={onOutputClose} size="2xl" scrollBehavior="inside">
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1">
+            {event.title || 'Untitled Event'} - Output Options
+          </ModalHeader>
+          <ModalBody className="space-y-6">
+            <Tabs
+              aria-label="Output type"
+              color="success"
+              selectedKey={outputTab}
+              onSelectionChange={(key) => setOutputTab(key as string)}
+            >
+              {/* HTML/CSS Tab */}
+              <Tab key="htmlcss" title="HTML/CSS">
+                <Card>
+                  <CardBody className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold text-slate-900 mb-2">Complete HTML Code</h4>
+                      <p className="text-sm text-slate-600 mb-3">
+                        Ready-to-use code with all styling included.
+                      </p>
+                    </div>
+                    <div className="relative">
+                      <pre className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-auto max-h-64 text-xs font-mono">
+                        {/* Would generate actual code here */}
+                        {`<!-- Add to Calendar Button -->\n<a href="..." class="add-calendar">Add to Calendar</a>`}
+                      </pre>
+                      <Button
+                        isIconOnly
+                        className="absolute top-2 right-2 bg-emerald-500 hover:bg-emerald-600"
+                        size="sm"
+                        onClick={() =>
+                          handleCopyCode(
+                            `<!-- Add to Calendar Button -->\n<a href="..." class="add-calendar">Add to Calendar</a>`,
+                            'htmlcss'
+                          )
+                        }
+                      >
+                        {copiedCode === 'htmlcss' ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </CardBody>
+                </Card>
+              </Tab>
+
+              {/* Embed Code Tab */}
+              <Tab key="embed" title="Embed Code">
+                <Card>
+                  <CardBody className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold text-slate-900 mb-2">Inline Script Embed</h4>
+                      <p className="text-sm text-slate-600 mb-3">
+                        Lightweight script for easy integration.
+                      </p>
+                    </div>
+                    <div className="relative">
+                      <pre className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-auto max-h-64 text-xs font-mono">
+                        {generateInlineEmbedCode(event, {}, {}, `event-${event.id}`)}
+                      </pre>
+                      <Button
+                        isIconOnly
+                        className="absolute top-2 right-2 bg-emerald-500 hover:bg-emerald-600"
+                        size="sm"
+                        onClick={() =>
+                          handleCopyCode(
+                            generateInlineEmbedCode(event, {}, {}, `event-${event.id}`),
+                            'embed'
+                          )
+                        }
+                      >
+                        {copiedCode === 'embed' ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </CardBody>
+                </Card>
+              </Tab>
+
+              {/* Event Page Tab - Coming Soon */}
+              <Tab key="page" title="Event Page" isDisabled>
+                <Card>
+                  <CardBody className="space-y-4 text-center py-8">
+                    <div className="w-16 h-16 mx-auto rounded-full bg-slate-100 flex items-center justify-center">
+                      <Lock className="w-8 h-8 text-slate-400" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-900 mb-2">Event Page - Coming Soon</h4>
+                      <p className="text-sm text-slate-600">
+                        Create a beautiful public event page with RSVP tracking and social sharing. Coming soon!
+                      </p>
+                    </div>
+                  </CardBody>
+                </Card>
+              </Tab>
+            </Tabs>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

@@ -1,0 +1,338 @@
+name: punktual-blog-agent
+version: 1
+
+command:
+  name: punktual-blog-agent
+  description: "Generate, validate, and publish a Punktual Session Log to Strapi"
+  usage: |
+    agent run punktual-blog-agent \
+      --title "Punktual Session Log #12 — Release Guardrails" \
+      --category deployment \
+      --tags plg growth \
+      --publish now
+
+env:
+  STRAPI_BASE_URL: ${STRAPI_BASE_URL}
+  STRAPI_API_TOKEN: ${STRAPI_API_TOKEN}
+
+inputs:
+  title:
+    type: string
+    required: true
+  slug:
+    type: string
+    required: false
+  category:
+    type: string
+    required: true
+  tags:
+    type: array
+    items: string
+    required: false
+    default: []
+  publish:
+    type: string
+    required: false
+    enum: [now, at, draft]
+    default: draft
+  publishedAt:
+    type: string
+    required: false
+    description: ISO datetime (used when publish=at)
+  seo:
+    type: object
+    required: false
+    properties:
+      metaTitle: { type: string }
+      metaDescription: { type: string }
+      canonicalUrl: { type: string }
+      keywords:
+        type: array
+        items: string
+  faqs:
+    type: array
+    required: false
+    default: []
+    items:
+      type: object
+      properties:
+        question: { type: string }
+        answer: { type: string }
+  context:
+    type: object
+    required: false
+    description: Arbitrary metrics/notes to inform Deep Dive & bullets
+  dry_run:
+    type: boolean
+    required: false
+    default: false
+
+steps:
+  # 1) Normalize & derive
+  - id: normalize
+    run: node
+    script: |
+      const slugify = (s)=> s.toLowerCase()
+        .replace(/[^a-z0-9\s-–—]/g, '')
+        .replace(/[–—]/g,'-')
+        .trim()
+        .replace(/\s+/g,'-')
+        .replace(/-+/g,'-');
+
+      const inp = inputs;
+      const out = {};
+
+      out.title = inp.title;
+      out.slug = inp.slug && inp.slug.length ? inp.slug : slugify(inp.title);
+      out.category = inp.category;
+      out.tags = Array.isArray(inp.tags) ? inp.tags : [];
+
+      // publishAt
+      if (inp.publish === 'now') out.publishedAt = new Date().toISOString();
+      else if (inp.publish === 'at' && inp.publishedAt) out.publishedAt = inp.publishedAt;
+      else out.publishedAt = null; // draft
+
+      out.seo = inp.seo || {};
+      out.faqs = inp.faqs || [];
+      out.context = inp.context || {};
+      out.dry_run = !!inp.dry_run;
+
+      outputs.normalized = out;
+
+  # 2) Generate TL;DR bullets & body via LLM (guided by the operational spec in /commands)
+  - id: author
+    run: llm
+    model: gpt-5-thinking
+    system: |
+      You are the Punktual Blog Agent. Generate strictly structured markdown for a Punktual Session Log.
+      Use metric-led, concrete, concise language. Follow EXACT headings from the operational spec.
+    prompt: |
+      ## Task
+      Create a Punktual Session Log body in Markdown with EXACT sections:
+      TL;DR, Deep Dive, What Worked, What Broke, Next Actions (with subsections: Experiments Queued, Signals To Watch), and optionally FAQs.
+
+      ## Inputs
+      Title: {{steps.normalize.outputs.normalized.title}}
+      Context (JSON): {{ toJson steps.normalize.outputs.normalized.context }}
+      Category: {{steps.normalize.outputs.normalized.category}}
+      Tags: {{ join steps.normalize.outputs.normalized.tags ', ' }}
+
+      ## Rules
+      - TL;DR must have at least one '-' bullet.
+      - Provide at least 3 bullets under What Worked & What Broke.
+      - Include Experiments Queued & Signals To Watch with at least one line each.
+      - If FAQs array is non-empty (see below), include a numbered ## FAQs section with Q&As.
+      - Keep copy concrete; no fluff; keep it factual and crisp.
+
+      ## FAQs to include (if non-empty):
+      {{ toJson steps.normalize.outputs.normalized.faqs }}
+
+      ## Output strictly Markdown
+
+  - id: capture_first_bullet
+    run: node
+    script: |
+      const md = steps.author.outputs.text || '';
+      const m = md.match(/## TL;DR[\s\S]*?\n-\s+(.+?)\n/);
+      const first = m ? m[1].trim() : '';
+      outputs.markdown = md;
+      outputs.first_bullet = first;
+
+  # 3) Build metadata and SEO
+  - id: metadata
+    run: node
+    script: |
+      const n = steps.normalize.outputs.normalized;
+      const first = steps.capture_first_bullet.outputs.first_bullet || '';
+      const md = steps.capture_first_bullet.outputs.markdown || '';
+
+      const defaultMetaTitle = n.title;
+      const getMetaDesc = () => {
+        // take up to first 160 chars from TL;DR bullets
+        const bullets = (md.match(/## TL;DR[\s\S]*?(\n- .+)+/m) || [''])[0]
+          .split('\n')
+          .filter(l=>/^-/ .test(l))
+          .map(l=>l.replace(/^-[ ]?/, '').trim());
+        const joined = bullets.join('; ');
+        return joined.slice(0, 160);
+      };
+
+      const seo = Object.assign({
+        metaTitle: n.seo.metaTitle || defaultMetaTitle,
+        metaDescription: n.seo.metaDescription || getMetaDesc(),
+        canonicalUrl: n.seo.canonicalUrl || `https://punktual.co/blog/${n.slug}`,
+        keywords: n.seo.keywords && n.seo.keywords.length
+          ? n.seo.keywords
+          : ["punktual","session log", n.category, ...n.tags].filter(Boolean)
+      }, n.seo);
+
+      outputs.payload = {
+        title: n.title,
+        slug: n.slug,
+        excerpt: first,
+        publishedAt: n.publishedAt,
+        category: n.category,
+        tags: n.tags,
+        seo
+      };
+
+  # 4) Validate Markdown structure & constraints
+  - id: validate
+    run: node
+    script: |
+      const md = steps.capture_first_bullet.outputs.markdown || '';
+      const first = steps.capture_first_bullet.outputs.first_bullet || '';
+      const n = steps.normalize.outputs.normalized;
+
+      function assert(cond, msg){ if(!cond){ throw new Error(msg); } }
+
+      const hasTLDR = /(^|\n)## TL;DR\s*[\r\n]+- /m.test(md);
+      assert(hasTLDR, 'Missing required section: ## TL;DR with at least one bullet');
+
+      const deepDiveOk = /(^|\n)## Deep Dive[\s\S]*?\n### /m.test(md);
+      assert(deepDiveOk, 'Missing required section/subsection: ## Deep Dive with at least one ###');
+
+      const workedOk = /(^|\n)## What Worked[\s\S]*?(\n- .+){3,}/m.test(md);
+      assert(workedOk, '## What Worked must contain at least three bullets');
+
+      const brokeOk = /(^|\n)## What Broke[\s\S]*?(\n- .+){3,}/m.test(md);
+      assert(brokeOk, '## What Broke must contain at least three bullets');
+
+      const expOk = /(^|\n)### Experiments Queued\s+[\s\S]*?\n- /m.test(md);
+      assert(expOk, 'Missing subsection items: ### Experiments Queued');
+
+      const sigOk = /(^|\n)### Signals To Watch\s+[\s\S]*?\n- /m.test(md);
+      assert(sigOk, 'Missing subsection items: ### Signals To Watch');
+
+      if (n.faqs && n.faqs.length > 0){
+        const hasFaqs = /(^|\n)## FAQs\b/m.test(md);
+        assert(hasFaqs, 'FAQs array provided but ## FAQs section missing');
+      }
+
+      // excerpt equality
+      const excerpt = first.trim();
+      assert(excerpt.length > 0, 'First TL;DR bullet not found');
+
+      outputs.excerpt = excerpt;
+
+  # 5) Ensure category & tags exist in Strapi
+  - id: ensure_category
+    if: ${!inputs.dry_run}
+    run: http
+    request:
+      method: POST
+      url: ${STRAPI_BASE_URL}/api/categories
+      headers:
+        Authorization: Bearer ${STRAPI_API_TOKEN}
+        Content-Type: application/json
+      body: |
+        {
+          "data": { "name": "${{inputs.category}}", "slug": "${{inputs.category}}" }
+        }
+    continueOn:
+      - status: 200
+      - status: 201
+      - status: 409  # already exists (if your Strapi returns 409)
+      - status: 400  # if validation complains it exists, still continue
+
+  - id: ensure_tags
+    if: ${!inputs.dry_run && inputs.tags && inputs.tags.length > 0}
+    run: http
+    loop:
+      forEach: ${inputs.tags}
+      as: tag
+      request:
+        method: POST
+        url: ${STRAPI_BASE_URL}/api/tags
+        headers:
+          Authorization: Bearer ${STRAPI_API_TOKEN}
+          Content-Type: application/json
+        body: |
+          {
+            "data": { "name": "${{tag}}", "slug": "${{tag}}" }
+          }
+      continueOn:
+        - status: 200
+        - status: 201
+        - status: 409
+        - status: 400
+
+  # 6) Find existing post by slug
+  - id: find_post
+    if: ${!inputs.dry_run}
+    run: http
+    request:
+      method: GET
+      url: ${STRAPI_BASE_URL}/api/posts?filters[slug][$eq]=${{steps.metadata.outputs.payload.slug}}&fields[0]=documentId
+      headers:
+        Authorization: Bearer ${STRAPI_API_TOKEN}
+    parse: json
+
+  # 7) Assemble final Strapi payload
+  - id: assemble_payload
+    run: node
+    script: |
+      const md = steps.capture_first_bullet.outputs.markdown || '';
+      const p = steps.metadata.outputs.payload;
+      const tags = (p.tags || []).map(s=>({ slug: s }));
+
+      const data = {
+        title: p.title,
+        slug: p.slug,
+        excerpt: steps.validate.outputs.excerpt,
+        content: md,
+        publishedAt: p.publishedAt,
+        category: { connect: [{ slug: p.category }] },
+        tags: { connect: tags },
+        seo: p.seo,
+        faqs: inputs.faqs || []
+      };
+      outputs.data = { data };
+
+  # 8) Create or Update
+  - id: upsert_create
+    if: ${!inputs.dry_run && (!steps.find_post.outputs.body || steps.find_post.outputs.body.data.length === 0)}
+    run: http
+    request:
+      method: POST
+      url: ${STRAPI_BASE_URL}/api/posts
+      headers:
+        Authorization: Bearer ${STRAPI_API_TOKEN}
+        Content-Type: application/json
+      body: ${ toJson steps.assemble_payload.outputs.data }
+    parse: json
+
+  - id: upsert_update
+    if: ${!inputs.dry_run && (steps.find_post.outputs.body && steps.find_post.outputs.body.data.length > 0)}
+    run: http
+    request:
+      method: PUT
+      url: ${STRAPI_BASE_URL}/api/posts/${{steps.find_post.outputs.body.data[0].documentId}}
+      headers:
+        Authorization: Bearer ${STRAPI_API_TOKEN}
+        Content-Type: application/json
+      body: ${ toJson steps.assemble_payload.outputs.data }
+    parse: json
+
+  # 9) Output
+  - id: result
+    run: node
+    script: |
+      const n = steps.normalize.outputs.normalized;
+      const slug = steps.metadata.outputs.payload.slug;
+      const url = `https://punktual.co/blog/${slug}`;
+
+      outputs.result = {
+        slug,
+        publishedAt: steps.metadata.outputs.payload.publishedAt,
+        draft: !steps.metadata.outputs.payload.publishedAt,
+        url,
+        dry_run: n.dry_run
+      };
+
+outputs:
+  url: ${steps.result.outputs.result.url}
+  slug: ${steps.result.outputs.result.slug}
+  publishedAt: ${steps.result.outputs.result.publishedAt}
+  draft: ${steps.result.outputs.result.draft}
+  dry_run: ${steps.result.outputs.result.dry_run}

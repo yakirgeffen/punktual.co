@@ -136,14 +136,14 @@ export function useSavedEvents(
     } finally {
       setLoading(false);
     }
-  }, [user, supabase, options]);
+  }, [user, supabase]);
 
   useEffect(() => {
     // Only fetch if user is available and initialized
     if (user) {
       fetchSavedEvents(options);
     }
-  }, [user, options, fetchSavedEvents]);
+  }, [user, fetchSavedEvents]);
 
   const deleteEvent = async (eventId: string): Promise<boolean> => {
     if (!user) return false;

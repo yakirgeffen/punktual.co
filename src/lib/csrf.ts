@@ -5,7 +5,11 @@
  */
 
 import { createHash } from 'crypto';
-import { RequestCookie } from 'next/dist/compiled/@edge-runtime/cookies';
+
+type CSRFRequestBody = {
+  csrf_token?: unknown;
+  [key: string]: unknown;
+};
 
 /**
  * Validate CSRF token from request
@@ -40,7 +44,7 @@ export function validateCSRFToken(
  */
 export function getCSRFTokenFromRequest(
   headers: Headers | null,
-  body: Record<string, any> | null
+  body: CSRFRequestBody | null
 ): string | null {
   // Check header first
   if (headers) {
@@ -49,8 +53,11 @@ export function getCSRFTokenFromRequest(
   }
 
   // Check form body
-  if (body?.csrf_token) {
-    return body.csrf_token;
+  if (body && typeof body === 'object' && 'csrf_token' in body) {
+    const token = body.csrf_token;
+    if (typeof token === 'string') {
+      return token;
+    }
   }
 
   return null;
@@ -62,7 +69,7 @@ export function getCSRFTokenFromRequest(
 export async function validateCSRFMiddleware(
   method: string,
   headers: Headers,
-  body: any
+  body: CSRFRequestBody | null
 ): Promise<{ valid: boolean; error?: string }> {
   // Only validate state-changing requests
   if (!['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {

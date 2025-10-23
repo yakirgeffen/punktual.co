@@ -14,7 +14,7 @@ export default function BlogNotFound() {
         </h1>
 
         <p className="mt-4 text-lg text-slate-600">
-          The blog page you're looking for doesn't exist or has been moved.
+          The blog page you&apos;re looking for doesn&apos;t exist or has been moved.
         </p>
 
         <div className="mt-8">

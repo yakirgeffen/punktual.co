@@ -3,6 +3,7 @@
 'use client';
 import React, { useState } from 'react';
 import { Tabs, Tab } from '@heroui/react';
+import { useRouter } from 'next/navigation';
 import { useEventContext } from '@/contexts/EventContext';
 import { useSaveEvent } from '@/hooks/useSaveEvent';
 import { useAuth } from '@/hooks/useAuth';
@@ -15,19 +16,25 @@ const FormTabWrapper: React.FC = () => {
   const { eventData, setSavedShortLinks } = useEventContext();
   const { saveEvent, loading } = useSaveEvent();
   const { user } = useAuth();
+  const router = useRouter();
   const [saved, setSaved] = useState(false);
 
   const handleCreateEvent = async () => {
     if (user) {
       // User is authenticated - save to database and generate short links
       const result = await saveEvent(eventData);
-      
+
       if (result) {
         // Event was saved successfully and short links were generated
         setSavedShortLinks(result.shortLinks);
         setSaved(true);
         console.log('Event saved with ID:', result.eventId);
         console.log('Short links set:', result.shortLinks);
+
+        // Redirect to dashboard after 1.5 seconds
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 1500);
       }
       // Error handling is already done in the useSaveEvent hook
     } else {

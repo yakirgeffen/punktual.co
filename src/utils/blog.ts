@@ -8,6 +8,7 @@ const CMS_BASE_URL =
   process.env.STRAPI_URL ||
   process.env.NEXT_PUBLIC_STRAPI_URL ||
   'http://localhost:1337';
+const CMS_API_TOKEN = process.env.STRAPI_API_TOKEN;
 
 type StrapiFAQResponse = {
   id?: number;
@@ -134,7 +135,10 @@ async function fetchStrapiPosts(query: Record<string, string | string[]> = {}) {
   const url = buildStrapiUrl('/api/posts', params);
   const response = await fetch(url, {
     next: { revalidate: 60 },
-    headers: { Accept: 'application/json' },
+    headers: {
+      Accept: 'application/json',
+      ...(CMS_API_TOKEN ? { Authorization: `Bearer ${CMS_API_TOKEN}` } : {}),
+    },
   });
 
   if (!response.ok) {

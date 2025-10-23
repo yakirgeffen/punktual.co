@@ -2,51 +2,88 @@ import type { CreateShortLinkRequest, CreateShortLinkResponse } from '@/types';
 
 /**
  * Creates a short link for a given URL
+ * @param originalUrl - The URL to shorten
+ * @param eventTitle - Optional event title for metadata
+ * @param userId - Optional user ID
+ * @param authToken - Optional authentication token (Bearer token or access token)
  */
 export async function createShortLink(
   originalUrl: string,
   eventTitle?: string,
-  userId?: string
+  userId?: string,
+  authToken?: string
 ): Promise<CreateShortLinkResponse> {
-  const requestBody: CreateShortLinkRequest = {
-    originalUrl,
-    eventTitle,
-    userId
-  };
+  try {
+    // Get CSRF token for this request
+    const csrfResponse = await fetch('/api/csrf-token', {
+      method: 'GET',
+      credentials: 'include',
+    });
 
-  const response = await fetch('/api/create-short-link', {
-    method: 'POST',
-    headers: {
+    if (!csrfResponse.ok) {
+      throw new Error('Failed to get CSRF token');
+    }
+
+    const csrfData = await csrfResponse.json();
+    const csrfToken = csrfData.token;
+
+    const requestBody: CreateShortLinkRequest = {
+      originalUrl,
+      eventTitle,
+      userId
+    };
+
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(requestBody),
-  });
+      'x-csrf-token': csrfToken,  // Include CSRF token in header for validation
+    };
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to create short link');
+    // Add authorization header if token is provided
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+
+    const response = await fetch('/api/create-short-link', {
+      method: 'POST',
+      headers,
+      credentials: 'include',  // Send HTTP-only cookies (sb-access-token, __csrf_token)
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to create short link');
+    }
+
+    return response.json();
+  } catch (error) {
+    throw error;
   }
-
-  return response.json();
 }
 
 /**
  * Generates short links for all calendar platforms from calendar links
+ * @param calendarLinks - Map of platform names to calendar URLs
+ * @param eventTitle - Optional event title for metadata
+ * @param userId - Optional user ID
+ * @param authToken - Optional authentication token for API calls
  */
 export async function createCalendarShortLinks(
   calendarLinks: Record<string, string>,
   eventTitle?: string,
-  userId?: string
+  userId?: string,
+  authToken?: string
 ): Promise<Record<string, string>> {
   const shortLinks: Record<string, string> = {};
-  
+
   for (const [platform, url] of Object.entries(calendarLinks)) {
     if (url) {
       try {
         const shortLinkResponse = await createShortLink(
           url,
           `${eventTitle} - ${platform}`,
-          userId
+          userId,
+          authToken
         );
         shortLinks[platform] = shortLinkResponse.shortUrl;
       } catch (error) {
@@ -56,7 +93,7 @@ export async function createCalendarShortLinks(
       }
     }
   }
-  
+
   return shortLinks;
 }
 

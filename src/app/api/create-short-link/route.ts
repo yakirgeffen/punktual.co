@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
     const csrfValidation = await validateCSRFMiddleware(
       request.method,
       request.headers,
-      body
+      body as unknown as Record<string, unknown>
     );
 
     if (!csrfValidation.valid) {
