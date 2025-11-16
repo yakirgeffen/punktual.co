@@ -377,7 +377,8 @@ export default function EventCard({
                       </pre>
                       <Button
                         isIconOnly
-                        className="absolute top-2 right-2 bg-emerald-500 hover:bg-emerald-600"
+                        color="success"
+                        className="absolute top-2 right-2"
                         size="sm"
                         onClick={() =>
                           handleCopyCode(
@@ -413,7 +414,8 @@ export default function EventCard({
                       </pre>
                       <Button
                         isIconOnly
-                        className="absolute top-2 right-2 bg-emerald-500 hover:bg-emerald-600"
+                        color="success"
+                        className="absolute top-2 right-2"
                         size="sm"
                         onClick={() =>
                           handleCopyCode(
@@ -516,6 +518,8 @@ export default function EventCard({
                                   </code>
                                   <Button
                                     size="sm"
+                                    color="success"
+                                    variant="flat"
                                     onClick={() => {
                                       const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/e/${event.share_id}`;
                                       navigator.clipboard.writeText(url);
