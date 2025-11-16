@@ -78,6 +78,13 @@ export async function createCalendarShortLinks(
 
   for (const [platform, url] of Object.entries(calendarLinks)) {
     if (url) {
+      // Skip creating short links for data URIs (e.g., Apple Calendar ICS files)
+      // These are too long and should remain as-is
+      if (url.startsWith('data:')) {
+        shortLinks[platform] = url;
+        continue;
+      }
+
       try {
         const shortLinkResponse = await createShortLink(
           url,

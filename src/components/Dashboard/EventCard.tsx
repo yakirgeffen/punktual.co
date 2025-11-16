@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Calendar, MapPin, Clock, MoreVertical, Edit, Copy, Trash2, ExternalLink, Check, Code, Lock, BarChart3, TrendingUp } from 'lucide-react';
 import { Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, DropdownSection, Modal, ModalContent, ModalHeader, ModalBody, useDisclosure, Tabs, Tab, Card, CardBody } from '@heroui/react';
 import { formatDistanceToNow, format, parseISO } from 'date-fns';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
-import type { EventData } from '@/types';
+import type { EventData, ButtonData } from '@/types';
 import { generateInlineEmbedCode } from '@/utils/embedCodeGenerator';
+import { generateButtonCode } from '@/utils/calendarGenerator';
 import { useEventAnalytics } from '@/hooks/useEventAnalytics';
 import { useUserPlan } from '@/hooks/useUserPlan';
 
@@ -43,6 +44,35 @@ export default function EventCard({
   // Analytics and plan hooks
   const { isPro } = useUserPlan();
   const { analytics, isLoading: analyticsLoading } = useEventAnalytics(event.id);
+
+  // Generate code with default button settings (since buttonData isn't saved in DB)
+  const generatedCode = useMemo(() => {
+    // Default button configuration - individual layout with all major platforms
+    const defaultButtonData: ButtonData = {
+      buttonLayout: 'individual',
+      buttonStyle: 'standard',
+      buttonSize: 'medium',
+      colorTheme: 'light',
+      showIcons: true,
+      responsive: true,
+      openInNewTab: true,
+      selectedPlatforms: {
+        google: true,
+        apple: true,
+        outlook: true,
+        office365: true,
+        yahoo: true
+      }
+    };
+
+    return generateButtonCode(event, defaultButtonData, {
+      minified: false,
+      includeCss: true,
+      includeJs: true,
+      format: 'html',
+      shareId: event.share_id // Use shareId for click tracking
+    });
+  }, [event, event.share_id]);
 
   const formatEventDate = (startDate?: string, startTime?: string, isAllDay?: boolean) => {
     if (!startDate) return 'Date not set';
@@ -108,123 +138,121 @@ export default function EventCard({
     }
   };
 
-  if (viewMode === 'list') {
-    return (
-      <div className="bg-white border rounded-lg p-6 hover:shadow-md transition-shadow">
-        <div className="flex items-center justify-between">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between">
-              <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-semibold text-slate-900 truncate">
-                  {event.title || 'Untitled Event'}
-                </h3>
-                
-                <div className="flex items-center gap-4 mt-2 text-sm text-slate-600">
-                  <div className="flex items-center gap-1">
-                    <Calendar size={16} />
-                    <span>{formatEventDate(event.startDate, event.startTime, event.isAllDay)}</span>
-                  </div>
+  // Render the card UI based on view mode
+  const cardUI = viewMode === 'list' ? (
+    // List view
+    <div className="bg-white border rounded-lg p-6 hover:shadow-md transition-shadow">
+      <div className="flex items-center justify-between">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-lg font-semibold text-slate-900 truncate">
+                {event.title || 'Untitled Event'}
+              </h3>
 
-                  {event.location && (
-                    <div className="flex items-center gap-1">
-                      <MapPin size={16} />
-                      <span className="truncate max-w-48">{event.location}</span>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-1">
-                    <Clock size={16} />
-                    <span>Created {getTimeAgo(event.created_at)}</span>
-                  </div>
-
-                  {event.last_used_at && (
-                    <div className="text-emerald-600">
-                      Used {getTimeAgo(event.last_used_at)}
-                    </div>
-                  )}
-
-                  {/* Analytics badge for pro users */}
-                  {isPro && analytics && (
-                    <div className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md font-medium">
-                      <TrendingUp size={14} />
-                      <span>{analytics.totalClicks} {analytics.totalClicks === 1 ? 'click' : 'clicks'}</span>
-                    </div>
-                  )}
+              <div className="flex items-center gap-4 mt-2 text-sm text-slate-600">
+                <div className="flex items-center gap-1">
+                  <Calendar size={16} />
+                  <span>{formatEventDate(event.startDate, event.startTime, event.isAllDay)}</span>
                 </div>
+
+                {event.location && (
+                  <div className="flex items-center gap-1">
+                    <MapPin size={16} />
+                    <span className="truncate max-w-48">{event.location}</span>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-1">
+                  <Clock size={16} />
+                  <span>Created {getTimeAgo(event.created_at)}</span>
+                </div>
+
+                {event.last_used_at && (
+                  <div className="text-emerald-600">
+                    Used {getTimeAgo(event.last_used_at)}
+                  </div>
+                )}
+
+                {/* Analytics badge for pro users */}
+                {isPro && analytics && (
+                  <div className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md font-medium">
+                    <TrendingUp size={14} />
+                    <span>{analytics.totalClicks} {analytics.totalClicks === 1 ? 'click' : 'clicks'}</span>
+                  </div>
+                )}
               </div>
-              
-              <Dropdown isOpen={isMenuOpen} onOpenChange={setIsMenuOpen}>
-                <DropdownTrigger>
-                  <Button 
-                    variant="light" 
-                    size="sm"
-                    isIconOnly
-                    className="ml-2"
-                  >
-                    <MoreVertical size={16} />
-                  </Button>
-                </DropdownTrigger>
-                <DropdownMenu
-                  aria-label="Event actions"
-                  onAction={(key) => handleMenuAction(key.toString())}
-                >
-                  <DropdownSection title="Actions">
-                    <DropdownItem
-                      key="outputs"
-                      startContent={<Code size={16} />}
-                    >
-                      View Outputs
-                    </DropdownItem>
-                    <DropdownItem
-                      key="generate"
-                      startContent={<ExternalLink size={16} />}
-                    >
-                      Generate Calendar
-                    </DropdownItem>
-                    <DropdownItem
-                      key="edit"
-                      startContent={<Edit size={16} />}
-                    >
-                      Edit Event
-                    </DropdownItem>
-                    <DropdownItem
-                      key="duplicate"
-                      startContent={<Copy size={16} />}
-                    >
-                      Duplicate
-                    </DropdownItem>
-                  </DropdownSection>
-                  <DropdownSection>
-                    <DropdownItem
-                      key="delete"
-                      className="text-danger"
-                      color="danger"
-                      startContent={<Trash2 size={16} />}
-                    >
-                      Delete
-                    </DropdownItem>
-                  </DropdownSection>
-                </DropdownMenu>
-              </Dropdown>
             </div>
+
+            <Dropdown isOpen={isMenuOpen} onOpenChange={setIsMenuOpen}>
+              <DropdownTrigger>
+                <Button
+                  variant="light"
+                  size="sm"
+                  isIconOnly
+                  className="ml-2"
+                >
+                  <MoreVertical size={16} />
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu
+                aria-label="Event actions"
+                onAction={(key) => handleMenuAction(key.toString())}
+              >
+                <DropdownSection title="Actions">
+                  <DropdownItem
+                    key="outputs"
+                    startContent={<Code size={16} />}
+                  >
+                    View Outputs
+                  </DropdownItem>
+                  <DropdownItem
+                    key="generate"
+                    startContent={<ExternalLink size={16} />}
+                  >
+                    Generate Calendar
+                  </DropdownItem>
+                  <DropdownItem
+                    key="edit"
+                    startContent={<Edit size={16} />}
+                  >
+                    Edit Event
+                  </DropdownItem>
+                  <DropdownItem
+                    key="duplicate"
+                    startContent={<Copy size={16} />}
+                  >
+                    Duplicate
+                  </DropdownItem>
+                </DropdownSection>
+                <DropdownSection>
+                  <DropdownItem
+                    key="delete"
+                    className="text-danger"
+                    color="danger"
+                    startContent={<Trash2 size={16} />}
+                  >
+                    Delete
+                  </DropdownItem>
+                </DropdownSection>
+              </DropdownMenu>
+            </Dropdown>
           </div>
         </div>
       </div>
-    );
-  }
-
-  // Grid view
-  return (
+    </div>
+  ) : (
+    // Grid view
     <div className="bg-white border rounded-lg p-6 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-4">
         <h3 className="text-lg font-semibold text-slate-900 truncate pr-2">
           {event.title || 'Untitled Event'}
         </h3>
-        
+
         <Dropdown isOpen={isMenuOpen} onOpenChange={setIsMenuOpen}>
           <DropdownTrigger>
-            <Button 
-              variant="light" 
+            <Button
+              variant="light"
               size="sm"
               isIconOnly
               className="flex-shrink-0"
@@ -287,7 +315,7 @@ export default function EventCard({
           <Calendar size={16} />
           <span>{formatEventDate(event.startDate, event.startTime, event.isAllDay)}</span>
         </div>
-        
+
         {event.location && (
           <div className="flex items-center gap-2">
             <MapPin size={16} />
@@ -313,8 +341,14 @@ export default function EventCard({
           )}
         </div>
       </div>
+    </div>
+  );
 
-      {/* Output Modal */}
+  return (
+    <>
+      {cardUI}
+
+      {/* Output Modal - shared by both list and grid views */}
       <Modal isOpen={isOutputOpen} onClose={onOutputClose} size="2xl" scrollBehavior="inside">
         <ModalContent>
           <ModalHeader className="flex flex-col gap-1">
@@ -334,13 +368,12 @@ export default function EventCard({
                     <div>
                       <h4 className="font-semibold text-slate-900 mb-2">Complete HTML Code</h4>
                       <p className="text-sm text-slate-600 mb-3">
-                        Ready-to-use code with all styling included.
+                        Email-safe individual buttons with click tracking. Copy and paste this code into your emails or website.
                       </p>
                     </div>
                     <div className="relative">
                       <pre className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-auto max-h-64 text-xs font-mono">
-                        {/* Would generate actual code here */}
-                        {`<!-- Add to Calendar Button -->\n<a href="..." class="add-calendar">Add to Calendar</a>`}
+                        {generatedCode}
                       </pre>
                       <Button
                         isIconOnly
@@ -348,7 +381,7 @@ export default function EventCard({
                         size="sm"
                         onClick={() =>
                           handleCopyCode(
-                            `<!-- Add to Calendar Button -->\n<a href="..." class="add-calendar">Add to Calendar</a>`,
+                            generatedCode,
                             'htmlcss'
                           )
                         }
@@ -369,14 +402,14 @@ export default function EventCard({
                 <Card>
                   <CardBody className="space-y-4">
                     <div>
-                      <h4 className="font-semibold text-slate-900 mb-2">Inline Script Embed</h4>
+                      <h4 className="font-semibold text-slate-900 mb-2">JavaScript Embed Code</h4>
                       <p className="text-sm text-slate-600 mb-3">
-                        Lightweight script for easy integration.
+                        For the best experience, use the HTML/CSS tab above. The embed code is a lightweight alternative that loads the button asynchronously.
                       </p>
                     </div>
                     <div className="relative">
-                      <pre className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-auto max-h-64 text-xs font-mono">
-                        {generateInlineEmbedCode(event, {}, {}, `event-${event.id}`)}
+                      <pre className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-auto max-h-64 text-xs font-mono whitespace-pre-wrap break-all">
+                        {generatedCode}
                       </pre>
                       <Button
                         isIconOnly
@@ -384,7 +417,7 @@ export default function EventCard({
                         size="sm"
                         onClick={() =>
                           handleCopyCode(
-                            generateInlineEmbedCode(event, {}, {}, `event-${event.id}`),
+                            generatedCode,
                             'embed'
                           )
                         }
@@ -558,6 +591,6 @@ export default function EventCard({
           </ModalBody>
         </ModalContent>
       </Modal>
-    </div>
+    </>
   );
 }
