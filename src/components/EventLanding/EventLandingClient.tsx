@@ -132,14 +132,15 @@ const EventLandingClient: React.FC<EventLandingClientProps> = ({
                   logo: '/icons/platforms/icon-calendar.svg',
                   color: '#10b981'
                 };
-                const link = calendarLinks[platform as keyof CalendarLinks];
+                // Link to current page with ?cal=platform query param for tracking
+                const trackingLink = typeof window !== 'undefined'
+                  ? `${window.location.origin}/e/${shareId}?cal=${platform}`
+                  : `/e/${shareId}?cal=${platform}`;
 
                 return (
                   <a
                     key={platform}
-                    href={link}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href={trackingLink}
                     className="inline-flex items-center gap-2.5 px-5 py-3 bg-white border-2 border-gray-200 rounded-lg hover:border-emerald-400 hover:shadow-md transition-all duration-200 group"
                   >
                     <Image

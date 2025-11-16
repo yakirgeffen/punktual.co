@@ -17,6 +17,7 @@ import type { EventData, CalendarLinks } from '@/types';
 interface SaveEventReturn {
   saveEvent: (eventData: EventData) => Promise<{
     eventId: string;
+    shareId: string;
     shortLinks: CalendarLinks;
   } | null>;
   loading: boolean;
@@ -32,6 +33,7 @@ export function useSaveEvent(): SaveEventReturn {
 
   const saveEvent = useCallback(async (eventData: EventData): Promise<{
     eventId: string;
+    shareId: string;
     shortLinks: CalendarLinks;
   } | null> => {
     if (!user) {
@@ -213,6 +215,7 @@ export function useSaveEvent(): SaveEventReturn {
 
       return {
         eventId: savedEvent.id,
+        shareId: savedEvent.share_id,
         shortLinks
       };
 

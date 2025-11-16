@@ -9,8 +9,10 @@ export function generateInlineEmbedCode(
   eventData: EventData,
   buttonData: ButtonData,
   calendarLinks: CalendarLinks,
-  containerID: string = 'punktual-calendar-buttons'
+  containerID: string = 'punktual-calendar-buttons',
+  shareId?: string
 ): string {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://punktual.co';
   // Generate button HTML
   const selectedPlatforms = Object.entries(buttonData.selectedPlatforms || {})
     .filter(([_, selected]) => selected)
@@ -79,7 +81,10 @@ export function generateInlineEmbedCode(
     ${selectedPlatforms
       .map((platform) => {
         const platformData = platformInfo[platform];
-        const url = calendarLinks[platform as keyof CalendarLinks];
+        // Use landing page URL if shareId provided (for tracking), otherwise use direct URL (for preview)
+        const url = shareId
+          ? `${baseUrl}/e/${shareId}?cal=${platform}`
+          : calendarLinks[platform as keyof CalendarLinks];
         return url
           ? `
     <a
@@ -113,7 +118,10 @@ export function generateInlineEmbedCode(
   ${selectedPlatforms
     .map((platform) => {
       const platformData = platformInfo[platform];
-      const url = calendarLinks[platform as keyof CalendarLinks];
+      // Use landing page URL if shareId provided (for tracking), otherwise use direct URL (for preview)
+      const url = shareId
+        ? `${baseUrl}/e/${shareId}?cal=${platform}`
+        : calendarLinks[platform as keyof CalendarLinks];
       return url
         ? `
   <a

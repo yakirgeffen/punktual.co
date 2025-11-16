@@ -302,8 +302,8 @@ interface PlatformInfo {
 /**
  * Generate individual buttons HTML (email-safe table layout)
  */
-const generateIndividualButtonsHTML = (activePlatforms: PlatformInfo[], buttonData: ButtonData, options: { minified?: boolean; includeCss?: boolean; includeJs?: boolean }, showPoweredBy: boolean = true): string => {
-  const { minified = false } = options;
+const generateIndividualButtonsHTML = (activePlatforms: PlatformInfo[], buttonData: ButtonData, options: { minified?: boolean; includeCss?: boolean; includeJs?: boolean; shareId?: string }, showPoweredBy: boolean = true): string => {
+  const { minified = false, shareId } = options;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://punktual.co';
 
   // Email-safe table-based layout (CalGet-style)
@@ -325,9 +325,14 @@ const generateIndividualButtonsHTML = (activePlatforms: PlatformInfo[], buttonDa
               <td style="font-size: 0; text-align: center;">`;
 
   activePlatforms.forEach(platform => {
+    // Use landing page URL if shareId provided (for tracking), otherwise use direct URL (for preview)
+    const buttonUrl = shareId
+      ? `${baseUrl}/e/${shareId}?cal=${platform.id}`
+      : platform.url;
+
     html += `
                 <div style="margin: 4px; display: inline-block;">
-                  <a href="${platform.url}" title="${platform.name}" target="_blank" style="text-decoration: none; display: block;">
+                  <a href="${buttonUrl}" title="${platform.name}" target="_blank" style="text-decoration: none; display: block;">
                     <table cellpadding="0" cellspacing="0" border="0" style="display: inline-block;">
                       <tbody>
                         <tr>
@@ -392,11 +397,11 @@ const generateIndividualButtonsHTML = (activePlatforms: PlatformInfo[], buttonDa
  * Generate HTML button code
  */
 export const generateButtonCode = (eventData: EventData, buttonData: ButtonData, options: CodeGenerationOptions = {}): string => {
-  const { minified = false, includeCss = true, includeJs = true, format = 'html' } = options;
+  const { minified = false, includeCss = true, includeJs = true, format = 'html', shareId } = options;
 
   const links = generateCalendarLinks(eventData);
   const { selectedPlatforms, buttonLayout = 'dropdown' } = buttonData;
-  
+
   const activePlatforms: PlatformInfo[] = Object.keys(selectedPlatforms || {})
     .filter(platform => selectedPlatforms?.[platform as keyof typeof selectedPlatforms])
     .map(platform => ({
@@ -413,7 +418,7 @@ export const generateButtonCode = (eventData: EventData, buttonData: ButtonData,
 
   switch (format) {
     case 'react':
-      return generateReactComponent(eventData, buttonData, activePlatforms, minified);
+      return generateReactComponent(eventData, buttonData, activePlatforms, minified, shareId);
     case 'css':
       return generateButtonCSS(buttonData, minified);
     case 'js':
@@ -421,9 +426,9 @@ export const generateButtonCode = (eventData: EventData, buttonData: ButtonData,
     default:
       // Check button layout preference
       if (buttonLayout === 'individual') {
-        return generateIndividualButtonsHTML(activePlatforms, buttonData, { minified, includeCss, includeJs }, true);
+        return generateIndividualButtonsHTML(activePlatforms, buttonData, { minified, includeCss, includeJs, shareId }, true);
       }
-      return generateHTMLCode(activePlatforms, buttonId, buttonData, { minified, includeCss, includeJs });
+      return generateHTMLCode(activePlatforms, buttonId, buttonData, { minified, includeCss, includeJs, shareId });
   }
 };
 
@@ -431,14 +436,20 @@ interface GenerateHTMLOptions {
   minified?: boolean;
   includeCss?: boolean;
   includeJs?: boolean;
+  shareId?: string;
 }
 
 const generateHTMLCode = (activePlatforms: PlatformInfo[], buttonId: string, buttonData: ButtonData, options: GenerateHTMLOptions): string => {
-  const { minified = false, includeCss = true, includeJs = true } = options;
+  const { minified = false, includeCss = true, includeJs = true, shareId } = options;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://punktual.co';
 
-  const dropdownItems = activePlatforms.map(platform => 
-    `<a href="${platform.url}" target="_blank" class="punktual-dropdown-item">${platform.name}</a>`
-  ).join(minified ? '' : '\n    ');
+  const dropdownItems = activePlatforms.map(platform => {
+    // Use landing page URL if shareId provided (for tracking), otherwise use direct URL (for preview)
+    const buttonUrl = shareId
+      ? `${baseUrl}/e/${shareId}?cal=${platform.id}`
+      : platform.url;
+    return `<a href="${buttonUrl}" target="_blank" class="punktual-dropdown-item">${platform.name}</a>`;
+  }).join(minified ? '' : '\n    ');
 
   let html = `<!-- Punktual Calendar Button -->
 <div class="punktual-container">
@@ -465,11 +476,20 @@ const generateHTMLCode = (activePlatforms: PlatformInfo[], buttonId: string, but
   return html;
 };
 
-const generateReactComponent = (eventData: EventData, buttonData: ButtonData, activePlatforms: PlatformInfo[], minified: boolean = false): string => {
+const generateReactComponent = (eventData: EventData, buttonData: ButtonData, activePlatforms: PlatformInfo[], minified: boolean = false, shareId?: string): string => {
   const colorTheme = buttonData.colorTheme || '#4D90FF';
   const textColor = buttonData.textColor || getContrastColor(colorTheme);
   const buttonStyle = buttonData.buttonStyle || 'standard';
-  
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://punktual.co';
+
+  // Transform platforms to use landing page URLs if shareId provided
+  const transformedPlatforms = shareId
+    ? activePlatforms.map(platform => ({
+        ...platform,
+        url: `${baseUrl}/e/${shareId}?cal=${platform.id}`
+      }))
+    : activePlatforms;
+
   // Generate style-specific properties
   const getStyleProps = () => {
     switch (buttonStyle) {
@@ -496,15 +516,15 @@ const generateReactComponent = (eventData: EventData, buttonData: ButtonData, ac
         };
     }
   };
-  
+
   const styleProps = getStyleProps();
-  
+
   const component = `import React, { useState } from 'react';
 
 const PunktualButton = () => {
   const [isOpen, setIsOpen] = useState(false);
-  
-  const platforms = ${JSON.stringify(activePlatforms, null, minified ? 0 : 2)};
+
+  const platforms = ${JSON.stringify(transformedPlatforms, null, minified ? 0 : 2)};
   
   const buttonStyle = {
     display: 'inline-flex',
@@ -580,10 +600,11 @@ export default PunktualButton;`;
  * Generate direct links
  */
 export const generateDirectLinks = (eventData: EventData, buttonData: ButtonData, options: CodeGenerationOptions = {}): string => {
-  const { minified = false } = options;
+  const { minified = false, shareId } = options;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://punktual.co';
   const links = generateCalendarLinks(eventData);
   const { selectedPlatforms } = buttonData;
-  
+
   const activePlatforms: PlatformInfo[] = Object.keys(selectedPlatforms || {})
     .filter(platform => selectedPlatforms?.[platform as keyof typeof selectedPlatforms])
     .map(platform => ({
@@ -596,9 +617,13 @@ export const generateDirectLinks = (eventData: EventData, buttonData: ButtonData
     return '<!-- Please select at least one calendar platform -->';
   }
 
-  const linkItems = activePlatforms.map(platform => 
-    `<li><a href="${platform.url}" target="_blank">📅 ${buttonData.customText || `Add to ${platform.name}`}</a></li>`
-  ).join(minified ? '' : '\n  ');
+  const linkItems = activePlatforms.map(platform => {
+    // Use landing page URL if shareId provided (for tracking), otherwise use direct URL (for preview)
+    const linkUrl = shareId
+      ? `${baseUrl}/e/${shareId}?cal=${platform.id}`
+      : platform.url;
+    return `<li><a href="${linkUrl}" target="_blank">📅 ${buttonData.customText || `Add to ${platform.name}`}</a></li>`;
+  }).join(minified ? '' : '\n  ');
 
   let html = `<!-- Punktual Direct Links -->
 <div>

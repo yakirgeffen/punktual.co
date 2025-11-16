@@ -258,6 +258,7 @@ export interface CodeGenerationOptions {
   includeCss?: boolean;
   includeJs?: boolean;
   format?: 'html' | 'react' | 'css' | 'js';
+  shareId?: string; // Event share ID for tracking links
 }
 
 export type OutputType = 'button' | 'links' | 'direct' | 'page';

@@ -92,13 +92,36 @@ export default async function EventLandingPage({ params, searchParams }: PagePro
   if (cal && calendarLinks[cal as keyof typeof calendarLinks]) {
     const targetUrl = calendarLinks[cal as keyof typeof calendarLinks];
     if (targetUrl) {
-      // Track the click (fire and forget)
-      supabase
-        .from('short_links')
-        .update({ click_count: supabase.rpc('increment', { x: 1 }) })
-        .eq('event_id', event.id)
-        .then();
+      // Track the click with rate limiting (server-side)
+      const headers_list = await headers();
+      const forwardedFor = headers_list.get('x-forwarded-for');
+      const realIp = headers_list.get('x-real-ip');
+      const ipAddress = forwardedFor?.split(',')[0] || realIp || '0.0.0.0';
+      const userAgent = headers_list.get('user-agent') || '';
+      const referrer = headers_list.get('referer') || '';
 
+      // Check rate limit
+      const { data: shouldTrack } = await supabase.rpc('check_recent_click', {
+        p_event_id: event.id,
+        p_ip_address: ipAddress,
+        p_window_seconds: 60
+      });
+
+      // Only track if not rate limited
+      if (!shouldTrack) {
+        await supabase
+          .from('event_clicks')
+          .insert({
+            event_id: event.id,
+            platform: cal,
+            ip_address: ipAddress,
+            user_agent: userAgent,
+            referrer: referrer,
+            clicked_at: new Date().toISOString()
+          });
+      }
+
+      // Redirect regardless of tracking success
       redirect(targetUrl);
     }
   }
