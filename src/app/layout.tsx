@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Nunito } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/hooks/useAuth';
+import { QueryProvider } from '@/providers/QueryProvider';
 import { Toaster } from 'react-hot-toast';
 import Navbar from '@/components/Layout/Navbar';
 import Footer from '@/components/Layout/Footer';
@@ -28,23 +29,25 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${nunito.variable} font-sans min-h-screen bg-white`}>
         <AuthProvider>
-          <TrafficTracker />
-          <Navbar />
-          {children}
-          <Footer />
-          <CookieConsent />
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#fff',
-                color: '#333',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-              },
-            }}
-          />
+          <QueryProvider>
+            <TrafficTracker />
+            <Navbar />
+            {children}
+            <Footer />
+            <CookieConsent />
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: '#fff',
+                  color: '#333',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                },
+              }}
+            />
+          </QueryProvider>
         </AuthProvider>
       </body>
     </html>
