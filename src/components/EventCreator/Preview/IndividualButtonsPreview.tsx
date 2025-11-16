@@ -46,7 +46,64 @@ const IndividualButtonsPreview: React.FC<IndividualButtonsPreviewProps> = ({
     );
   }
 
-  const colorTheme = buttonData?.colorTheme || '#10b981';
+  // Extract button styling from buttonData
+  const colorTheme = buttonData?.colorTheme || 'brand';
+  const textColor = buttonData?.textColor || '#000000';
+  const buttonStyle = buttonData?.buttonStyle || 'standard';
+  const buttonSize = buttonData?.buttonSize || 'medium';
+
+  // Get actual color value
+  const getBgColor = (): string => {
+    switch (colorTheme) {
+      case 'brand': return '#10b981'; // Emerald green
+      case 'light': return '#F9FAFB';
+      case 'dark': return '#1F2937';
+      case 'original': return '#3B82F6'; // Blue
+      default: return buttonData?.customBrandColor || colorTheme;
+    }
+  };
+
+  const getTextColor = (): string => {
+    if (textColor) return textColor;
+
+    // Auto-determine based on background
+    switch (colorTheme) {
+      case 'light': return '#000000';
+      case 'dark': return '#FFFFFF';
+      case 'brand': return '#FFFFFF';
+      case 'original': return '#FFFFFF';
+      default: return '#000000';
+    }
+  };
+
+  const getBorderRadius = (): string => {
+    switch (buttonStyle) {
+      case 'pill': return '9999px';
+      case 'rounded': return '8px';
+      case 'sharp': return '0px';
+      default: return '6px'; // standard, minimal, gradient
+    }
+  };
+
+  const getPadding = (): string => {
+    switch (buttonSize) {
+      case 'small':
+      case 'sm': return '6px 12px';
+      case 'large':
+      case 'lg':
+      case 'xl': return '12px 24px';
+      default: return '8px 16px'; // medium, md
+    }
+  };
+
+  const bgColor = getBgColor();
+  const finalTextColor = getTextColor();
+  const borderRadius = getBorderRadius();
+  const padding = getPadding();
+
+  // Border style based on theme
+  const borderColor = colorTheme === 'light' ? '#E5E7EB' : bgColor;
+  const borderStyle = buttonStyle === 'minimal' ? `1px solid ${borderColor}` : 'none';
 
   return (
     <div className="space-y-4">
@@ -73,20 +130,29 @@ const IndividualButtonsPreview: React.FC<IndividualButtonsPreviewProps> = ({
           return (
             <div
               key={platform}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 hover:border-gray-300 transition-all cursor-pointer shadow-sm"
+              className="inline-flex items-center gap-2 transition-all cursor-pointer shadow-sm hover:opacity-90"
+              style={{
+                backgroundColor: bgColor,
+                color: finalTextColor,
+                padding: padding,
+                borderRadius: borderRadius,
+                border: borderStyle,
+              }}
               onClick={() => link && window.open(link, '_blank')}
             >
-              <Image
-                src={info.logo}
-                alt={info.name}
-                width={18}
-                height={18}
-                className="flex-shrink-0"
-                onError={(e) => {
-                  e.currentTarget.src = '/icons/platforms/icon-calendar.svg';
-                }}
-              />
-              <span className="text-sm font-medium text-gray-900">
+              {buttonData?.showIcons !== false && (
+                <Image
+                  src={info.logo}
+                  alt={info.name}
+                  width={18}
+                  height={18}
+                  className="flex-shrink-0"
+                  onError={(e) => {
+                    e.currentTarget.src = '/icons/platforms/icon-calendar.svg';
+                  }}
+                />
+              )}
+              <span className="text-sm font-medium" style={{ color: finalTextColor }}>
                 {info.shortName}
               </span>
             </div>
