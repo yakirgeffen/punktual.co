@@ -7,7 +7,7 @@
 import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import EventLandingClient from '@/components/EventLanding/EventLandingClient';
 import { generateCalendarLinks } from '@/utils/calendarGenerator';
 import type { EventData } from '@/types';
@@ -20,8 +20,7 @@ interface PageProps {
 // Generate metadata for SEO
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { shareId } = await params;
-  const cookieStore = await cookies();
-  const supabase = createServerComponentClient({ cookies: () => cookieStore });
+  const supabase = createServerComponentClient({ cookies });
 
   const { data: event } = await supabase
     .from('events')
@@ -57,8 +56,7 @@ export default async function EventLandingPage({ params, searchParams }: PagePro
   const { shareId } = await params;
   const { cal } = await searchParams;
 
-  const cookieStore = await cookies();
-  const supabase = createServerComponentClient({ cookies: () => cookieStore });
+  const supabase = createServerComponentClient({ cookies });
 
   // Fetch event from database using share_id
   const { data: event, error } = await supabase

@@ -7,6 +7,7 @@ import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEventAnalytics } from '@/hooks/useEventAnalytics';
+import { useUserPlan } from '@/hooks/useUserPlan';
 import { createMockSupabaseClient } from '../utils/testUtils';
 import type { ReactNode } from 'react';
 
@@ -19,12 +20,13 @@ jest.mock('@/hooks/useAuth', () => ({
 }));
 
 jest.mock('@/hooks/useUserPlan', () => ({
-  useUserPlan: () => ({
+  useUserPlan: jest.fn(() => ({
     plan: 'pro',
     isPro: true,
     isFree: false,
     loading: false,
-  }),
+    error: null,
+  })),
 }));
 
 // Mock Supabase client
