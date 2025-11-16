@@ -1,6 +1,6 @@
 /**
  * IndividualButtonsPreview.tsx
- * Displays individual platform buttons (CalGet-style layout)
+ * Displays individual platform buttons in email-safe layout
  * Email-safe with table-based layout and inline styles
  */
 

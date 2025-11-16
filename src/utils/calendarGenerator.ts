@@ -306,7 +306,7 @@ const generateIndividualButtonsHTML = (activePlatforms: PlatformInfo[], buttonDa
   const { minified = false, shareId } = options;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://punktual.co';
 
-  // Email-safe table-based layout (CalGet-style)
+  // Email-safe table-based layout with individual platform buttons
   let html = `<!-- Punktual Calendar Buttons - Individual Layout -->
 <table cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;">
   <tbody>

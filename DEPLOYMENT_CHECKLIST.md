@@ -179,8 +179,6 @@ If issues occur, rollback database changes:
 
 ### Vercel Deployment Status
 
-Current branch: `claude/analyze-competitor-calendar-buttons-01Ea6XLsX5VgEhiqADKE8ZQp`
-
 **Before merging to main:**
 1. Run database migrations in production Supabase
 2. Verify all tests pass
