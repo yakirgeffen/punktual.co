@@ -352,6 +352,7 @@ export interface ShortLink {
   created_at: string;
   click_count: number;
   user_id?: string;
+  event_id?: string; // Links back to the parent event for analytics
   event_title?: string;
   is_active: boolean;
 }
@@ -482,4 +483,25 @@ export interface BlogAnalyticsEvent {
   metadata?: Record<string, string | number | boolean>;
   timestamp: string;
   userId?: string;
+}
+
+// ============================================================================
+// EVENT ANALYTICS TYPES
+// ============================================================================
+
+export interface EventAnalytics {
+  eventId: string;
+  totalClicks: number;
+  platformBreakdown: {
+    platform: string;
+    clicks: number;
+  }[];
+  lastClickedAt?: string;
+}
+
+export interface PlatformAnalytics {
+  platform: string;
+  displayName: string;
+  clicks: number;
+  percentage: number;
 }

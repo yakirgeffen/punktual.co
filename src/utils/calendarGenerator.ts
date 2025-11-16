@@ -300,13 +300,102 @@ interface PlatformInfo {
 }
 
 /**
+ * Generate individual buttons HTML (email-safe table layout)
+ */
+const generateIndividualButtonsHTML = (activePlatforms: PlatformInfo[], buttonData: ButtonData, options: { minified?: boolean; includeCss?: boolean; includeJs?: boolean }, showPoweredBy: boolean = true): string => {
+  const { minified = false } = options;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://punktual.co';
+
+  // Email-safe table-based layout (CalGet-style)
+  let html = `<!-- Punktual Calendar Buttons - Individual Layout -->
+<table cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;">
+  <tbody>
+    <tr>
+      <td align="center" style="padding-top: 35px;">
+        <p style="margin: 0; font-weight: bold; font-size: 15px; text-align: center;">
+          Add to Calendar
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" style="padding-top: 15px;">
+        <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; text-align: center;">
+          <tbody>
+            <tr>
+              <td style="font-size: 0; text-align: center;">`;
+
+  activePlatforms.forEach(platform => {
+    html += `
+                <div style="margin: 4px; display: inline-block;">
+                  <a href="${platform.url}" title="${platform.name}" target="_blank" style="text-decoration: none; display: block;">
+                    <table cellpadding="0" cellspacing="0" border="0" style="display: inline-block;">
+                      <tbody>
+                        <tr>
+                          <td style="border: 1px solid #E5E7EB; border-radius: 5px; background-color: #F9FAFB; padding: 8px 16px; transition: all 0.2s ease-in-out;">
+                            <table cellpadding="0" cellspacing="0" border="0" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+                              <tbody>
+                                <tr>
+                                  <td valign="middle" style="padding-left: 10px; vertical-align: middle;">
+                                    <span style="color: #000000; font-size: 12px; line-height: 18px; transition: all 0.2s ease-in-out;">${platform.name}</span>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </a>
+                </div>`;
+  });
+
+  html += `
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>`;
+
+  if (showPoweredBy) {
+    html += `
+    <tr>
+      <td align="center" style="padding: 10px 0 15px 0;">
+        <a href="${baseUrl}?utm_source=email_embed&utm_medium=badge" target="_blank" style="text-decoration: none; color: #6b7280; display: inline-block; padding: 10px 0 0 0;">
+          <table cellpadding="0" cellspacing="0" border="0" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+            <tbody>
+              <tr>
+                <td valign="middle" style="vertical-align: middle; font-size: 11px; line-height: 15px;">Powered by</td>
+                <td valign="middle" style="vertical-align: middle; padding-left: 5px; line-height: 0;">
+                  <span style="font-size: 11px; font-weight: 600; color: #10b981;">Punktual</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </a>
+      </td>
+    </tr>`;
+  }
+
+  html += `
+  </tbody>
+</table>`;
+
+  if (minified) {
+    html = html.replace(/\s+/g, ' ').replace(/>\s+</g, '><').trim();
+  }
+
+  return html;
+};
+
+/**
  * Generate HTML button code
  */
 export const generateButtonCode = (eventData: EventData, buttonData: ButtonData, options: CodeGenerationOptions = {}): string => {
   const { minified = false, includeCss = true, includeJs = true, format = 'html' } = options;
-  
+
   const links = generateCalendarLinks(eventData);
-  const { selectedPlatforms } = buttonData;
+  const { selectedPlatforms, buttonLayout = 'dropdown' } = buttonData;
   
   const activePlatforms: PlatformInfo[] = Object.keys(selectedPlatforms || {})
     .filter(platform => selectedPlatforms?.[platform as keyof typeof selectedPlatforms])
@@ -330,6 +419,10 @@ export const generateButtonCode = (eventData: EventData, buttonData: ButtonData,
     case 'js':
       return generateButtonJS(minified);
     default:
+      // Check button layout preference
+      if (buttonLayout === 'individual') {
+        return generateIndividualButtonsHTML(activePlatforms, buttonData, { minified, includeCss, includeJs }, true);
+      }
       return generateHTMLCode(activePlatforms, buttonId, buttonData, { minified, includeCss, includeJs });
   }
 };
