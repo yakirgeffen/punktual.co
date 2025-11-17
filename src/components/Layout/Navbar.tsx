@@ -89,9 +89,9 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-8 sm:px-6 lg:px-12">
           <div className="flex justify-between items-center py-4">
             <Link href="/" className="flex items-center">
-              <Image 
-                src="/PUNKTUAL-vertical.png" 
-                alt="Punktual" 
+              <Image
+                src="/PUNKTUAL-vertical.svg"
+                alt="Punktual"
                 width={1024}
                 height={256}
                 className="h-12 w-auto"
