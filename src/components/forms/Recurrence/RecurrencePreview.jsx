@@ -64,6 +64,9 @@ export default function RecurrencePreview({ eventData }) {
   return (
     <div className="bg-emerald-100 border border-emerald-300 rounded-lg p-4">
       <p className="text-sm text-emerald-800 font-medium">{description}</p>
+      <p className="text-xs text-emerald-700 mt-1">
+        Repeats are supported by Google Calendar and Apple/.ics downloads. Outlook and Yahoo links add the first occurrence only.
+      </p>
     </div>
   );
 }

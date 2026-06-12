@@ -17,6 +17,7 @@
     "../../src/utils/ics.ts",
     "../../src/utils/escape.ts",
     "../../src/utils/shortLinks.ts",
+    "../../src/utils/rrule.ts",
     "../../src/utils/calendarGenerator.ts"
   ]
 }

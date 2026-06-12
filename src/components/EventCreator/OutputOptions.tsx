@@ -70,14 +70,14 @@ export default function OutputOptions() {
           tab: 'px-4 py-2'
         }}
       >
-        {/* HTML/CSS Option */}
-        <Tab key="links" title="HTML/CSS">
+        {/* Styled button widget — the thing users customize in the form */}
+        <Tab key="button" title="HTML/CSS">
           <Card className="border border-slate-200">
             <CardBody className="space-y-4">
               <div>
                 <h3 className="font-semibold text-slate-900 mb-2">Complete HTML Code</h3>
                 <p className="text-sm text-slate-600 mb-3">
-                  Copy this code to your website. It includes all styling and is ready to use.
+                  Your customized calendar button — copy this code to your website. It includes all styling and is ready to use.
                 </p>
               </div>
 
@@ -103,6 +103,39 @@ export default function OutputOptions() {
 
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
                 ℹ️ This code is self-contained and doesn't require any external dependencies.
+              </div>
+            </CardBody>
+          </Card>
+        </Tab>
+
+        {/* Plain text links list — for emails and plain-HTML contexts */}
+        <Tab key="links" title="Text Links">
+          <Card className="border border-slate-200">
+            <CardBody className="space-y-4">
+              <div>
+                <h3 className="font-semibold text-slate-900 mb-2">Plain Link List</h3>
+                <p className="text-sm text-slate-600 mb-3">
+                  Unstyled add-to-calendar links — ideal for emails and contexts where custom CSS isn&apos;t possible.
+                </p>
+              </div>
+              <div className="relative">
+                <pre className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-auto max-h-96 text-xs font-mono">
+                  {generatedCode}
+                </pre>
+                <Tooltip content={copiedCode === 'textlinks' ? 'Copied!' : 'Copy to clipboard'}>
+                  <Button
+                    isIconOnly
+                    className="absolute top-2 right-2 bg-emerald-500 hover:bg-emerald-600"
+                    size="sm"
+                    onClick={() => handleCopyCode(generatedCode, 'textlinks')}
+                  >
+                    {copiedCode === 'textlinks' ? (
+                      <Check className="w-4 h-4" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </Button>
+                </Tooltip>
               </div>
             </CardBody>
           </Card>

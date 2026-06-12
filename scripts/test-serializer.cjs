@@ -16,6 +16,7 @@ const ics = require(path.join(out, 'ics.js'));
 const gen = require(path.join(out, 'calendarGenerator.js'));
 const esc = require(path.join(out, 'escape.js'));
 const sl = require(path.join(out, 'shortLinks.js'));
+const rr = require(path.join(out, 'rrule.js'));
 
 let failures = 0;
 function check(name, actual, expected) {
@@ -227,6 +228,61 @@ check('extractShortId: current format', sl.extractShortId('https://punktual.co/e
 check('extractShortId: legacy format', sl.extractShortId('https://punktual.co/eventid=AB12CD34'), 'AB12CD34');
 check('extractShortId: base64url chars (- and _)', sl.extractShortId('https://punktual.co/eventid/XY-Z_A12'), 'XY-Z_A12');
 check('extractShortId: no id -> null', sl.extractShortId('https://punktual.co/about'), null);
+
+// --- recurrence (RRULE) --------------------------------------------------------
+
+check('rrule: non-recurring -> null',
+  rr.buildRRule({ startDate: '2026-06-12', isRecurring: false, recurrencePattern: 'weekly' }), null);
+
+check('rrule: weekly with days + count',
+  rr.buildRRule({ startDate: '2026-06-12', isRecurring: true, recurrencePattern: 'weekly', weeklyDays: [1, 3], recurrenceCount: 10 }),
+  'FREQ=WEEKLY;BYDAY=MO,WE;COUNT=10');
+
+check('rrule: biweekly interval',
+  rr.buildRRule({ startDate: '2026-06-12', isRecurring: true, recurrencePattern: 'weekly', recurrenceInterval: 2, weeklyDays: [5] }),
+  'FREQ=WEEKLY;INTERVAL=2;BYDAY=FR');
+
+check('rrule: monthly by date (from startDate)',
+  rr.buildRRule({ startDate: '2026-06-12', isRecurring: true, recurrencePattern: 'monthly' }),
+  'FREQ=MONTHLY;BYMONTHDAY=12');
+
+check('rrule: monthly last Friday',
+  rr.buildRRule({ startDate: '2026-06-26', isRecurring: true, recurrencePattern: 'monthly', monthlyOption: 'weekday', monthlyWeekday: 5, monthlyWeekdayOrdinal: 5 }),
+  'FREQ=MONTHLY;BYDAY=-1FR');
+
+check('rrule: monthly second Tuesday',
+  rr.buildRRule({ startDate: '2026-06-09', isRecurring: true, recurrencePattern: 'monthly', monthlyOption: 'weekday', monthlyWeekday: 2, monthlyWeekdayOrdinal: 1 }),
+  'FREQ=MONTHLY;BYDAY=2TU');
+
+check('rrule: yearly (month from field, day from startDate)',
+  rr.buildRRule({ startDate: '2026-06-12', isRecurring: true, recurrencePattern: 'yearly', yearlyMonth: 5 }),
+  'FREQ=YEARLY;BYMONTH=6;BYMONTHDAY=12');
+
+check('rrule: UNTIL end-of-day UTC for timed events',
+  rr.buildRRule({ startDate: '2026-06-12', isRecurring: true, recurrencePattern: 'daily', recurrenceEndDate: '2026-07-01' }),
+  'FREQ=DAILY;UNTIL=20260701T235959Z');
+
+check('rrule: UNTIL date-only for all-day events',
+  rr.buildRRule({ startDate: '2026-06-12', isAllDay: true, isRecurring: true, recurrencePattern: 'daily', recurrenceEndDate: '2026-07-01' }),
+  'FREQ=DAILY;UNTIL=20260701');
+
+check('rrule: COUNT=1 treated as no end condition',
+  rr.buildRRule({ startDate: '2026-06-12', isRecurring: true, recurrencePattern: 'daily', recurrenceCount: 1 }),
+  'FREQ=DAILY');
+
+{
+  const links = gen.generateCalendarLinks({
+    title: 'Standup', startDate: '2026-06-12', startTime: '10:00', endTime: '10:15',
+    timezone: 'Asia/Jerusalem', isRecurring: true, recurrencePattern: 'weekly',
+    weeklyDays: [0, 2, 4], recurrenceCount: 8
+  });
+  checkIncludes('google: recur param carries RRULE', links.google,
+    `recur=${encodeURIComponent('RRULE:FREQ=WEEKLY;BYDAY=SU,TU,TH;COUNT=8')}`);
+  checkIncludes('apple ics: RRULE line present', decodeURIComponent(links.apple),
+    'RRULE:FREQ=WEEKLY;BYDAY=SU,TU,TH;COUNT=8');
+  check('outlook deeplink: no recurrence param (provider unsupported)',
+    links.outlook.includes('recur'), false);
+}
 
 // --- result ------------------------------------------------------------------
 

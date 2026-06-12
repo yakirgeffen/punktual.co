@@ -91,7 +91,10 @@ export function EventContextProvider({ children }: EventContextProviderProps) {
     }
   });
 
-  const [outputType, setOutputType] = useState<string>('links');
+  // 'button' is the styled widget users customize in the form — it must be the
+  // default output; 'links' (plain text list) was previously the default and the
+  // tabs never offered 'button', making the customized widget unreachable (W1).
+  const [outputType, setOutputType] = useState<string>('button');
   const [generatedCode, setGeneratedCode] = useState<string>('');
   const [calendarLinks, setCalendarLinks] = useState<CalendarLinks>({});
   const [savedShortLinks, setSavedShortLinksState] = useState<CalendarLinks | null>(null);

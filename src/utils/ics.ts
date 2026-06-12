@@ -26,6 +26,8 @@ export interface IcsEventInput {
   uid?: string;
   /** Absolute URL associated with the event */
   url?: string;
+  /** RFC 5545 RRULE value (without the "RRULE:" prefix) for recurring events */
+  rrule?: string;
 }
 
 /** RFC 5545 §3.3.11 TEXT escaping: backslash, semicolon, comma, newline. */
@@ -123,6 +125,7 @@ function buildVEventLines(event: IcsEventInput): string[] {
     isAllDay = false,
     uid,
     url,
+    rrule,
   } = event;
 
   const finalEndDate = endDate || startDate;
@@ -141,6 +144,8 @@ function buildVEventLines(event: IcsEventInput): string[] {
     lines.push(`DTSTART:${toUtcBasic(startUtc)}`);
     lines.push(`DTEND:${toUtcBasic(endUtc)}`);
   }
+
+  if (rrule) lines.push(`RRULE:${rrule}`);
 
   lines.push(`SUMMARY:${escapeIcsText(title)}`);
   if (description) lines.push(`DESCRIPTION:${escapeIcsText(description)}`);

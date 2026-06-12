@@ -12,6 +12,7 @@ import type { EventData, ButtonData, CalendarLinks, CodeGenerationOptions, Outpu
 import { escapeHtml } from './escape';
 import { zonedWallTimeToUtc, toUtcBasic, toUtcIso, toDateBasic, nextDay } from './datetime';
 import { buildIcsCalendar } from './ics';
+import { buildRRule } from './rrule';
 
 const encodeParam = (str: string): string => encodeURIComponent(str || '');
 
@@ -42,6 +43,12 @@ export const generateCalendarLinks = (eventData: EventData): CalendarLinks => {
   const finalEndDate = endDate || startDate;
   const finalEndTime = endTime || '11:00';
 
+  // Recurrence: honored by the .ics path and Google's `recur` param.
+  // Outlook/Office365/Yahoo compose deeplinks have no recurrence parameters —
+  // those links create the first occurrence only.
+  const rrule = buildRRule(eventData);
+  const googleRecur = rrule ? `&recur=${encodeParam(`RRULE:${rrule}`)}` : '';
+
   const links: CalendarLinks = {};
 
   if (isAllDay) {
@@ -52,6 +59,7 @@ export const generateCalendarLinks = (eventData: EventData): CalendarLinks => {
     links.google = `https://calendar.google.com/calendar/render?action=TEMPLATE` +
       `&text=${encodeParam(title)}` +
       `&dates=${gStart}/${gEndExclusive}` +
+      googleRecur +
       `&details=${encodeParam(description)}` +
       `&location=${encodeParam(location)}`;
 
@@ -88,6 +96,7 @@ export const generateCalendarLinks = (eventData: EventData): CalendarLinks => {
       `&text=${encodeParam(title)}` +
       `&dates=${gStart}/${gEnd}` +
       ctz +
+      googleRecur +
       `&details=${encodeParam(description)}` +
       `&location=${encodeParam(location)}`;
 
@@ -122,7 +131,8 @@ export const generateCalendarLinks = (eventData: EventData): CalendarLinks => {
     endDate: finalEndDate,
     endTime: finalEndTime,
     timezone,
-    isAllDay
+    isAllDay,
+    rrule: rrule || undefined
   });
   links.apple = `data:text/calendar;charset=utf8,${encodeURIComponent(icsContent)}`;
 

@@ -54,32 +54,24 @@ const FormTabWrapper: React.FC = () => {
       }
 
       try {
-        // Generate calendar links first
+        // Unauthenticated mode: short-link creation requires auth (the API
+        // returns 401), so we don't call it and we don't claim short links —
+        // the previous version showed a false "Short links created!" success
+        // while silently falling back to long URLs (review finding W6).
         const { generateCalendarLinks } = await import('@/utils/calendarGenerator');
-        const { createCalendarShortLinks } = await import('@/utils/shortLinks');
-        
+
         const originalLinks = generateCalendarLinks(eventData);
-        console.log('Generated original links:', originalLinks);
-        
-        // Generate short links (works without user auth for demo)
-        const shortLinks = await createCalendarShortLinks(
-          originalLinks,
-          eventData.title
-          // No userId for demo mode
-        );
-        
-        console.log('Generated short links:', shortLinks);
-        setSavedShortLinks(shortLinks);
+        setSavedShortLinks(originalLinks);
         setSaved(true);
-        
+
         import('react-hot-toast').then(({ default: toast }) => {
-          toast.success(`Short links created for "${eventData.title}"! 🎉`);
+          toast.success(`Calendar links ready for "${eventData.title}"! Sign in to save this event and get trackable short links.`);
         });
-        
+
       } catch (error) {
-        console.error('Error generating short links:', error);
+        console.error('Error generating calendar links:', error);
         import('react-hot-toast').then(({ default: toast }) => {
-          toast.error('Failed to generate short links');
+          toast.error('Failed to generate calendar links');
         });
       }
     }
@@ -143,7 +135,7 @@ const FormTabWrapper: React.FC = () => {
           {loading
             ? 'Creating Event...'
             : saved
-            ? '✅ Event Created with Short Links!'
+            ? (user ? '✅ Event Saved with Short Links!' : '✅ Calendar Links Ready!')
             : 'Create Event & Generate Links'
           }
         </button>
