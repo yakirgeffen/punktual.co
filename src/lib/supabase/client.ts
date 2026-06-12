@@ -37,6 +37,8 @@ import { createBrowserClient } from '@supabase/ssr';
  *
  * @returns Supabase client instance for browser use
  */
+let browserClient: ReturnType<typeof createBrowserClient> | undefined;
+
 export function createClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -48,15 +50,19 @@ export function createClient() {
     );
   }
 
-  return createBrowserClient(supabaseUrl, supabaseAnonKey);
+  if (!browserClient) {
+    browserClient = createBrowserClient(supabaseUrl, supabaseAnonKey);
+  }
+  return browserClient;
 }
 
 /**
- * Legacy compatibility export
+ * Compatibility alias for the deprecated @supabase/auth-helpers-nextjs API.
  *
- * This maintains compatibility with the existing useAuth hook
- * which uses createClientComponentClient from @supabase/auth-helpers-nextjs
- *
- * @deprecated Consider migrating to the new createClient() function above
+ * Every call site previously created its own auth-helpers client while the
+ * session cookie was written in @supabase/ssr format — two libraries, two
+ * storage formats, one of the root causes of the "signed in but every page
+ * load shows logged out" bug (QA 2026-06-13, bug #1). All call sites now
+ * share the single @supabase/ssr browser client above.
  */
-export { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+export const createClientComponentClient = createClient;

@@ -3,7 +3,7 @@
  * This addresses the issue where auth.users has more users than user_profiles
  */
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClientComponentClient } from '@/lib/supabase/client';
 import { logger } from '@/lib/logger';
 
 // These interfaces would be used when implementing server-side sync

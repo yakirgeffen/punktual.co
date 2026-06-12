@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect, createContext, useContext, useCallback, ReactNode } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClientComponentClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import type { 
   SupabaseUser, 
@@ -76,79 +76,67 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [supabase]);
 
-  // Simplified auth initialization - skip problematic getSession
-  const initializeAuth = useCallback(async (): Promise<void> => {
-    console.log('🚀 Starting simplified auth initialization...');
-    
-    try {
-      // Skip getSession() call that was timing out
-      // Instead, rely on the auth state listener to detect sessions
-      console.log('ℹ️ Skipping getSession() - relying on auth state listener');
-      
-      setUser(null);
-      setSession(null);
-    } catch (error) {
-      console.error('❌ Error initializing auth:', error);
-      setUser(null);
-      setSession(null);
-    } finally {
-      console.log('✅ Setting loading=false and initialized=true');
-      setLoading(false);
-      setInitialized(true);
-      console.log('🎉 Auth initialization complete!');
-    }
-  }, []);
-
+  // Hydrate auth state once on mount, then track changes via the listener.
+  //
+  // History: a previous "fix" skipped getSession() entirely and relied on the
+  // auth state listener alone — with the result that a returning user's valid
+  // session cookie was never read into client state, so every page load showed
+  // logged-out (QA 2026-06-13, bug #1). getSession() against the shared
+  // @supabase/ssr browser client reads the cookie from storage; the old
+  // timeout problem belonged to the previous, now-removed client setup.
   useEffect(() => {
-    console.log('🔄 useEffect: Setting up working auth...');
-    
-    // Initialize auth state (simplified)
-    initializeAuth();
+    let cancelled = false;
 
-    // Set up auth state listener - this works and catches OAuth sessions
-    console.log('👂 Setting up auth state listener...');
+    const hydrate = async () => {
+      try {
+        const { data: { session: existingSession } } = await supabase.auth.getSession();
+        if (cancelled) return;
+        setUser(existingSession?.user ?? null);
+        setSession(existingSession ?? null);
+      } catch (error) {
+        console.error('❌ Error hydrating auth session:', error);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+          setInitialized(true);
+        }
+      }
+    };
+
+    hydrate();
+
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔄 Auth state change:', event, session?.user?.email || 'no user');
-      
-      setLoading(true);
-      
-      try {
-        if (session?.user) {
-          console.log('✅ Session user found, updating state...');
-          setUser(session.user);
-          setSession(session);
+    } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      if (cancelled) return;
 
-          // Create user profile if it doesn't exist (for new signups)
-          if ((event as string) === 'SIGNED_UP' || (event as string) === 'SIGNED_IN') {
-            console.log('👤 New signup/signin, creating profile...');
-            await createUserProfile(session.user);
+      setUser(newSession?.user ?? null);
+      setSession(newSession ?? null);
+      setLoading(false);
+      setInitialized(true);
 
-            // Track signup for OAuth (Google)
-            if ((event as string) === 'SIGNED_UP' && session.user.app_metadata?.provider === 'google') {
-              const { trackSignUp } = await import('@/lib/analytics');
-              trackSignUp('google');
-            }
+      if (newSession?.user && (event === 'SIGNED_IN' || (event as string) === 'SIGNED_UP')) {
+        try {
+          await createUserProfile(newSession.user);
+          if ((event as string) === 'SIGNED_UP' && newSession.user.app_metadata?.provider === 'google') {
+            const { trackSignUp } = await import('@/lib/analytics');
+            trackSignUp('google');
           }
-        } else {
-          console.log('❌ No session user, clearing state...');
-          setUser(null);
-          setSession(null);
+        } catch (error) {
+          console.error('❌ Error in post-sign-in handling:', error);
         }
-      } catch (error) {
-        console.error('❌ Error handling auth state change:', error);
-      } finally {
-        setLoading(false);
-        console.log('✅ Auth state change processing complete');
       }
     });
 
     return () => {
-      console.log('🧹 Cleaning up auth subscription');
+      cancelled = true;
       subscription.unsubscribe();
     };
-  }, [initializeAuth, createUserProfile, supabase.auth]);
+    // Mount-once by design: `supabase` is a module-level singleton and
+    // `createUserProfile` only closes over it. Re-running this effect was the
+    // re-init loop the QA report measured at dozens of cycles per page load.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const signUp = async (email: string, password: string, options: SignUpOptions = {}): Promise<AuthResponse> => {
     console.log('📝 Signing up user:', email);
@@ -326,15 +314,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     getUserProfile
   };
 
-  // Debug current state
-  useEffect(() => {
-    console.log('📊 Auth State Update:', {
-      user: user?.email || 'none',
-      loading,
-      initialized,
-      timestamp: new Date().toISOString()
-    });
-  }, [user, loading, initialized]);
+
 
   return (
     <AuthContext.Provider value={value}>
