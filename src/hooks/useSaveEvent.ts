@@ -168,33 +168,32 @@ export function useSaveEvent(): SaveEventReturn {
         });
       }
 
-      // Generate calendar links and then short links
+      // Generate calendar links, then short links. The previous version fired
+      // short-link creation in the background and DISCARDED the results — the
+      // UI only ever saw the long URLs (review finding W5). Awaiting here means
+      // the returned shortLinks are the real ones; per-platform failures fall
+      // back to the original URL inside createCalendarShortLinks.
       const calendarLinks = generateCalendarLinks(eventData);
-      let shortLinks: CalendarLinks = calendarLinks; // Default to original links
+      let shortLinks: CalendarLinks = calendarLinks;
 
-      // Create short links in the background without blocking
-      // This allows redirect to happen immediately
-      // Get access token from session for authentication
       const accessToken = session?.access_token;
-      createCalendarShortLinks(
-        calendarLinks,
-        eventData.title,
-        user.id,
-        accessToken
-      )
-        .then((generatedShortLinks) => {
-          logger.info('Short links generated successfully (background)', 'EVENT_SAVE', {
-            eventId: savedEvent.id,
-            shortLinksCount: Object.keys(generatedShortLinks).length
-          });
-        })
-        .catch((shortLinkError) => {
-          logger.warn('Failed to generate short links (background), using original URLs', 'EVENT_SAVE', {
-            eventId: savedEvent.id,
-            error: shortLinkError instanceof Error ? shortLinkError.message : 'Unknown error'
-          });
-          // Silently fail - we're already using calendarLinks as fallback
+      try {
+        shortLinks = await createCalendarShortLinks(
+          calendarLinks,
+          eventData.title,
+          user.id,
+          accessToken
+        );
+        logger.info('Short links generated', 'EVENT_SAVE', {
+          eventId: savedEvent.id,
+          shortLinksCount: Object.keys(shortLinks).length
         });
+      } catch (shortLinkError) {
+        logger.warn('Failed to generate short links, using original URLs', 'EVENT_SAVE', {
+          eventId: savedEvent.id,
+          error: shortLinkError instanceof Error ? shortLinkError.message : 'Unknown error'
+        });
+      }
 
       logger.info('Event saved successfully', 'EVENT_SAVE', {
         eventId: savedEvent.id,

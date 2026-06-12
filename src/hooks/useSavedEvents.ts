@@ -114,7 +114,18 @@ export function useSavedEvents(
         throw new Error(`Failed to fetch events: ${error.message}`);
       }
 
-      setEvents(data || []);
+      // DB rows are snake_case; the UI (EventCard, embed generator) reads
+      // camelCase EventData fields — map here so dates/times actually render.
+      const mapped = (data || []).map((row: Record<string, unknown>) => ({
+        ...row,
+        startDate: row.start_date,
+        startTime: row.start_time,
+        endDate: row.end_date,
+        endTime: row.end_time,
+        isAllDay: row.is_all_day,
+      })) as DatabaseEvent[];
+
+      setEvents(mapped);
       setTotalCount(count || 0);
 
       logger.info('Successfully fetched saved events', 'DASHBOARD', { 

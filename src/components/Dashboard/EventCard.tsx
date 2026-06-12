@@ -6,8 +6,28 @@ import { Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Dropdown
 import { formatDistanceToNow, format, parseISO } from 'date-fns';
 import toast from 'react-hot-toast';
 // import Link from 'next/link'; // For future edit functionality
-import type { EventData } from '@/types';
+import type { EventData, ButtonData } from '@/types';
 import { generateInlineEmbedCode } from '@/utils/embedCodeGenerator';
+import { generateCalendarLinks } from '@/utils/calendarGenerator';
+
+// Defaults for embeds generated from the dashboard — the card carries no saved
+// button customization, and the previous empty-object arguments produced an
+// embed with no platforms and no links at all (review finding W3).
+const embedButtonDefaults = {
+  buttonLayout: 'dropdown',
+  ctaText: 'Add to Calendar',
+  colorTheme: '#10b981',
+  textColor: '#FFFFFF',
+  openInNewTab: true,
+  selectedPlatforms: {
+    google: true,
+    apple: true,
+    outlook: true,
+    office365: true,
+    outlookcom: false,
+    yahoo: true
+  }
+} as ButtonData;
 
 interface DatabaseEvent extends EventData {
   id: string;
@@ -353,7 +373,7 @@ export default function EventCard({
                     </div>
                     <div className="relative">
                       <pre className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-auto max-h-64 text-xs font-mono">
-                        {generateInlineEmbedCode(event, {}, {}, `event-${event.id}`)}
+                        {generateInlineEmbedCode(event, embedButtonDefaults, generateCalendarLinks(event), `event-${event.id}`)}
                       </pre>
                       <Button
                         isIconOnly
@@ -361,7 +381,7 @@ export default function EventCard({
                         size="sm"
                         onClick={() =>
                           handleCopyCode(
-                            generateInlineEmbedCode(event, {}, {}, `event-${event.id}`),
+                            generateInlineEmbedCode(event, embedButtonDefaults, generateCalendarLinks(event), `event-${event.id}`),
                             'embed'
                           )
                         }
