@@ -245,7 +245,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const shortUrl = `https://punktual.co/eventid=${data.short_id}`;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://punktual.co';
+    const shortUrl = `${baseUrl}/eventid/${data.short_id}`;
 
     const response: CreateShortLinkResponse = {
       success: true,

@@ -1,53 +1,20 @@
 /**
- * Fixed calendar generator with working URLs for all platforms
+ * Calendar link generator.
+ *
+ * Times are converted from the event's wall-clock time in its selected IANA
+ * timezone to real UTC instants (src/utils/datetime.ts), and the Apple link
+ * is built by the RFC 5545 serializer (src/utils/ics.ts). This replaces the
+ * previous floating-local-time output and the Outlook "local time stamped as
+ * UTC" bug (studio review finding S3).
  */
 
 import type { EventData, ButtonData, CalendarLinks, CodeGenerationOptions, OutputType } from '@/types';
-
-// Helper function to format date for different calendar platforms
-const formatDateTime = (date: string, time?: string, isAllDay: boolean = false): string => {
-  if (!date) return '';
-  
-  if (isAllDay) {
-    return date.replace(/-/g, '');
-  }
-  
-  if (!time) {
-    time = '10:00';
-  }
-  
-  const dateTime = `${date}T${time}:00`;
-  return dateTime.replace(/[-:]/g, '');
-};
-
-const formatOutlookDateTime = (date: string, time?: string, isAllDay: boolean = false): string => {
-  if (!date) return '';
-  
-  if (isAllDay) {
-    return `${date}T00:00:00.000Z`;
-  }
-  
-  if (!time) {
-    time = '10:00';
-  }
-  
-  return `${date}T${time}:00.000Z`;
-};
-
-// FIXED: Yahoo date format
-const formatYahooDateTime = (date: string, time?: string): string => {
-  if (!date) return '';
-  if (!time) time = '10:00';
-  
-  const [hours, minutes] = time.split(':');
-  return `${date.replace(/-/g, '')}T${hours}${minutes}00`;
-};
+import { escapeHtml } from './escape';
+import { zonedWallTimeToUtc, toUtcBasic, toUtcIso, toDateBasic, nextDay } from './datetime';
+import { buildIcsCalendar } from './ics';
 
 const encodeParam = (str: string): string => encodeURIComponent(str || '');
 
-/**
- * FIXED: Generate working calendar platform URLs
- */
 export const generateCalendarLinks = (eventData: EventData): CalendarLinks => {
   const {
     title = '',
@@ -57,6 +24,7 @@ export const generateCalendarLinks = (eventData: EventData): CalendarLinks => {
     startTime = '10:00',
     endDate,
     endTime = '11:00',
+    timezone,
     isAllDay = false
   } = eventData;
 
@@ -73,71 +41,90 @@ export const generateCalendarLinks = (eventData: EventData): CalendarLinks => {
 
   const finalEndDate = endDate || startDate;
   const finalEndTime = endTime || '11:00';
-  const startDateTime = formatDateTime(startDate, startTime, isAllDay);
-  const endDateTime = formatDateTime(finalEndDate, finalEndTime, isAllDay);
-  
+
   const links: CalendarLinks = {};
 
-  // ✅ Google Calendar (working)
-  links.google = `https://calendar.google.com/calendar/render?action=TEMPLATE` +
-    `&text=${encodeParam(title)}` +
-    `&dates=${startDateTime}/${endDateTime}` +
-    `&details=${encodeParam(description)}` +
-    `&location=${encodeParam(location)}`;
+  if (isAllDay) {
+    // All-day: date-only values with an EXCLUSIVE end date across providers.
+    const gStart = toDateBasic(startDate);
+    const gEndExclusive = toDateBasic(nextDay(finalEndDate));
 
-  // ✅ Apple Calendar (FIXED ICS format)
-  const icsContent = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
-    'PRODID:-//Punktual//Calendar//EN',
-    'BEGIN:VEVENT',
-    `UID:${Date.now()}@punktual.co`,
-    `DTSTAMP:${formatDateTime(new Date().toISOString().split('T')[0], new Date().toTimeString().slice(0, 5))}`,
-    `DTSTART:${startDateTime}`,
-    `DTEND:${endDateTime}`,
-    `SUMMARY:${title}`,
-    `DESCRIPTION:${description}`,
-    `LOCATION:${location}`,
-    'STATUS:CONFIRMED',
-    'SEQUENCE:0',
-    'END:VEVENT',
-    'END:VCALENDAR'
-  ].join('\r\n');
-  
+    links.google = `https://calendar.google.com/calendar/render?action=TEMPLATE` +
+      `&text=${encodeParam(title)}` +
+      `&dates=${gStart}/${gEndExclusive}` +
+      `&details=${encodeParam(description)}` +
+      `&location=${encodeParam(location)}`;
+
+    const outlookAllDay = (base: string) => `${base}?` +
+      `subject=${encodeParam(title)}` +
+      `&startdt=${startDate}` +
+      `&enddt=${nextDay(finalEndDate)}` +
+      `&allday=true` +
+      `&body=${encodeParam(description)}` +
+      `&location=${encodeParam(location)}`;
+
+    links.outlook = outlookAllDay('https://outlook.live.com/calendar/0/deeplink/compose');
+    links.office365 = outlookAllDay('https://outlook.office.com/calendar/0/deeplink/compose');
+    links.outlookcom = links.outlook;
+
+    links.yahoo = `https://calendar.yahoo.com/?` +
+      `v=60` +
+      `&title=${encodeParam(title)}` +
+      `&st=${gStart}` +
+      `&et=${gEndExclusive}` +
+      `&dur=allday` +
+      `&desc=${encodeParam(description)}` +
+      `&in_loc=${encodeParam(location)}`;
+  } else {
+    const startUtc = zonedWallTimeToUtc(startDate, startTime, timezone);
+    const endUtc = zonedWallTimeToUtc(finalEndDate, finalEndTime, timezone);
+    const gStart = toUtcBasic(startUtc);
+    const gEnd = toUtcBasic(endUtc);
+
+    // ctz sets the display timezone Google shows before saving
+    const ctz = timezone && timezone !== 'UTC' ? `&ctz=${encodeParam(timezone)}` : '';
+
+    links.google = `https://calendar.google.com/calendar/render?action=TEMPLATE` +
+      `&text=${encodeParam(title)}` +
+      `&dates=${gStart}/${gEnd}` +
+      ctz +
+      `&details=${encodeParam(description)}` +
+      `&location=${encodeParam(location)}`;
+
+    const outlookTimed = (base: string) => `${base}?` +
+      `subject=${encodeParam(title)}` +
+      `&startdt=${encodeParam(toUtcIso(startUtc))}` +
+      `&enddt=${encodeParam(toUtcIso(endUtc))}` +
+      `&body=${encodeParam(description)}` +
+      `&location=${encodeParam(location)}`;
+
+    links.outlook = outlookTimed('https://outlook.live.com/calendar/0/deeplink/compose');
+    links.office365 = outlookTimed('https://outlook.office.com/calendar/0/deeplink/compose');
+    links.outlookcom = links.outlook;
+
+    links.yahoo = `https://calendar.yahoo.com/?` +
+      `v=60` +
+      `&title=${encodeParam(title)}` +
+      `&st=${gStart}` +
+      `&et=${gEnd}` +
+      `&desc=${encodeParam(description)}` +
+      `&in_loc=${encodeParam(location)}`;
+  }
+
+  // Apple Calendar: RFC 5545-compliant ICS (escaped text, folded lines,
+  // crypto-random UID, UTC times / VALUE=DATE all-day with exclusive end).
+  const icsContent = buildIcsCalendar({
+    title,
+    description,
+    location,
+    startDate,
+    startTime,
+    endDate: finalEndDate,
+    endTime: finalEndTime,
+    timezone,
+    isAllDay
+  });
   links.apple = `data:text/calendar;charset=utf8,${encodeURIComponent(icsContent)}`;
-
-  // ✅ Microsoft Outlook (working)
-  links.outlook = `https://outlook.live.com/calendar/0/deeplink/compose?` +
-    `subject=${encodeParam(title)}` +
-    `&startdt=${formatOutlookDateTime(startDate, startTime, isAllDay)}` +
-    `&enddt=${formatOutlookDateTime(finalEndDate, finalEndTime, isAllDay)}` +
-    `&body=${encodeParam(description)}` +
-    `&location=${encodeParam(location)}`;
-
-  // ✅ Office 365 (working)
-  links.office365 = `https://outlook.office.com/calendar/0/deeplink/compose?` +
-    `subject=${encodeParam(title)}` +
-    `&startdt=${formatOutlookDateTime(startDate, startTime, isAllDay)}` +
-    `&enddt=${formatOutlookDateTime(finalEndDate, finalEndTime, isAllDay)}` +
-    `&body=${encodeParam(description)}` +
-    `&location=${encodeParam(location)}`;
-
-  // ✅ Outlook.com (working)
-  links.outlookcom = links.outlook;
-
-  // ✅ Yahoo Calendar (FIXED format - tested working)
-  const yahooStart = formatYahooDateTime(startDate, startTime);
-  const yahooEnd = formatYahooDateTime(finalEndDate, finalEndTime);
-  
-  links.yahoo = `https://calendar.yahoo.com/?` +
-    `v=60` +
-    `&title=${encodeParam(title)}` +
-    `&st=${yahooStart}` +
-    `&et=${yahooEnd}` +
-    `&desc=${encodeParam(description)}` +
-    `&in_loc=${encodeParam(location)}`;
 
   return links;
 };
@@ -343,14 +330,14 @@ interface GenerateHTMLOptions {
 const generateHTMLCode = (activePlatforms: PlatformInfo[], buttonId: string, buttonData: ButtonData, options: GenerateHTMLOptions): string => {
   const { minified = false, includeCss = true, includeJs = true } = options;
 
-  const dropdownItems = activePlatforms.map(platform => 
-    `<a href="${platform.url}" target="_blank" class="punktual-dropdown-item">${platform.name}</a>`
+  const dropdownItems = activePlatforms.map(platform =>
+    `<a href="${escapeHtml(platform.url)}" target="_blank" class="punktual-dropdown-item">${platform.name}</a>`
   ).join(minified ? '' : '\n    ');
 
   let html = `<!-- Punktual Calendar Button -->
 <div class="punktual-container">
   <button class="punktual-button" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block'">
-    📅 ${buttonData.customText || 'Add to Calendar'} ▼
+    📅 ${escapeHtml(buttonData.customText || 'Add to Calendar')} ▼
   </button>
   <div class="punktual-dropdown">
     ${dropdownItems}
@@ -430,11 +417,11 @@ const PunktualButton = () => {
 
   return (
     <div style={{ position: 'relative', display: 'inline-block' }}>
-      <button 
+      <button
         style={buttonStyle}
         onClick={() => setIsOpen(!isOpen)}
       >
-        📅 {buttonData.customText || 'Add to Calendar'} ▼
+        {${JSON.stringify(`📅 ${buttonData.customText || 'Add to Calendar'} ▼`)}}
       </button>
       
       {isOpen && (
@@ -503,13 +490,13 @@ export const generateDirectLinks = (eventData: EventData, buttonData: ButtonData
     return '<!-- Please select at least one calendar platform -->';
   }
 
-  const linkItems = activePlatforms.map(platform => 
-    `<li><a href="${platform.url}" target="_blank">📅 ${buttonData.customText || `Add to ${platform.name}`}</a></li>`
+  const linkItems = activePlatforms.map(platform =>
+    `<li><a href="${escapeHtml(platform.url)}" target="_blank">📅 ${escapeHtml(buttonData.customText || `Add to ${platform.name}`)}</a></li>`
   ).join(minified ? '' : '\n  ');
 
   let html = `<!-- Punktual Direct Links -->
 <div>
-  <p>Add "${eventData.title}" to your calendar:</p>
+  <p>Add "${escapeHtml(eventData.title || '')}" to your calendar:</p>
   <ul>
     ${linkItems}
   </ul>

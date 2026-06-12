@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 import { generateInlineEmbedCode } from '@/utils/embedCodeGenerator';
 
 export default function OutputOptions() {
-  const { eventData, buttonData, outputType, setOutput, generatedCode } = useEventContext();
+  const { eventData, buttonData, outputType, setOutput, generatedCode, calendarLinks } = useEventContext();
   const { checkQuota } = useCheckEventQuota();
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [quotaStatus, setQuotaStatus] = useState<any>(null);
@@ -26,8 +26,9 @@ export default function OutputOptions() {
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
-  // Generate embed code
-  const embedCode = generateInlineEmbedCode(eventData, buttonData, {}, 'punktual-calendar');
+  // Generate embed code from the live platform links (empty object here used to
+  // produce embeds with no calendar links at all — review finding W2)
+  const embedCode = generateInlineEmbedCode(eventData, buttonData, calendarLinks, 'punktual-calendar');
 
   return (
     <div className="space-y-6">

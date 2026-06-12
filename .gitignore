@@ -59,4 +59,6 @@ _archive
 # Local development files (keep locally, don't commit)
 .strapi-updater.json
 public/ai.txt
-strapi.log 
+strapi.log scripts/sertest/out/
+
+scripts/sertest/out/
