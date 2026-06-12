@@ -60,3 +60,5 @@ _archive
 .strapi-updater.json
 public/ai.txt
 strapi.log scripts/sertest/out/
+
+scripts/sertest/out/
