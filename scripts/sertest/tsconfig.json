@@ -16,6 +16,7 @@
     "../../src/utils/datetime.ts",
     "../../src/utils/ics.ts",
     "../../src/utils/escape.ts",
+    "../../src/utils/shortLinks.ts",
     "../../src/utils/calendarGenerator.ts"
   ]
 }

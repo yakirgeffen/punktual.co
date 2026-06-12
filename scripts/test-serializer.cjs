@@ -14,6 +14,8 @@ const out = path.join(__dirname, 'sertest', 'out', 'utils');
 const dt = require(path.join(out, 'datetime.js'));
 const ics = require(path.join(out, 'ics.js'));
 const gen = require(path.join(out, 'calendarGenerator.js'));
+const esc = require(path.join(out, 'escape.js'));
+const sl = require(path.join(out, 'shortLinks.js'));
 
 let failures = 0;
 function check(name, actual, expected) {
@@ -189,6 +191,42 @@ check('ICS text escaping',
   const links = gen.generateCalendarLinks({ title: '', startDate: '' });
   check('empty input returns empty links', links.google, '');
 }
+
+// --- escape utilities (security-critical, direct unit assertions) ------------
+
+check('escapeHtml: script tag neutralized',
+  esc.escapeHtml('<script>alert("xss")</script>'),
+  '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;');
+
+check('escapeHtml: ampersand escaped first (no double-escaping)',
+  esc.escapeHtml('&lt; & <'),
+  '&amp;lt; &amp; &lt;');
+
+check('escapeHtml: quotes for attribute context',
+  esc.escapeHtml(`O'Brien says "hi"`),
+  'O&#039;Brien says &quot;hi&quot;');
+
+check('escapeJsString: quote cannot terminate the string literal',
+  esc.escapeJsString("it's"),
+  "it\\'s");
+
+check('escapeJsString: </script> cannot close the script block',
+  esc.escapeJsString('</script><script>alert(1)</script>'),
+  '\\x3C/script>\\x3Cscript>alert(1)\\x3C/script>');
+
+check('escapeJsString: backslash and newline',
+  esc.escapeJsString('a\\b\nc'),
+  'a\\\\b\\nc');
+
+// --- short link helpers --------------------------------------------------------
+
+check('isShortLink: current path format', sl.isShortLink('https://punktual.co/eventid/AB12CD34'), true);
+check('isShortLink: legacy query-style format', sl.isShortLink('https://punktual.co/eventid=AB12CD34'), true);
+check('isShortLink: unrelated URL rejected', sl.isShortLink('https://punktual.co/create'), false);
+check('extractShortId: current format', sl.extractShortId('https://punktual.co/eventid/AB12CD34'), 'AB12CD34');
+check('extractShortId: legacy format', sl.extractShortId('https://punktual.co/eventid=AB12CD34'), 'AB12CD34');
+check('extractShortId: base64url chars (- and _)', sl.extractShortId('https://punktual.co/eventid/XY-Z_A12'), 'XY-Z_A12');
+check('extractShortId: no id -> null', sl.extractShortId('https://punktual.co/about'), null);
 
 // --- result ------------------------------------------------------------------
 
