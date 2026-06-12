@@ -3,6 +3,7 @@
  */
 
 import type { EventData, ButtonData, CalendarLinks, CodeGenerationOptions, OutputType } from '@/types';
+import { escapeHtml } from './escape';
 
 // Helper function to format date for different calendar platforms
 const formatDateTime = (date: string, time?: string, isAllDay: boolean = false): string => {
@@ -343,14 +344,14 @@ interface GenerateHTMLOptions {
 const generateHTMLCode = (activePlatforms: PlatformInfo[], buttonId: string, buttonData: ButtonData, options: GenerateHTMLOptions): string => {
   const { minified = false, includeCss = true, includeJs = true } = options;
 
-  const dropdownItems = activePlatforms.map(platform => 
-    `<a href="${platform.url}" target="_blank" class="punktual-dropdown-item">${platform.name}</a>`
+  const dropdownItems = activePlatforms.map(platform =>
+    `<a href="${escapeHtml(platform.url)}" target="_blank" class="punktual-dropdown-item">${platform.name}</a>`
   ).join(minified ? '' : '\n    ');
 
   let html = `<!-- Punktual Calendar Button -->
 <div class="punktual-container">
   <button class="punktual-button" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block'">
-    📅 ${buttonData.customText || 'Add to Calendar'} ▼
+    📅 ${escapeHtml(buttonData.customText || 'Add to Calendar')} ▼
   </button>
   <div class="punktual-dropdown">
     ${dropdownItems}
@@ -430,11 +431,11 @@ const PunktualButton = () => {
 
   return (
     <div style={{ position: 'relative', display: 'inline-block' }}>
-      <button 
+      <button
         style={buttonStyle}
         onClick={() => setIsOpen(!isOpen)}
       >
-        📅 {buttonData.customText || 'Add to Calendar'} ▼
+        {${JSON.stringify(`📅 ${buttonData.customText || 'Add to Calendar'} ▼`)}}
       </button>
       
       {isOpen && (
@@ -503,13 +504,13 @@ export const generateDirectLinks = (eventData: EventData, buttonData: ButtonData
     return '<!-- Please select at least one calendar platform -->';
   }
 
-  const linkItems = activePlatforms.map(platform => 
-    `<li><a href="${platform.url}" target="_blank">📅 ${buttonData.customText || `Add to ${platform.name}`}</a></li>`
+  const linkItems = activePlatforms.map(platform =>
+    `<li><a href="${escapeHtml(platform.url)}" target="_blank">📅 ${escapeHtml(buttonData.customText || `Add to ${platform.name}`)}</a></li>`
   ).join(minified ? '' : '\n  ');
 
   let html = `<!-- Punktual Direct Links -->
 <div>
-  <p>Add "${eventData.title}" to your calendar:</p>
+  <p>Add "${escapeHtml(eventData.title || '')}" to your calendar:</p>
   <ul>
     ${linkItems}
   </ul>

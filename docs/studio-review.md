@@ -165,7 +165,7 @@ RLS policies on `events` / `user_profiles` / `short_links` are present and corre
 
 | Area | State | Gap → effort |
 |---|---|---|
-| Domain + marketing site | **Built and live** (verified 2026-06-12) | Pricing copy says 5 events/mo, code enforces 3 (`MONTHLY_LIMIT`); navbar links to `/billing` which doesn't exist. Copy/route fixes — trivial. |
+| Domain + marketing site | **Built and live** (verified 2026-06-12) | Pricing copy said 5 events/mo while code enforced 3 (`MONTHLY_LIMIT`) — **aligned to 5 in this PR** (CCO ratification of the tier number owed). The `/billing` nav item is commented out in `Navbar.tsx`, not live (earlier draft of this review overstated it as a dead link). |
 | Create flow (event → output) | **Built but broken at the output layer** | W1/W2 wiring + S2 escaping + S3 time engine. One focused wave. |
 | Customized button output | **Built but unreachable** (W1) | Wiring — small. |
 | Short links | **Built but broken end-to-end** (W4/W5/W6) | URL-format fix is one line + data backfill; surfacing results is a small UI pass. |
@@ -205,6 +205,16 @@ RLS policies on `events` / `user_profiles` / `short_links` are present and corre
 **P1 — before any paid launch:** recurrence (wire RRULE + persist, or remove the UI); Apple `.ics` as a served file/endpoint instead of a `data:` URI (doubles as the feed's foundation); server-side quota enforcement + RPC caller check (S4); short-link destination allowlist (S5); click-count atomic increment + dashboard analytics view; auth consolidation to `@supabase/ssr`; serializer unit tests + build CI.
 
 **P2 — hygiene and posture:** Strapi decision (Principle #21 — flag cost; MDX is the free path); CSP tightening + GTM decision (S6, dead `dlPush` events); remove dead code and stale root docs; document the no-tracking embed story as a marketing asset; strict-CSP/hosted-script roadmap item (S7).
+
+### Fixed in this PR (post-review, same branch)
+
+- **S1** — Next.js 15.3.x → 15.5.19 (critical RCE advisory cleared; Vercel deploy gate satisfied — preview deployment green).
+- **W4** — short-link URL format now matches the redirect route (`/eventid/{id}`, base URL from `NEXT_PUBLIC_BASE_URL`); `isShortLink`/`extractShortId` accept both new and legacy formats, and the extractor's character class now covers base64url IDs containing `-`/`_` (a second latent bug).
+- **W2** — the Embed tab passes the live `calendarLinks` from context instead of `{}`; generated embeds now contain real platform links.
+- **S2** — `src/utils/escape.ts` added; user-controlled text (titles, CTA/custom text, colors in attribute context, URLs in `href`) is HTML-escaped in both generators, and the inline tracking script JS-string-escapes the event title (`<` hex-escaped so `</script>` cannot break out). Also fixed: the generated React component referenced `buttonData` at runtime (would crash as a standalone component) — text now interpolated at generation time.
+- **Quota/copy mismatch** — `MONTHLY_LIMIT` aligned to the published free-tier promise (5/month). The tier number remains a CCO-ratifiable commercial decision; the code now honors the live public copy. (Correction to this review's first draft: the `/billing` nav item is commented out, not a live dead link.)
+
+**Still open for the P-03 engineering wave (unchanged):** the datetime/ICS engine rebuild (P0 #1 — the big one), output-tab wiring so the customized button is reachable (W1), dashboard embed call (W3), honest short-link surfacing (W5/W6), recurrence decision, serializer tests. W1/W3 are held deliberately: they change rendered UI and need a visual-verification lane this review venue doesn't have.
 
 ---
 

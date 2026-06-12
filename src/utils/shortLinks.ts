@@ -101,13 +101,15 @@ export async function createCalendarShortLinks(
  * Utility function to check if a URL is already a short link
  */
 export function isShortLink(url: string): boolean {
-  return url.includes('punktual.co/eventid=');
+  return /punktual\.co\/eventid[/=]/.test(url);
 }
 
 /**
  * Extracts the short ID from a short link URL
+ * Accepts both the current path format (/eventid/ID) and the legacy
+ * query-style format (eventid=ID) so links minted before the fix still parse.
  */
 export function extractShortId(shortUrl: string): string | null {
-  const match = shortUrl.match(/eventid=([A-Z0-9]+)/);
+  const match = shortUrl.match(/eventid[/=]([A-Za-z0-9_-]+)/);
   return match ? match[1] : null;
 }

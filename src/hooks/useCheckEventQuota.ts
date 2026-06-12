@@ -20,7 +20,9 @@ export function useCheckEventQuota() {
   const { user } = useAuth();
   const supabase = createClientComponentClient();
 
-  const MONTHLY_LIMIT = 3;
+  // 5 matches the published free-tier promise on the live pricing page
+  // ("5 calendar buttons per month") — the code previously enforced 3.
+  const MONTHLY_LIMIT = 5;
 
   /**
    * Get current quota status for the user

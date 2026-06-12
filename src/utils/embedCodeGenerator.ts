@@ -4,6 +4,7 @@
  */
 
 import { EventData, ButtonData, CalendarLinks } from '@/types';
+import { escapeHtml, escapeJsString } from './escape';
 
 export function generateInlineEmbedCode(
   eventData: EventData,
@@ -43,8 +44,8 @@ export function generateInlineEmbedCode(
   <button
     onclick="document.getElementById('${containerID}-menu').style.display = document.getElementById('${containerID}-menu').style.display === 'none' ? 'block' : 'none';"
     style="
-      background-color: ${buttonData.colorTheme || '#10b981'};
-      color: ${buttonData.textColor || '#FFFFFF'};
+      background-color: ${escapeHtml(buttonData.colorTheme || '#10b981')};
+      color: ${escapeHtml(buttonData.textColor || '#FFFFFF')};
       padding: 12px 20px;
       border: none;
       border-radius: 8px;
@@ -60,7 +61,7 @@ export function generateInlineEmbedCode(
     onmouseover="this.style.opacity='0.9'"
     onmouseout="this.style.opacity='1'"
   >
-    📅 ${buttonData.ctaText || 'Add to Calendar'}
+    📅 ${escapeHtml(buttonData.ctaText || 'Add to Calendar')}
   </button>
   <div
     id="${containerID}-menu"
@@ -83,7 +84,7 @@ export function generateInlineEmbedCode(
         return url
           ? `
     <a
-      href="${url}"
+      href="${escapeHtml(url)}"
       target="${buttonData.openInNewTab ? '_blank' : '_self'}"
       rel="noopener noreferrer"
       style="
@@ -117,12 +118,12 @@ export function generateInlineEmbedCode(
       return url
         ? `
   <a
-    href="${url}"
+    href="${escapeHtml(url)}"
     target="${buttonData.openInNewTab ? '_blank' : '_self'}"
     rel="noopener noreferrer"
     style="
-      background-color: ${buttonData.colorTheme || '#10b981'};
-      color: ${buttonData.textColor || '#FFFFFF'};
+      background-color: ${escapeHtml(buttonData.colorTheme || '#10b981')};
+      color: ${escapeHtml(buttonData.textColor || '#FFFFFF')};
       padding: 12px 20px;
       border: none;
       border-radius: 8px;
@@ -161,7 +162,7 @@ export function generateInlineEmbedCode(
         // Send analytics event (optional - requires analytics setup)
         if (typeof gtag !== 'undefined') {
           gtag('event', 'calendar_link_click', {
-            event_title: '${eventData.title || 'Event'}',
+            event_title: '${escapeJsString(eventData.title || 'Event')}',
             platform: this.getAttribute('data-platform') || 'unknown'
           });
         }
