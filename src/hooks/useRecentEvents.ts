@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClientComponentClient } from '@/lib/supabase/client';
 import { useAuth } from './useAuth';
 import toast from 'react-hot-toast';
 import type { EventData } from '@/types';

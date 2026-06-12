@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClientComponentClient } from '@/lib/supabase/client';
 import { useAuth } from './useAuth';
 import { useCheckEventQuota } from './useCheckEventQuota';
 import { logger } from '@/lib/logger';

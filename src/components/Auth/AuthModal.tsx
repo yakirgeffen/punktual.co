@@ -342,6 +342,12 @@ export default function AuthModal({
     setShowEmailForm(false);
   }, [defaultTab]);
 
+  // Reset any stuck busy state when the modal (re)opens — e.g. browser
+  // back-navigation after a Google OAuth redirect left loading=true (QA #5)
+  useEffect(() => {
+    if (isOpen) setLoading(false);
+  }, [isOpen]);
+
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -464,7 +470,7 @@ export default function AuthModal({
                   onClick={() => setShowEmailForm(true)}
                   className="text-sm text-gray-600 hover:text-emerald-600 underline font-medium transition-colors"
                 >
-                  Create account with email
+                  {isSignUp ? 'Create account with email' : 'Sign in with email'}
                 </button>
 
                 <div className="border-t pt-4">

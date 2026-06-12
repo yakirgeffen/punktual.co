@@ -5,7 +5,7 @@ import { User, Calendar, LogOut, Trash2, AlertCircle } from 'lucide-react';
 import { Button, Card, CardBody, CardHeader, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure, Input, Divider, Spinner } from '@heroui/react';
 import { useAuth } from '@/hooks/useAuth';
 import { useCheckEventQuota } from '@/hooks/useCheckEventQuota';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClientComponentClient } from '@/lib/supabase/client';
 import { logger } from '@/lib/logger';
 import toast from 'react-hot-toast';
 import type { UserProfile } from '@/types';

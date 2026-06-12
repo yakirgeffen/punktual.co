@@ -97,7 +97,7 @@ function AuthCallbackContent() {
         console.log('✅ OAuth code found, exchanging for session...');
         
         // Import supabase client
-        const { createClientComponentClient } = await import('@supabase/auth-helpers-nextjs');
+        const { createClientComponentClient } = await import('@/lib/supabase/client');
         const supabase = createClientComponentClient();
         
         // Exchange the code for a session
