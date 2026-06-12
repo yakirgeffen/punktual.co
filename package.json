@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "generate:sitemap": "node scripts/generate-sitemap.mjs"
+    "generate:sitemap": "node scripts/generate-sitemap.mjs",
+    "test:serializer": "node scripts/test-serializer.cjs"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",

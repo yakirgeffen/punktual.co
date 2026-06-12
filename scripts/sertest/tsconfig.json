@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "./out",
+    "rootDir": "../../src",
+    "baseUrl": "../..",
+    "paths": { "@/*": ["src/*"] },
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "lib": ["es2020", "dom"]
+  },
+  "include": [
+    "../../src/utils/datetime.ts",
+    "../../src/utils/ics.ts",
+    "../../src/utils/escape.ts",
+    "../../src/utils/calendarGenerator.ts"
+  ]
+}
