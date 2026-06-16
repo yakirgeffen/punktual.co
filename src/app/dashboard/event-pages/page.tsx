@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Button } from '@heroui/react';
-import { Plus, ExternalLink, Globe, FileText } from 'lucide-react';
+import { Plus, ExternalLink, Globe, FileText, Pencil } from 'lucide-react';
 import ProtectedRoute from '@/components/Auth/ProtectedRoute';
 import { createClientComponentClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -31,7 +31,7 @@ function EventPagesList() {
     try {
       const { data, error: dbError } = await supabase
         .from('event_pages')
-        .select('id, user_id, slug, title, description, location, timezone, feed_token, is_published, created_at, updated_at')
+        .select('id, user_id, slug, title, description, location, timezone, feed_token, is_published, created_at, updated_at, accent_color, bg_theme, font_choice, cover_image_url, host_name, host_logo_url, tagline, cta_label, cta_color, og_image_url')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -133,7 +133,7 @@ function EventPagesList() {
             </div>
             <h2 className="text-xl font-semibold text-slate-900 mb-2">No event pages yet</h2>
             <p className="text-slate-500 mb-6 max-w-sm mx-auto">
-              Create one to share your event with the world — includes a public page and a live calendar feed.
+              Create one to share your event with the world — includes a public page, live calendar feed, and full customization.
             </p>
             <Link href="/create-event-page">
               <Button
@@ -155,15 +155,21 @@ function EventPagesList() {
                 key={page.id}
                 className="bg-white rounded-xl border border-slate-200 shadow-sm px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-4"
               >
-                {/* Icon */}
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                  <FileText size={20} className="text-emerald-600" />
+                {/* Accent color swatch (shows customization at a glance) */}
+                <div
+                  className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: `${page.accent_color ?? '#10b981'}20` }}
+                >
+                  <FileText size={20} style={{ color: page.accent_color ?? '#10b981' }} />
                 </div>
 
                 {/* Title + slug */}
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-slate-900 truncate">{page.title}</p>
                   <p className="text-slate-500 text-sm truncate">/e/{page.slug}</p>
+                  {page.tagline && (
+                    <p className="text-slate-400 text-xs truncate mt-0.5">{page.tagline}</p>
+                  )}
                 </div>
 
                 {/* Published badge */}
@@ -183,6 +189,15 @@ function EventPagesList() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 flex-shrink-0">
+                  {/* Edit */}
+                  <Link
+                    href={`/edit-event-page/${page.id}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm transition-colors"
+                  >
+                    <Pencil size={14} />
+                    Edit
+                  </Link>
+
                   {/* View link — opens public page in new tab */}
                   <a
                     href={`/e/${page.slug}`}

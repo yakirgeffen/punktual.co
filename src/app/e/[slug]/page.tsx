@@ -5,11 +5,18 @@
  * by slug via the anon client (public-read RLS policy covers this).
  *
  * Renders:
- *   - Hero: title, formatted date/time, location, description
+ *   - Optional cover/hero image
+ *   - Host name + logo (if set)
+ *   - Title, tagline, formatted date/time, location, description
  *   - Calendar-add buttons (Google / Apple / Outlook) via existing generator
  *   - Webcal subscribe link (the Punktual differentiator)
- *   - Scope line re: RSVP / ticketing
  *   - "Powered by Punktual" footer
+ *
+ * All visual properties (accent color, background theme, font) come from the
+ * event_pages row. Zero-configuration defaults to Punktual's emerald brand + Nunito.
+ *
+ * OG metadata: reads og_image_url (manual override) or falls back to the
+ * dynamic /api/og/event route which generates a branded card.
  *
  * 404s cleanly if slug is not found or page is not published.
  */
@@ -22,9 +29,7 @@ import { generateCalendarLinks } from '@/utils/calendarGenerator';
 import type { EventData } from '@/types';
 
 // ---------------------------------------------------------------------------
-// Supabase anon client (public reads only — no service role needed here
-// because the RLS policy "Published event pages are publicly viewable" allows
-// SELECT on event_pages WHERE is_published = true using the anon key).
+// Supabase anon client (public reads only)
 // ---------------------------------------------------------------------------
 
 function createAnonClient() {
@@ -52,30 +57,154 @@ interface EventPageRow {
   start_at: string | null;
   end_at: string | null;
   is_all_day: boolean;
+  // customization
+  accent_color: string | null;
+  bg_theme: string | null;
+  font_choice: string | null;
+  cover_image_url: string | null;
+  host_name: string | null;
+  host_logo_url: string | null;
+  tagline: string | null;
+  cta_label: string | null;
+  og_image_url: string | null;
 }
 
 // ---------------------------------------------------------------------------
-// Metadata
+// Theme configuration
+// ---------------------------------------------------------------------------
+
+type BgTheme = 'white' | 'stone' | 'dark' | 'gradient';
+type FontChoice = 'nunito' | 'inter' | 'lora';
+
+interface ThemeTokens {
+  mainBg: string;
+  cardBg: string;
+  heroSectionClass: string;
+  titleColor: string;
+  metaColor: string;
+  bodyColor: string;
+  borderColor: string;
+  cardBorderColor: string;
+  isDark: boolean;
+}
+
+function getThemeTokens(theme: BgTheme, accentColor: string): ThemeTokens {
+  switch (theme) {
+    case 'dark':
+      return {
+        mainBg: '#0f172a',
+        cardBg: '#1e293b',
+        heroSectionClass: '',
+        titleColor: '#f8fafc',
+        metaColor: '#94a3b8',
+        bodyColor: '#cbd5e1',
+        borderColor: '#1e293b',
+        cardBorderColor: '#334155',
+        isDark: true,
+      };
+    case 'stone':
+      return {
+        mainBg: '#faf7f4',
+        cardBg: '#ffffff',
+        heroSectionClass: '',
+        titleColor: '#1c1917',
+        metaColor: '#78716c',
+        bodyColor: '#57534e',
+        borderColor: '#e7e5e4',
+        cardBorderColor: '#e7e5e4',
+        isDark: false,
+      };
+    case 'gradient': {
+      const accent6 = accentColor.replace('#', '').slice(0, 6);
+      return {
+        mainBg: `linear-gradient(135deg, #${accent6}12 0%, #ffffff 60%)`,
+        cardBg: '#ffffff',
+        heroSectionClass: '',
+        titleColor: '#111827',
+        metaColor: '#6b7280',
+        bodyColor: '#374151',
+        borderColor: '#e5e7eb',
+        cardBorderColor: '#e5e7eb',
+        isDark: false,
+      };
+    }
+    case 'white':
+    default:
+      return {
+        mainBg: '#f9fafb',
+        cardBg: '#ffffff',
+        heroSectionClass: '',
+        titleColor: '#111827',
+        metaColor: '#6b7280',
+        bodyColor: '#374151',
+        borderColor: '#e5e7eb',
+        cardBorderColor: '#e5e7eb',
+        isDark: false,
+      };
+  }
+}
+
+function getFontFamily(font: FontChoice): string {
+  switch (font) {
+    case 'inter': return '"Inter", system-ui, -apple-system, sans-serif';
+    case 'lora': return '"Lora", Georgia, "Times New Roman", serif';
+    case 'nunito':
+    default: return '"Nunito", "Varela Round", sans-serif';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Metadata (including OG)
 // ---------------------------------------------------------------------------
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
   const { slug } = await params;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://punktual.co';
+
   try {
     const supabase = createAnonClient();
     const { data } = await supabase
       .from('event_pages')
-      .select('title, description')
+      .select('title, description, tagline, host_name, accent_color, bg_theme, og_image_url')
       .eq('slug', slug)
       .eq('is_published', true)
       .single();
 
     if (!data) return { title: 'Event | Punktual' };
 
+    const title = data.title as string;
+    const description = (data.description ?? data.tagline ?? 'View and add this event to your calendar.') as string;
+
+    // Build OG image URL
+    const ogImageUrl = (data.og_image_url as string | null) ?? (() => {
+      const params = new URLSearchParams({
+        title,
+        ...(data.tagline ? { tagline: data.tagline as string } : {}),
+        ...(data.host_name ? { host: data.host_name as string } : {}),
+        ...(data.accent_color ? { accent: (data.accent_color as string).replace('#', '') } : {}),
+        ...(data.bg_theme ? { theme: data.bg_theme as string } : {}),
+      });
+      return `${baseUrl}/api/og/event?${params.toString()}`;
+    })();
+
     return {
-      title: `${data.title} | Punktual`,
-      description: data.description ?? `View and add this event to your calendar.`,
+      title: `${title} | Punktual`,
+      description,
+      openGraph: {
+        title,
+        description,
+        images: [{ url: ogImageUrl, width: 1200, height: 630 }],
+        type: 'website',
+        url: `${baseUrl}/e/${slug}`,
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: [ogImageUrl],
+      },
     };
   } catch {
     return { title: 'Event | Punktual' };
@@ -116,7 +245,6 @@ function formatEventDate(
     if (isAllDay) {
       const startStr = start.toLocaleDateString('en-US', dateOpts);
       if (end) {
-        // Check if same day
         const startDay = start.toLocaleDateString('en-US', { timeZone: timezone || 'UTC' });
         const endDay = end.toLocaleDateString('en-US', { timeZone: timezone || 'UTC' });
         if (startDay !== endDay) {
@@ -149,10 +277,6 @@ function formatEventDate(
   }
 }
 
-/**
- * Returns a short human-readable timezone label, e.g. "Eastern Time (ET)".
- * Falls back to the raw IANA string if Intl is unavailable.
- */
 function formatTimezone(ianaZone: string): string {
   if (!ianaZone || ianaZone === 'UTC') return 'UTC';
   try {
@@ -168,16 +292,11 @@ function formatTimezone(ianaZone: string): string {
   }
 }
 
-/**
- * Convert a timestamptz string + timezone to EventData date/time fields
- * so we can pass them to generateCalendarLinks.
- */
 function timestampToEventFields(
   isoString: string,
   timezone: string
 ): { date: string; time: string } {
   const d = new Date(isoString);
-  // Get the wall-clock date/time in the event's timezone
   const fmt = new Intl.DateTimeFormat('en-CA', {
     timeZone: timezone || 'UTC',
     year: 'numeric',
@@ -191,7 +310,6 @@ function timestampToEventFields(
     hour12: false,
   });
 
-  // en-CA locale gives YYYY-MM-DD format natively
   const dateParts = fmt.formatToParts(d);
   const year = dateParts.find(p => p.type === 'year')?.value ?? '';
   const month = dateParts.find(p => p.type === 'month')?.value ?? '';
@@ -201,7 +319,6 @@ function timestampToEventFields(
   const timeParts = timeFmt.formatToParts(d);
   const hour = timeParts.find(p => p.type === 'hour')?.value?.padStart(2, '0') ?? '00';
   const minute = timeParts.find(p => p.type === 'minute')?.value?.padStart(2, '0') ?? '00';
-  // Intl hour12:false can give "24" for midnight — clamp it
   const safeHour = hour === '24' ? '00' : hour;
   const time = `${safeHour}:${minute}`;
 
@@ -209,7 +326,7 @@ function timestampToEventFields(
 }
 
 // ---------------------------------------------------------------------------
-// Calendar icon SVGs (inline, no external dependency)
+// Calendar icon SVGs (inline)
 // ---------------------------------------------------------------------------
 
 function GoogleIcon() {
@@ -248,18 +365,21 @@ export default async function EventLandingPage(
 ) {
   const { slug } = await params;
 
-  // Fetch the published event page
   let supabase;
   try {
     supabase = createAnonClient();
   } catch {
-    // Env vars missing — surface gracefully in dev, fail silently in prod (notFound)
     notFound();
   }
 
   const { data: page, error } = await supabase
     .from('event_pages')
-    .select('id, slug, title, description, location, timezone, feed_token, is_published, start_at, end_at, is_all_day')
+    .select([
+      'id', 'slug', 'title', 'description', 'location', 'timezone',
+      'feed_token', 'is_published', 'start_at', 'end_at', 'is_all_day',
+      'accent_color', 'bg_theme', 'font_choice', 'cover_image_url',
+      'host_name', 'host_logo_url', 'tagline', 'cta_label', 'og_image_url',
+    ].join(', '))
     .eq('slug', slug)
     .eq('is_published', true)
     .single();
@@ -271,7 +391,16 @@ export default async function EventLandingPage(
   const eventPage = page as EventPageRow;
   const tz = eventPage.timezone || 'UTC';
 
-  // Build EventData for the calendar generator
+  // Apply customization — with fallbacks to defaults
+  const accentColor = eventPage.accent_color ?? '#10b981';
+  const bgTheme = (eventPage.bg_theme as BgTheme) ?? 'white';
+  const fontChoice = (eventPage.font_choice as FontChoice) ?? 'nunito';
+  const ctaLabel = eventPage.cta_label ?? 'Subscribe — get every update automatically in your calendar';
+
+  const tokens = getThemeTokens(bgTheme, accentColor);
+  const fontFamily = getFontFamily(fontChoice);
+
+  // Build calendar links
   let calendarLinks: ReturnType<typeof generateCalendarLinks> | null = null;
 
   if (eventPage.start_at) {
@@ -299,194 +428,322 @@ export default async function EventLandingPage(
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://punktual.co';
   const webcalUrl = `webcal://${baseUrl.replace(/^https?:\/\//, '')}/api/feed/${eventPage.feed_token}`;
 
+  // Google Fonts URL for the chosen font
+  const fontUrl = fontChoice === 'inter'
+    ? 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'
+    : fontChoice === 'lora'
+    ? 'https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&display=swap'
+    : 'https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap';
+
+  // Inline style for gradient backgrounds (can't be expressed as a Tailwind class)
+  const mainBgStyle: React.CSSProperties = bgTheme === 'gradient'
+    ? { background: tokens.mainBg }
+    : bgTheme === 'dark'
+    ? { backgroundColor: tokens.mainBg }
+    : bgTheme === 'stone'
+    ? { backgroundColor: tokens.mainBg }
+    : {};
+
   return (
-    <main className="min-h-screen bg-gray-50">
-      {/* ------------------------------------------------------------------ */}
-      {/* Hero section                                                         */}
-      {/* ------------------------------------------------------------------ */}
-      <section className="bg-white border-b border-gray-200">
-        <div className="max-w-2xl mx-auto px-6 py-12 sm:py-16">
-          {/* Title */}
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight mb-6">
-            {eventPage.title}
-          </h1>
+    <>
+      {/* Load selected Google Font */}
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link rel="stylesheet" href={fontUrl} />
 
-          {/* Date / time */}
-          {formattedDate ? (
-            <div className="flex items-start gap-3 mb-4">
-              <span className="text-emerald-500 mt-0.5 flex-shrink-0" aria-hidden="true">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                  <line x1="16" y1="2" x2="16" y2="6"/>
-                  <line x1="8" y1="2" x2="8" y2="6"/>
-                  <line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-              </span>
-              <div>
-                <p className="text-gray-800 font-semibold text-lg leading-snug">{formattedDate}</p>
-                {timezoneLabel && (
-                  <p className="text-gray-500 text-sm mt-0.5">{timezoneLabel}</p>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-emerald-500 flex-shrink-0" aria-hidden="true">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                  <line x1="16" y1="2" x2="16" y2="6"/>
-                  <line x1="8" y1="2" x2="8" y2="6"/>
-                  <line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-              </span>
-              <p className="text-gray-500 text-base">Date to be announced</p>
-            </div>
-          )}
-
-          {/* Location */}
-          {eventPage.location && (
-            <div className="flex items-start gap-3 mb-4">
-              <span className="text-emerald-500 mt-0.5 flex-shrink-0" aria-hidden="true">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                  <circle cx="12" cy="10" r="3"/>
-                </svg>
-              </span>
-              <p className="text-gray-800 font-medium text-base leading-snug">{eventPage.location}</p>
-            </div>
-          )}
-
-          {/* Description */}
-          {eventPage.description && (
-            <div className="mt-6 pt-6 border-t border-gray-100">
-              <p className="text-gray-700 text-base leading-relaxed whitespace-pre-wrap">
-                {eventPage.description}
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------------------ */}
-      {/* Calendar-add section                                                  */}
-      {/* ------------------------------------------------------------------ */}
-      <section className="max-w-2xl mx-auto px-6 py-10">
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b border-gray-100">
-            <h2 className="text-xl font-bold text-gray-900">Add this event to your calendar</h2>
-            <p className="text-gray-500 text-sm mt-1">
-              Choose your calendar app to save a copy of this event.
-            </p>
+      <main
+        className={`min-h-screen ${bgTheme === 'white' ? 'bg-gray-50' : ''}`}
+        style={{ fontFamily, ...mainBgStyle }}
+      >
+        {/* Cover image — full width, renders ABOVE the hero section */}
+        {eventPage.cover_image_url && (
+          <div className="w-full overflow-hidden" style={{ maxHeight: 360 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={eventPage.cover_image_url}
+              alt=""
+              className="w-full object-cover"
+              style={{ maxHeight: 360 }}
+            />
           </div>
+        )}
 
-          <div className="p-6">
-            {calendarLinks ? (
-              <div className="flex flex-col sm:flex-row gap-3">
-                {/* Google Calendar */}
-                {calendarLinks.google && (
-                  <a
-                    href={calendarLinks.google}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2.5 px-5 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-colors font-medium text-gray-800 text-sm shadow-sm"
-                  >
-                    <GoogleIcon />
-                    Google Calendar
-                  </a>
-                )}
+        {/* ------------------------------------------------------------------ */}
+        {/* Hero section                                                         */}
+        {/* ------------------------------------------------------------------ */}
+        <section
+          style={{
+            borderBottom: `1px solid ${tokens.borderColor}`,
+            backgroundColor: tokens.cardBg,
+          }}
+        >
+          <div className="max-w-2xl mx-auto px-6 py-12 sm:py-16">
 
-                {/* Apple Calendar */}
-                {calendarLinks.apple && (
-                  <a
-                    href={calendarLinks.apple}
-                    download={`${eventPage.slug}.ics`}
-                    className="flex items-center justify-center gap-2.5 px-5 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-colors font-medium text-gray-800 text-sm shadow-sm"
-                  >
-                    <span className="text-gray-800">
-                      <AppleIcon />
-                    </span>
-                    Apple Calendar
-                  </a>
+            {/* Host row */}
+            {eventPage.host_name && (
+              <div className="flex items-center gap-2.5 mb-5">
+                {eventPage.host_logo_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={eventPage.host_logo_url}
+                    alt={eventPage.host_name}
+                    className="w-7 h-7 rounded-full object-cover"
+                  />
                 )}
-
-                {/* Outlook */}
-                {calendarLinks.outlook && (
-                  <a
-                    href={calendarLinks.outlook}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2.5 px-5 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-colors font-medium text-gray-800 text-sm shadow-sm"
-                  >
-                    <OutlookIcon />
-                    Outlook
-                  </a>
-                )}
+                <span className="text-sm font-medium" style={{ color: tokens.metaColor }}>
+                  Hosted by {eventPage.host_name}
+                </span>
               </div>
-            ) : (
-              <p className="text-gray-400 text-sm italic">
-                Calendar links will appear once the organizer sets the event date and time.
+            )}
+
+            {/* Title */}
+            <h1
+              className="text-3xl sm:text-4xl font-bold leading-tight mb-3"
+              style={{ color: tokens.titleColor, fontFamily }}
+            >
+              {eventPage.title}
+            </h1>
+
+            {/* Tagline */}
+            {eventPage.tagline && (
+              <p
+                className="text-lg mb-5"
+                style={{ color: tokens.metaColor, fontFamily }}
+              >
+                {eventPage.tagline}
               </p>
             )}
+
+            {/* Date / time */}
+            {formattedDate ? (
+              <div className="flex items-start gap-3 mb-4">
+                <span className="mt-0.5 flex-shrink-0" style={{ color: accentColor }} aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                </span>
+                <div>
+                  <p className="font-semibold text-lg leading-snug" style={{ color: tokens.titleColor, fontFamily }}>
+                    {formattedDate}
+                  </p>
+                  {timezoneLabel && (
+                    <p className="text-sm mt-0.5" style={{ color: tokens.metaColor }}>{timezoneLabel}</p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 mb-4">
+                <span className="flex-shrink-0" style={{ color: accentColor }} aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                </span>
+                <p className="text-base" style={{ color: tokens.metaColor }}>Date to be announced</p>
+              </div>
+            )}
+
+            {/* Location */}
+            {eventPage.location && (
+              <div className="flex items-start gap-3 mb-4">
+                <span className="mt-0.5 flex-shrink-0" style={{ color: accentColor }} aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                </span>
+                <p className="font-medium text-base leading-snug" style={{ color: tokens.titleColor, fontFamily }}>
+                  {eventPage.location}
+                </p>
+              </div>
+            )}
+
+            {/* Description */}
+            {eventPage.description && (
+              <div
+                className="mt-6 pt-6"
+                style={{ borderTop: `1px solid ${tokens.borderColor}` }}
+              >
+                <p
+                  className="text-base leading-relaxed whitespace-pre-wrap"
+                  style={{ color: tokens.bodyColor, fontFamily }}
+                >
+                  {eventPage.description}
+                </p>
+              </div>
+            )}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Subscribe section — the Punktual differentiator                      */}
-      {/* ------------------------------------------------------------------ */}
-      <section className="max-w-2xl mx-auto px-6 pb-10">
-        <div className="bg-emerald-50 rounded-xl border border-emerald-200 overflow-hidden">
-          <div className="px-6 py-5 border-b border-emerald-100">
-            <h2 className="text-xl font-bold text-gray-900">
-              Never miss an update
-            </h2>
-            <p className="text-gray-600 text-sm mt-1">
-              Subscribe once and your calendar updates automatically whenever details change.
-            </p>
-          </div>
-
-          <div className="p-6">
-            <a
-              href={webcalUrl}
-              className="inline-flex items-center justify-center gap-2.5 px-6 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm transition-colors shadow-sm w-full sm:w-auto"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="17 8 12 3 7 8"/>
-                <line x1="12" y1="3" x2="12" y2="15"/>
-              </svg>
-              Subscribe — get every update automatically in your calendar
-            </a>
-
-            <p className="text-gray-500 text-xs mt-3">
-              Your calendar app will ask you to confirm the subscription — that&apos;s it. No account needed.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------------------ */}
-      {/* Scope line: RSVP / ticketing                                          */}
-      {/* ------------------------------------------------------------------ */}
-      <section className="max-w-2xl mx-auto px-6 pb-10">
-        <p className="text-gray-400 text-sm text-center">
-          RSVP is free. Paid ticketing is coming soon.
-        </p>
-      </section>
-
-      {/* ------------------------------------------------------------------ */}
-      {/* Footer                                                                */}
-      {/* ------------------------------------------------------------------ */}
-      <footer className="border-t border-gray-200 bg-white py-6">
-        <div className="max-w-2xl mx-auto px-6 text-center">
-          <Link
-            href="/"
-            className="text-gray-400 hover:text-emerald-500 transition-colors text-sm"
+        {/* ------------------------------------------------------------------ */}
+        {/* Calendar-add section                                                  */}
+        {/* ------------------------------------------------------------------ */}
+        <section className="max-w-2xl mx-auto px-6 py-10">
+          <div
+            className="rounded-xl overflow-hidden shadow-sm"
+            style={{
+              backgroundColor: tokens.cardBg,
+              border: `1px solid ${tokens.cardBorderColor}`,
+            }}
           >
-            Powered by Punktual
-          </Link>
-        </div>
-      </footer>
-    </main>
+            <div
+              className="px-6 py-5"
+              style={{ borderBottom: `1px solid ${tokens.cardBorderColor}` }}
+            >
+              <h2 className="text-xl font-bold" style={{ color: tokens.titleColor, fontFamily }}>
+                Add this event to your calendar
+              </h2>
+              <p className="text-sm mt-1" style={{ color: tokens.metaColor }}>
+                Choose your calendar app to save a copy of this event.
+              </p>
+            </div>
+
+            <div className="p-6">
+              {calendarLinks ? (
+                <div className="flex flex-col sm:flex-row gap-3">
+                  {calendarLinks.google && (
+                    <a
+                      href={calendarLinks.google}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2.5 px-5 py-3 rounded-lg font-medium text-sm transition-colors shadow-sm"
+                      style={{
+                        backgroundColor: tokens.cardBg,
+                        color: tokens.titleColor,
+                        border: `1px solid ${tokens.cardBorderColor}`,
+                      }}
+                    >
+                      <GoogleIcon />
+                      Google Calendar
+                    </a>
+                  )}
+
+                  {calendarLinks.apple && (
+                    <a
+                      href={calendarLinks.apple}
+                      download={`${eventPage.slug}.ics`}
+                      className="flex items-center justify-center gap-2.5 px-5 py-3 rounded-lg font-medium text-sm transition-colors shadow-sm"
+                      style={{
+                        backgroundColor: tokens.cardBg,
+                        color: tokens.titleColor,
+                        border: `1px solid ${tokens.cardBorderColor}`,
+                      }}
+                    >
+                      <AppleIcon />
+                      Apple Calendar
+                    </a>
+                  )}
+
+                  {calendarLinks.outlook && (
+                    <a
+                      href={calendarLinks.outlook}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2.5 px-5 py-3 rounded-lg font-medium text-sm transition-colors shadow-sm"
+                      style={{
+                        backgroundColor: tokens.cardBg,
+                        color: tokens.titleColor,
+                        border: `1px solid ${tokens.cardBorderColor}`,
+                      }}
+                    >
+                      <OutlookIcon />
+                      Outlook
+                    </a>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm italic" style={{ color: tokens.metaColor }}>
+                  Calendar links will appear once the organizer sets the event date and time.
+                </p>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* ------------------------------------------------------------------ */}
+        {/* Subscribe section — the Punktual differentiator                      */}
+        {/* ------------------------------------------------------------------ */}
+        <section className="max-w-2xl mx-auto px-6 pb-10">
+          <div
+            className="rounded-xl overflow-hidden"
+            style={{
+              backgroundColor: tokens.isDark ? `${accentColor}22` : `${accentColor}14`,
+              border: `1px solid ${accentColor}40`,
+            }}
+          >
+            <div
+              className="px-6 py-5"
+              style={{ borderBottom: `1px solid ${accentColor}30` }}
+            >
+              <h2 className="text-xl font-bold" style={{ color: tokens.titleColor, fontFamily }}>
+                Never miss an update
+              </h2>
+              <p className="text-sm mt-1" style={{ color: tokens.metaColor }}>
+                Subscribe once and your calendar updates automatically whenever details change.
+              </p>
+            </div>
+
+            <div className="p-6">
+              <a
+                href={webcalUrl}
+                className="inline-flex items-center justify-center gap-2.5 px-6 py-3 rounded-lg font-semibold text-sm transition-colors shadow-sm w-full sm:w-auto"
+                style={{
+                  backgroundColor: accentColor,
+                  color: '#ffffff',
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                {ctaLabel}
+              </a>
+
+              <p className="text-xs mt-3" style={{ color: tokens.metaColor }}>
+                Your calendar app will ask you to confirm the subscription — that&apos;s it. No account needed.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ------------------------------------------------------------------ */}
+        {/* Scope line                                                            */}
+        {/* ------------------------------------------------------------------ */}
+        <section className="max-w-2xl mx-auto px-6 pb-10">
+          <p className="text-sm text-center" style={{ color: tokens.metaColor }}>
+            RSVP is free. Paid ticketing is coming soon.
+          </p>
+        </section>
+
+        {/* ------------------------------------------------------------------ */}
+        {/* Footer                                                                */}
+        {/* ------------------------------------------------------------------ */}
+        <footer
+          className="py-6"
+          style={{
+            borderTop: `1px solid ${tokens.borderColor}`,
+            backgroundColor: tokens.cardBg,
+          }}
+        >
+          <div className="max-w-2xl mx-auto px-6 text-center">
+            <Link
+              href="/"
+              className="text-sm transition-colors"
+              style={{ color: tokens.metaColor }}
+            >
+              Powered by Punktual
+            </Link>
+          </div>
+        </footer>
+      </main>
+    </>
   );
 }
