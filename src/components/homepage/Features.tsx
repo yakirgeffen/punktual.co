@@ -41,7 +41,7 @@ export default function Features() {
   ];
 
   return (
-    <section className="py-16 bg-white">
+    <section id="features" className="py-16 bg-white scroll-mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-emerald-800 mb-3">Everything you need, nothing you don&apos;t.</h2>

@@ -9,7 +9,10 @@ export default function Hero() {
   const [copiedCode, setCopiedCode] = useState(false);
   const { user, loading } = useAuth();
 
+  const codeSnippet = '<button class="Punktual-btn">Add to Calendar</button>';
+
   const handleCopyCode = () => {
+    navigator.clipboard?.writeText(codeSnippet).catch(() => {});
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
   };
@@ -91,7 +94,7 @@ export default function Hero() {
                 <div className="space-y-3">
                   <div className="flex items-center text-gray-600">
                     <Calendar className="w-4 h-4 mr-2" />
-                    <span className="text-sm">June 15, 2025 at 2:00 PM PST</span>
+                    <span className="text-sm">October 8, 2026 at 2:00 PM PST</span>
                   </div>
                   <div className="flex items-center text-gray-600">
                     <Users className="w-4 h-4 mr-2" />
@@ -132,7 +135,7 @@ export default function Hero() {
                     </button>
                   </div>
                   <code className="text-xs text-gray-600 block">
-                    &lt;button class=&quot;Punktual-btn&quot;&gt;Add to Calendar&lt;/button&gt;
+                    {codeSnippet}
                   </code>
                 </div>
               </div>
