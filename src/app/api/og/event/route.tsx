@@ -48,7 +48,9 @@ function getThemeConfig(theme: Theme, accent: string): ThemeConfig {
       };
     case 'gradient':
       return {
-        bg: `linear-gradient(135deg, ${accent} 0%, #059669 100%)`,
+        // Second stop uses accent at 80% opacity (cc = 204/255 ≈ 80%) so the
+        // gradient always derives from the organizer's accent, not a hardcoded emerald.
+        bg: `linear-gradient(135deg, ${accent} 0%, ${accent}cc 100%)`,
         text: '#ffffff',
         subtext: 'rgba(255,255,255,0.8)',
         badge: 'rgba(255,255,255,0.2)',
@@ -112,7 +114,7 @@ export async function GET(request: NextRequest) {
             display: 'flex',
             flexDirection: 'row',
             fontFamily: 'sans-serif',
-            backgroundColor: isGradient ? '#10b981' : tc.bg,
+            backgroundColor: isGradient ? accent : tc.bg,
             backgroundImage: isGradient ? tc.bg : undefined,
             position: 'relative',
             overflow: 'hidden',
