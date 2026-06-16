@@ -4,10 +4,11 @@ import { useState, useMemo, useEffect } from 'react';
 import { Calendar, User, LogOut, Settings, } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { 
-  Dropdown, 
-  DropdownTrigger, 
-  DropdownMenu, 
+import { usePathname } from 'next/navigation';
+import {
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
   DropdownItem,
   DropdownSection,
   Button,
@@ -20,6 +21,7 @@ export default function Navbar() {
   const { user, signOut, loading, initialized } = useAuth();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [authMode, setAuthMode] = useState('login');
+  const pathname = usePathname();
 
   // DEBUG: Log auth state
   useEffect(() => {
@@ -47,18 +49,18 @@ export default function Navbar() {
   // Memoized user display name
   const userDisplayName = useMemo(() => {
     if (!user) return '';
-    return user.user_metadata?.full_name || 
-           user.user_metadata?.name || 
-           user.email?.split('@')[0] || 
+    return user.user_metadata?.full_name ||
+           user.user_metadata?.name ||
+           user.email?.split('@')[0] ||
            'User';
   }, [user]);
 
   // Memoized first name with proper truncation
   const userFirstName = useMemo(() => {
     if (!user) return '';
-    
+
     const fullName = user.user_metadata?.full_name || user.user_metadata?.name;
-    
+
     if (fullName) {
       // Extract first name (handles "J.R. Smith" → "J.R.")
       const firstName = fullName.trim().split(' ')[0];
@@ -69,7 +71,7 @@ export default function Navbar() {
       const emailName = user.email.split('@')[0];
       return emailName.length > 12 ? emailName.substring(0, 12) + '...' : emailName;
     }
-    
+
     return 'User'; // Ultimate fallback
   }, [user]);
 
@@ -80,11 +82,15 @@ export default function Navbar() {
     </div>
   );
 
+  // Hide "Create Event" nav link when already on the create page — it's redundant
+  // and collides with the primary "Create Event & Generate Links" action on the page.
+  const isOnCreatePage = pathname === '/create';
+
   return (
     <>
       {/* DEBUG INFO - Remove this in production */}
       {process.env.NODE_ENV === 'development' && debugInfo}
-      
+
       <header className="border-b-2 border-emerald-400 bg-white sticky top-0 z-50 backdrop-blur-xl bg-white/55">
         <div className="max-w-7xl mx-auto px-8 sm:px-6 lg:px-12">
           <div className="flex justify-between items-center py-4">
@@ -97,24 +103,26 @@ export default function Navbar() {
                 className="h-12 w-auto"
               />
             </Link>
-            
+
             {/* <nav className="hidden md:flex space-x-8">
               <a href="#problem" className="text-gray-600 hover:text-emerald-500 transition-colors">Why Punktual</a>
               <a href="#pricing" className="text-gray-600 hover:text-emerald-500 transition-colors">Pricing</a>
               <a href="#docs" className="text-gray-600 hover:text-emerald-500 transition-colors">Docs</a>
             </nav> */}
-            
+
             <div className="flex items-center space-x-3">
               {user ? (
                 // 🔥 AUTHENTICATED STATE - Show this when user exists (regardless of loading)
                 <div className="flex items-center space-x-3">
-                  <Link 
-                    href="/create"
-                    className="bg-emerald-500 text-white px-4 py-2.5 rounded-lg hover:bg-emerald-400 transition-colors font-medium min-h-[42px] flex items-center justify-center"
-                  >
-                    Create Event
-                  </Link>
-                  
+                  {!isOnCreatePage && (
+                    <Link
+                      href="/create"
+                      className="bg-emerald-500 text-white px-4 py-2.5 rounded-lg hover:bg-emerald-400 transition-colors font-medium min-h-[42px] flex items-center justify-center"
+                    >
+                      Create Event
+                    </Link>
+                  )}
+
                   <Dropdown placement="bottom-end">
                     <DropdownTrigger>
                       <Button
@@ -138,7 +146,7 @@ export default function Navbar() {
                           {userDisplayName}
                         </DropdownItem>
                       </DropdownSection>
-                      
+
                       <DropdownSection title="Manage" showDivider>
                         <DropdownItem
                           key="dashboard"
@@ -162,7 +170,7 @@ export default function Navbar() {
                           Billing
                         </DropdownItem> */}
                       </DropdownSection>
-                      
+
                       <DropdownSection>
                         <DropdownItem
                           key="logout"
@@ -207,11 +215,11 @@ export default function Navbar() {
       </header>
 
       {/* Auth Modal */}
-      <AuthModal 
-        isOpen={isOpen} 
-        onClose={onClose} 
+      <AuthModal
+        isOpen={isOpen}
+        onClose={onClose}
         defaultTab={authMode}
-        redirectTo={undefined} 
+        redirectTo={undefined}
       />
     </>
   );
