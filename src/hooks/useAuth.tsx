@@ -5,13 +5,13 @@
 import { useState, useEffect, createContext, useContext, useCallback, ReactNode } from 'react';
 import { createClientComponentClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import type { 
-  SupabaseUser, 
-  SupabaseSession, 
-  AuthContextType, 
-  AuthResponse, 
-  SignUpOptions, 
-  UserProfile 
+import type {
+  SupabaseUser,
+  SupabaseSession,
+  AuthContextType,
+  AuthResponse,
+  SignUpOptions,
+  UserProfile
 } from '@/types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,7 +30,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const createUserProfile = useCallback(async (user: SupabaseUser): Promise<void> => {
     console.log('👤 Creating user profile for:', user.email);
-    
+
     try {
       // Check if profile already exists
       console.log('🔍 Checking if profile exists...');
@@ -84,6 +84,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // logged-out (QA 2026-06-13, bug #1). getSession() against the shared
   // @supabase/ssr browser client reads the cookie from storage; the old
   // timeout problem belonged to the previous, now-removed client setup.
+  //
+  // 2026-06-16 fix (dashboard read auth bug): getSession() returns whatever is
+  // in cookie storage — including an EXPIRED access token — without validating
+  // it against the GoTrue server. When data hooks (useSavedEvents, event-pages)
+  // fired their PostgREST queries with a stale/expired token, RLS treated the
+  // request as anonymous and returned 0 rows (or the token refresh lock caused
+  // the query to hang, which the Dashboard's 8s timeout then masked as an empty
+  // state). The fix: after getSession() returns a non-null session, call
+  // getUser() to validate the token server-side. If the token is expired,
+  // @supabase/ssr refreshes it before returning. Only THEN do we set
+  // initialized=true, which data hooks use as the gate before querying.
+  // This adds one GoTrue round-trip on cold load but guarantees the token is
+  // live before any PostgREST request fires.
   useEffect(() => {
     let cancelled = false;
 
@@ -91,8 +104,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         const { data: { session: existingSession } } = await supabase.auth.getSession();
         if (cancelled) return;
-        setUser(existingSession?.user ?? null);
-        setSession(existingSession ?? null);
+
+        if (existingSession) {
+          // Validate the token is still live. getUser() hits GoTrue /auth/v1/user
+          // and triggers a silent refresh if the access token is expired.
+          // This is the authoritative check — getSession() alone only reads
+          // from storage and can return a stale/expired token.
+          const { data: { user: validatedUser } } = await supabase.auth.getUser();
+          if (cancelled) return;
+
+          if (validatedUser) {
+            // Token is valid (or was refreshed). The browser client's internal
+            // session is now current — subsequent PostgREST calls will carry a
+            // live Authorization header.
+            setUser(validatedUser);
+            setSession(existingSession);
+          } else {
+            // Token could not be validated (refresh also failed — e.g. refresh
+            // token revoked). Treat as signed-out.
+            setUser(null);
+            setSession(null);
+          }
+        } else {
+          setUser(null);
+          setSession(null);
+        }
       } catch (error) {
         console.error('❌ Error hydrating auth session:', error);
       } finally {
@@ -178,12 +214,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email,
         password
       });
-      
+
       if (error) {
         console.error('❌ Signin error:', error);
         throw error;
       }
-      
+
       console.log('✅ Signin successful');
       return { user: data.user, session: data.session };
     } finally {
@@ -222,10 +258,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.error('❌ Signout error:', error);
         throw error;
       }
-      
+
       setUser(null);
       setSession(null);
-      
+
       console.log('✅ Signout successful, redirecting to home');
       router.push('/');
     } finally {
@@ -238,12 +274,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/reset-password`
     });
-    
+
     if (error) {
       console.error('❌ Password reset error:', error);
       throw error;
     }
-    
+
     console.log('✅ Password reset email sent');
   };
 
@@ -274,7 +310,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.error('❌ Profile update error:', profileError);
         throw profileError;
       }
-      
+
       console.log('✅ Profile updated successfully');
     } finally {
       setLoading(false);
@@ -295,7 +331,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.error('❌ Get profile error:', error);
       throw error;
     }
-    
+
     console.log('✅ Profile retrieved successfully');
     return data;
   };
