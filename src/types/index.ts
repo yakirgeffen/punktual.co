@@ -12,12 +12,12 @@ export interface EventData {
   title?: string;
   description?: string;
   location?: string;
-  
+
   // Host Information
   organizer?: string;
   hostName?: string;
   hostEmail?: string;
-  
+
   // Date & Time
   startDate?: string;
   startTime?: string;
@@ -25,25 +25,25 @@ export interface EventData {
   endTime?: string;
   timezone?: string;
   isAllDay?: boolean;
-  
+
   // Recurrence
   isRecurring?: boolean;
   recurrencePattern?: 'daily' | 'weekly' | 'monthly' | 'yearly';
   recurrenceInterval?: number;
   recurrenceCount?: number;
   recurrenceEndDate?: string;
-  
+
   // Weekly Recurrence
   weeklyDays?: number[]; // 0-6 (Sunday-Saturday)
-  
+
   // Monthly Recurrence
   monthlyOption?: 'date' | 'weekday';
   monthlyWeekday?: number; // 0-6 (Sunday-Saturday)
   monthlyWeekdayOrdinal?: number; // 0-5 (first, second, third, fourth, fifth, last)
-  
+
   // Yearly Recurrence
   yearlyMonth?: number; // 0-11 (January-December)
-  
+
   // Reminders
   reminderTime?: string;
 }
@@ -58,19 +58,19 @@ export interface ButtonData {
   buttonSize?: 'small' | 'medium' | 'large' | 'sm' | 'md' | 'lg' | 'xl';
   buttonLayout?: 'dropdown' | 'individual' | 'single';
   buttonShape?: 'squared' | 'rounded' | 'pill';
-  
+
   // Colors
   colorTheme?: 'light' | 'dark' | 'brand' | 'original' | string;
   textColor?: string;
   customBrandColor?: string;
-  
+
   // Features
   showIcons?: boolean;
   responsive?: boolean;
   openInNewTab?: boolean;
   ctaText?: string;
   displayOption?: 'names' | 'icons' | 'both';
-  
+
   //CustomText
     customText?: string;
 
@@ -237,14 +237,14 @@ export interface EventContextType {
   generatedCode: string;
   calendarLinks: CalendarLinks;
   savedShortLinks: CalendarLinks | null;
-  
+
   // Actions
   updateEvent: (data: Partial<EventData>) => void;
   updateButton: (data: Partial<ButtonData>) => void;
   setOutput: (type: string) => void;
   setSavedShortLinks: (links: CalendarLinks) => void;
   clearShortLinks: () => void;
-  
+
   // State
   isLoading: boolean;
 }
@@ -483,3 +483,58 @@ export interface BlogAnalyticsEvent {
   timestamp: string;
   userId?: string;
 }
+
+// ============================================================================
+// EVENTS PLATFORM TYPES — B-1a (webcal feed) + B-2 (RSVP)
+// ============================================================================
+
+/**
+ * EventPage — public-facing organizer event page.
+ *
+ * Distinct from EventData / the existing events table (which is a user's
+ * private saved calendar event). An EventPage is the managed-events surface:
+ * it has a public slug, a feed_token for webcal distribution, and RSVP state.
+ *
+ * Mirrors the event_pages table created in migration 20260616_events_platform_b1a.sql.
+ */
+export interface EventPage {
+  id: string;
+  /** Auth user id of the organizer */
+  user_id: string;
+  /** URL slug: punktual.co/e/[slug] */
+  slug: string;
+  title: string;
+  description?: string;
+  location?: string;
+  /** IANA timezone string, e.g. 'America/New_York' */
+  timezone: string;
+  /** Opaque UUID for /api/feed/[feed_token] — not the page id */
+  feed_token: string;
+  /** False = draft; True = publicly visible */
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Attendee — RSVP / registration record.
+ *
+ * One row per attendee per event page. The unique(event_page_id, email)
+ * constraint in the DB prevents duplicate registrations.
+ *
+ * Mirrors the attendees table created in migration 20260616_events_platform_b1a.sql.
+ */
+export interface Attendee {
+  id: string;
+  event_page_id: string;
+  email: string;
+  name: string;
+  created_at: string;
+}
+
+/** Shape returned when creating a new EventPage — feed_token is included once */
+export type CreateEventPageResponse = {
+  eventPage: EventPage;
+  feedUrl: string; // e.g. 'https://punktual.co/api/feed/[feed_token]'
+  webcalUrl: string; // e.g. 'webcal://punktual.co/api/feed/[feed_token]'
+};
