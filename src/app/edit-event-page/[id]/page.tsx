@@ -31,13 +31,13 @@ import type { EventPage, EventPageBgTheme, EventPageFontChoice } from '@/types';
 const ACCENT_DEFAULT = '#10b981';
 const BG_THEME_DEFAULT: EventPageBgTheme = 'white';
 const FONT_DEFAULT: EventPageFontChoice = 'nunito';
-const CTA_LABEL_DEFAULT = 'Subscribe — get every update automatically in your calendar';
+const CTA_LABEL_DEFAULT = 'Subscribe to this event';
 const STORAGE_BUCKET = 'event-page-assets';
 
 const FONT_OPTIONS: { value: EventPageFontChoice; label: string; sample: string; fontFamily: string }[] = [
   { value: 'nunito', label: 'Friendly and Round', sample: 'Abc', fontFamily: '"Nunito", "Varela Round", sans-serif' },
   { value: 'inter', label: 'Clean and Modern', sample: 'Abc', fontFamily: '"Inter", system-ui, sans-serif' },
-  { value: 'lora', label: 'Refined and Classic', sample: 'Abc', fontFamily: '"Lora", Georgia, serif' },
+  { value: 'lora', label: 'Elegant and Considered', sample: 'Abc', fontFamily: '"Lora", Georgia, serif' },
 ];
 
 interface BgThemeOption {
@@ -311,7 +311,7 @@ function LivePreview({ form, slug }: PreviewProps) {
               </div>
             )}
 
-            {/* Title */}
+            {/* Title — display font */}
             <div style={{
               fontSize: 18,
               fontWeight: 700,
@@ -323,7 +323,7 @@ function LivePreview({ form, slug }: PreviewProps) {
               {form.title || 'Your Event Title'}
             </div>
 
-            {/* Tagline */}
+            {/* Tagline — display font */}
             {form.tagline && (
               <div style={{ fontSize: 12, color: metaColor, marginBottom: 8, fontFamily }}>
                 {form.tagline}
@@ -335,8 +335,8 @@ function LivePreview({ form, slug }: PreviewProps) {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2">
                 <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
               </svg>
-              <span style={{ fontSize: 11, color: titleColor, fontWeight: 600, fontFamily }}>
-                {form.startDate || 'Date to be announced'}
+              <span style={{ fontSize: 11, color: titleColor, fontWeight: 600 }}>
+                {form.startDate || 'Date coming soon'}
               </span>
             </div>
 
@@ -346,7 +346,7 @@ function LivePreview({ form, slug }: PreviewProps) {
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
                 </svg>
-                <span style={{ fontSize: 11, color: titleColor, fontWeight: 500, fontFamily }}>{form.location}</span>
+                <span style={{ fontSize: 11, color: titleColor, fontWeight: 500 }}>{form.location}</span>
               </div>
             )}
           </div>
@@ -378,7 +378,6 @@ function LivePreview({ form, slug }: PreviewProps) {
                       border: `1px solid ${cardBorder}`,
                       fontSize: 9,
                       color: titleColor,
-                      fontFamily,
                       fontWeight: 500,
                     }}>{cal}</div>
                   ))}
@@ -403,7 +402,6 @@ function LivePreview({ form, slug }: PreviewProps) {
                 padding: '6px 10px',
                 fontSize: 10,
                 fontWeight: 600,
-                fontFamily,
                 width: '100%',
                 textAlign: 'center',
               }}>
@@ -414,7 +412,7 @@ function LivePreview({ form, slug }: PreviewProps) {
 
           {/* Footer */}
           <div style={{ padding: '8px', textAlign: 'center', borderTop: `1px solid ${borderColor}` }}>
-            <span style={{ fontSize: 9, color: metaColor, fontFamily }}>Powered by Punktual</span>
+            <span style={{ fontSize: 9, color: metaColor }}>Powered by Punktual</span>
           </div>
         </div>
       </div>
