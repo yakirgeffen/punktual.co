@@ -1,10 +1,10 @@
 // 'use client';
 
 // import { useState, useEffect } from 'react';
-// import { 
-//   Modal, 
-//   ModalContent, 
-//   ModalHeader, 
+// import {
+//   Modal,
+//   ModalContent,
+//   ModalHeader,
 //   ModalBody,
 //   Button,
 //   Input,
@@ -17,9 +17,9 @@
 // import { useRouter } from 'next/navigation';
 // import toast from 'react-hot-toast';
 
-// export default function AuthModal({ 
-//   isOpen, 
-//   onClose, 
+// export default function AuthModal({
+//   isOpen,
+//   onClose,
 //   defaultTab = 'login',
 //   redirectTo
 // }) {
@@ -112,8 +112,8 @@
 //   };
 
 //   return (
-//     <Modal 
-//       isOpen={isOpen} 
+//     <Modal
+//       isOpen={isOpen}
 //       onClose={onClose}
 //       placement="center"
 //       backdrop="blur"
@@ -125,12 +125,12 @@
 //             {activeTab === 'login' ? 'Welcome back' : 'Create account'}
 //           </h2>
 //           <p className="text-sm text-gray-600">
-//             {activeTab === 'login' 
-//               ? 'Sign in to your Punktual account' 
+//             {activeTab === 'login'
+//               ? 'Sign in to your Punktual account'
 //               : 'Get started with Punktual'}
 //           </p>
 //         </ModalHeader>
-        
+//
 //         <ModalBody className="pb-6">
 //           {/* Tab Switcher */}
 //           <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
@@ -301,10 +301,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  Modal, 
-  ModalContent, 
-  ModalHeader, 
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
   ModalBody,
   Button,
   Input,
@@ -316,9 +316,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
-export default function AuthModal({ 
-  isOpen, 
-  onClose, 
+export default function AuthModal({
+  isOpen,
+  onClose,
   defaultTab = 'login',
   redirectTo
 }) {
@@ -333,7 +333,7 @@ export default function AuthModal({
     fullName: ''
   });
 
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  const { signIn, signUp, signInWithGoogle, resetPassword } = useAuth();
   const router = useRouter();
 
   // Update mode when defaultTab changes
@@ -343,7 +343,7 @@ export default function AuthModal({
   }, [defaultTab]);
 
   // Reset any stuck busy state when the modal (re)opens — e.g. browser
-  // back-navigation after a Google OAuth redirect left loading=true (QA #5)
+  // back-navigation after a Google OAuth redirect left loading=true.
   useEffect(() => {
     if (isOpen) setLoading(false);
   }, [isOpen]);
@@ -358,7 +358,6 @@ export default function AuthModal({
 
     try {
       if (isSignUp) {
-        // Validation for signup
         if (formData.password !== formData.confirmPassword) {
           toast.error('Passwords do not match');
           return;
@@ -401,6 +400,19 @@ export default function AuthModal({
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!formData.email) {
+      toast.error('Enter your email address above, then click Forgot password');
+      return;
+    }
+    try {
+      await resetPassword(formData.email);
+      toast.success('Password reset email sent — check your inbox');
+    } catch (error) {
+      toast.error(error.message || 'Could not send reset email');
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       email: '',
@@ -421,8 +433,8 @@ export default function AuthModal({
   };
 
   return (
-    <Modal 
-      isOpen={isOpen} 
+    <Modal
+      isOpen={isOpen}
       onClose={onClose}
       placement="center"
       backdrop="blur"
@@ -434,13 +446,13 @@ export default function AuthModal({
             {isSignUp ? 'Get started with Punktual' : 'Welcome back'}
           </h2>
           <p className="text-sm text-gray-600">
-            {isSignUp 
+            {isSignUp
               ? 'Create calendar buttons in seconds'
               : 'Sign in to access your account'
             }
           </p>
         </ModalHeader>
-        
+
         <ModalBody className="pb-6">
           {!showEmailForm ? (
             // Primary OAuth flow
@@ -492,6 +504,7 @@ export default function AuthModal({
               <div className="flex items-center gap-3 mb-6">
                 <button
                   onClick={goBackToSocial}
+                  aria-label="Back"
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
@@ -541,6 +554,7 @@ export default function AuthModal({
                     <button
                       type="button"
                       onClick={() => setIsVisible(!isVisible)}
+                      aria-label={isVisible ? 'Hide password' : 'Show password'}
                       className="focus:outline-none"
                     >
                       {isVisible ? (
@@ -580,9 +594,14 @@ export default function AuthModal({
 
               {!isSignUp && (
                 <div className="text-center">
-                  <Link href="#" size="sm" className="text-emerald-600">
+                  {/* Replaced broken href="#" with a functional password-reset button */}
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="text-sm text-emerald-600 hover:text-emerald-500 transition-colors"
+                  >
                     Forgot your password?
-                  </Link>
+                  </button>
                 </div>
               )}
 

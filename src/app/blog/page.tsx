@@ -38,10 +38,9 @@ export default async function BlogPage() {
       <div className="mx-auto mt-12 max-w-6xl px-6 sm:px-8 lg:px-12">
         {posts.length === 0 ? (
           <div className="mt-20 rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-lg shadow-emerald-500/5">
-            <h2 className="text-2xl font-semibold text-slate-900">No published sessions yet</h2>
+            <h2 className="text-2xl font-semibold text-slate-900">No posts yet</h2>
             <p className="mx-auto mt-3 max-w-xl text-slate-600">
-              Run the Strapi seeding script and revalidate the blog to surface the latest shipping
-              notes. Once published, your newest session recap will live here automatically.
+              Check back soon — new posts will appear here automatically once they&apos;re published.
             </p>
           </div>
         ) : (

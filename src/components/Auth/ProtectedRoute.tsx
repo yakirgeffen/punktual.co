@@ -17,17 +17,13 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children, redirectTo }: ProtectedRouteProps) {
   const { user, loading, initialized } = useAuth();
 
-  console.log('🟡 ProtectedRoute:', { user: !!user, loading, initialized });
-
   // If user exists, show content immediately (handles OAuth race condition)
   if (user) {
-    console.log('✅ ProtectedRoute: User authenticated, showing protected content');
     return <>{children}</>;
   }
 
   // Only show loading if we're still initializing and no user
   if (!initialized || loading) {
-    console.log('🔴 ProtectedRoute showing loading screen');
     return (
       <div className="bg-gradient-to-br from-emerald-50 via-white to-emerald-50 lg:min-h-screen flex items-center justify-center px-4 py-16">
         <div className="text-center">
@@ -38,7 +34,6 @@ export default function ProtectedRoute({ children, redirectTo }: ProtectedRouteP
     );
   }
 
-  // If user is NOT authenticated, show the auth form
-  console.log('🟡 ProtectedRoute: User not authenticated, showing auth form');
+  // User is not authenticated — show the auth form
   return <AuthRequired redirectTo={redirectTo} />;
 }

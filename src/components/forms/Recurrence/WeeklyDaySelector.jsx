@@ -13,7 +13,7 @@ export default function WeeklyDaySelector({ eventData, onUpdate }) {
 
   const toggleDay = (dayIndex) => {
     const currentDays = eventData.weeklyDays || [];
-    const newDays = currentDays.includes(dayIndex) 
+    const newDays = currentDays.includes(dayIndex)
       ? currentDays.filter(d => d !== dayIndex)
       : [...currentDays, dayIndex].sort();
     onUpdate({ weeklyDays: newDays });
@@ -22,18 +22,19 @@ export default function WeeklyDaySelector({ eventData, onUpdate }) {
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-3">Repeat on days</label>
-      <div className="flex gap-2">
+      <div className="flex gap-2" role="group" aria-label="Days of the week">
         {days.map((day) => (
           <button
             key={day.index}
             type="button"
             onClick={() => toggleDay(day.index)}
+            aria-label={day.full}
+            aria-pressed={(eventData.weeklyDays || []).includes(day.index)}
             className={`w-10 h-10 rounded-full text-sm font-medium border-2 transition-all ${
               (eventData.weeklyDays || []).includes(day.index)
                 ? 'bg-emerald-400 text-white border-emerald-400'
                 : 'bg-white text-gray-600 border-gray-300 hover:border-emerald-500'
             }`}
-            title={day.full}
           >
             {day.short}
           </button>
