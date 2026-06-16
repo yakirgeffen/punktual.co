@@ -120,7 +120,7 @@ export interface UserProfile {
   email: string;
   full_name?: string;
   avatar_url?: string;
-  plan: 'free' | 'pro';
+  plan: 'free' | 'pro' | 'admin';
   created_at: string;
   updated_at?: string;
 }

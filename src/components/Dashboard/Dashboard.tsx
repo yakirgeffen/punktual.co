@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Grid3X3, List, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, Search, Filter, Grid3X3, List, AlertCircle, LayoutTemplate } from 'lucide-react';
 import Link from 'next/link';
 import { Button, Input } from '@heroui/react';
 import { useSavedEvents } from '@/hooks/useSavedEvents';
@@ -15,6 +15,20 @@ type ViewMode = 'grid' | 'list';
 type SortBy = 'created_at' | 'title' | 'last_used_at';
 type SortOrder = 'asc' | 'desc';
 
+// Stable defaults passed to useSavedEvents on mount.
+// Search/sort state is kept in Dashboard and pushed via refetch() so the hook
+// doesn't re-initialise (and reset loading to true) on every keystroke.
+const STABLE_DEFAULTS = {
+  sortBy: 'created_at' as SortBy,
+  sortOrder: 'desc' as SortOrder,
+  limit: 20,
+  offset: 0,
+};
+
+// Safety timeout (ms): if loading stays true this long after auth resolved,
+// unblock the UI and show whatever state we have (empty or otherwise).
+const LOADING_TIMEOUT_MS = 8000;
+
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortBy>('created_at');
@@ -22,30 +36,55 @@ export default function Dashboard() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [showFilters, setShowFilters] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Tracks whether the timeout guard has forced loading to end
+  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
 
   const { user, loading: authLoading } = useAuth();
 
-  const { 
-    events, 
-    loading, 
-    totalCount, 
-    deleteEvent, 
-    duplicateEvent, 
-    updateLastUsed, 
-    refetch 
-  } = useSavedEvents({
-    searchQuery,
-    sortBy,
-    sortOrder,
-    limit: 20,
-    offset: 0
-  });
+  // Pass only stable defaults — search/sort changes go through refetch() below.
+  const {
+    events,
+    loading,
+    totalCount,
+    deleteEvent,
+    duplicateEvent,
+    updateLastUsed,
+    refetch
+  } = useSavedEvents(STABLE_DEFAULTS);
 
-  // Add error boundary for dashboard
+  // Safety net: if the events query is still loading 8 seconds after auth
+  // resolved, something has hung (network, RLS, stale closure). Force-end the
+  // loading state so users see the empty state instead of an infinite spinner.
+  const loadingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    // Only arm the timer once auth is done and the hook is still loading.
+    if (!authLoading && loading && !loadingTimedOut) {
+      loadingTimeoutRef.current = setTimeout(() => {
+        logger.warn('Dashboard events loading timed out after 8s', 'DASHBOARD');
+        setLoadingTimedOut(true);
+      }, LOADING_TIMEOUT_MS);
+    }
+
+    // Disarm when loading resolves naturally.
+    if (!loading) {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+      // Reset timeout flag so it can arm again on future fetches (e.g. search).
+      setLoadingTimedOut(false);
+    }
+
+    return () => {
+      if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
+    };
+  }, [authLoading, loading, loadingTimedOut]);
+
+  // Global runtime error boundary
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
-      logger.error('Dashboard runtime error', 'DASHBOARD', { 
-        error: event.error?.message || event.message 
+      logger.error('Dashboard runtime error', 'DASHBOARD', {
+        error: event.error?.message || event.message
       });
       setError('Something went wrong loading your events. Please refresh the page.');
     };
@@ -57,12 +96,15 @@ export default function Dashboard() {
   const handleSearch = (query: string) => {
     logger.info('Dashboard search', 'DASHBOARD', { query });
     setSearchQuery(query);
+    // Push the new search to the hook rather than relying on initial options reactivity.
+    refetch({ searchQuery: query, sortBy, sortOrder });
   };
 
   const handleSort = (newSortBy: SortBy, newSortOrder: SortOrder) => {
     logger.info('Dashboard sort', 'DASHBOARD', { sortBy: newSortBy, sortOrder: newSortOrder });
     setSortBy(newSortBy);
     setSortOrder(newSortOrder);
+    refetch({ searchQuery, sortBy: newSortBy, sortOrder: newSortOrder });
   };
 
   const handleDelete = async (eventId: string) => {
@@ -75,9 +117,9 @@ export default function Dashboard() {
   const handleDuplicate = async (eventId: string) => {
     const duplicatedEvent = await duplicateEvent(eventId);
     if (duplicatedEvent) {
-      logger.info('Event duplicated from dashboard', 'DASHBOARD', { 
-        originalId: eventId, 
-        newId: duplicatedEvent.id 
+      logger.info('Event duplicated from dashboard', 'DASHBOARD', {
+        originalId: eventId,
+        newId: duplicatedEvent.id
       });
     }
   };
@@ -85,8 +127,6 @@ export default function Dashboard() {
   const handleGenerateCalendar = async (eventId: string) => {
     await updateLastUsed(eventId);
     logger.info('Calendar generated from dashboard', 'DASHBOARD', { eventId });
-    // This would redirect to the event creator with the event data loaded
-    // For now, we'll just update the last used timestamp
   };
 
   // Auth guard: show loading state while auth initializes
@@ -131,7 +171,7 @@ export default function Dashboard() {
     );
   }
 
-  // Show error state if there's an error
+  // Show error state if there's a runtime error
   if (error) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -139,7 +179,7 @@ export default function Dashboard() {
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-slate-900 mb-2">Something went wrong</h2>
           <p className="text-slate-600 mb-4">{error}</p>
-          <Button 
+          <Button
             onClick={() => {
               setError(null);
               window.location.reload();
@@ -154,6 +194,9 @@ export default function Dashboard() {
     );
   }
 
+  // True when the hook is still fetching AND the timeout guard hasn't fired.
+  const showLoadingSpinner = loading && !loadingTimedOut;
+
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto px-6 py-8">
@@ -162,19 +205,32 @@ export default function Dashboard() {
           <div>
             <h1 className="text-3xl font-bold text-slate-900">My Events</h1>
             <p className="text-slate-600 mt-2">
-              {loading ? 'Loading...' : `${totalCount} saved ${totalCount === 1 ? 'event' : 'events'}`}
+              {showLoadingSpinner ? 'Loading...' : `${totalCount} saved ${totalCount === 1 ? 'event' : 'events'}`}
             </p>
           </div>
-          
-          <Link href="/create">
-            <Button 
-              color="primary" 
-              startContent={<Plus size={20} />}
-              className="bg-emerald-500 hover:bg-emerald-600"
-            >
-              Create New Event
-            </Button>
-          </Link>
+
+          <div className="flex items-center gap-3">
+            {/* Event Pages navigation — Elan will build /dashboard/event-pages */}
+            <Link href="/dashboard/event-pages">
+              <Button
+                variant="bordered"
+                startContent={<LayoutTemplate size={18} />}
+                className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+              >
+                My Event Pages
+              </Button>
+            </Link>
+
+            <Link href="/create">
+              <Button
+                color="primary"
+                startContent={<Plus size={20} />}
+                className="bg-emerald-500 hover:bg-emerald-600"
+              >
+                Create New Event
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Search and Controls */}
@@ -231,7 +287,7 @@ export default function Dashboard() {
         </div>
 
         {/* Events Grid/List */}
-        {loading ? (
+        {showLoadingSpinner ? (
           <div className="flex justify-center items-center py-12">
             <div className="text-center">
               <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -242,8 +298,8 @@ export default function Dashboard() {
           <EmptyState searchQuery={searchQuery} />
         ) : (
           <div className={
-            viewMode === 'grid' 
-              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
+            viewMode === 'grid'
+              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
               : "space-y-4"
           }>
             {events.map((event) => (

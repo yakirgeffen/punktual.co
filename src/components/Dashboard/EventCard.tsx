@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Calendar, MapPin, Clock, MoreVertical, Edit, Copy, Trash2, ExternalLink, Check, Code, Lock } from 'lucide-react';
+import { Calendar, MapPin, Clock, MoreVertical, Edit, Copy, Trash2, ExternalLink, Check, Code, Lock, LayoutTemplate } from 'lucide-react';
 import { Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, DropdownSection, Modal, ModalContent, ModalHeader, ModalBody, useDisclosure, Tabs, Tab, Card, CardBody } from '@heroui/react';
 import { formatDistanceToNow, format, parseISO } from 'date-fns';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
-// import Link from 'next/link'; // For future edit functionality
 import type { EventData, ButtonData } from '@/types';
 import { generateInlineEmbedCode } from '@/utils/embedCodeGenerator';
 import { generateCalendarLinks } from '@/utils/calendarGenerator';
@@ -60,21 +60,20 @@ export default function EventCard({
 
   const formatEventDate = (startDate?: string, startTime?: string, isAllDay?: boolean) => {
     if (!startDate) return 'Date not set';
-    
+
     try {
       const date = parseISO(startDate);
-      
+
       if (isAllDay) {
         return format(date, 'MMM d, yyyy');
       }
-      
+
       if (startTime) {
-        // Combine date and time for proper formatting
         const [hours, minutes] = startTime.split(':');
         date.setHours(parseInt(hours), parseInt(minutes));
         return format(date, 'MMM d, yyyy at h:mm a');
       }
-      
+
       return format(date, 'MMM d, yyyy');
     } catch {
       return 'Invalid date';
@@ -104,8 +103,6 @@ export default function EventCard({
         onOutputOpen();
         break;
       case 'edit':
-        // Navigate to create page with event data
-        // For now, we'll just generate calendar
         onGenerateCalendar();
         break;
       case 'duplicate':
@@ -122,6 +119,9 @@ export default function EventCard({
     }
   };
 
+  // URL Elan's /create-event-page route will receive to pre-populate the form.
+  const createEventPageUrl = `/create-event-page?eventId=${event.id}`;
+
   if (viewMode === 'list') {
     return (
       <div className="bg-white border rounded-lg p-6 hover:shadow-md transition-shadow">
@@ -132,25 +132,25 @@ export default function EventCard({
                 <h3 className="text-lg font-semibold text-slate-900 truncate">
                   {event.title || 'Untitled Event'}
                 </h3>
-                
+
                 <div className="flex items-center gap-4 mt-2 text-sm text-slate-600">
                   <div className="flex items-center gap-1">
                     <Calendar size={16} />
                     <span>{formatEventDate(event.startDate, event.startTime, event.isAllDay)}</span>
                   </div>
-                  
+
                   {event.location && (
                     <div className="flex items-center gap-1">
                       <MapPin size={16} />
                       <span className="truncate max-w-48">{event.location}</span>
                     </div>
                   )}
-                  
+
                   <div className="flex items-center gap-1">
                     <Clock size={16} />
                     <span>Created {getTimeAgo(event.created_at)}</span>
                   </div>
-                  
+
                   {event.last_used_at && (
                     <div className="text-emerald-600">
                       Used {getTimeAgo(event.last_used_at)}
@@ -158,60 +158,73 @@ export default function EventCard({
                   )}
                 </div>
               </div>
-              
-              <Dropdown isOpen={isMenuOpen} onOpenChange={setIsMenuOpen}>
-                <DropdownTrigger>
-                  <Button 
-                    variant="light" 
+
+              <div className="flex items-center gap-2 ml-2">
+                {/* Create Event Page shortcut */}
+                <Link href={createEventPageUrl}>
+                  <Button
                     size="sm"
-                    isIconOnly
-                    className="ml-2"
+                    variant="bordered"
+                    startContent={<LayoutTemplate size={14} />}
+                    className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 whitespace-nowrap"
                   >
-                    <MoreVertical size={16} />
+                    Create Event Page
                   </Button>
-                </DropdownTrigger>
-                <DropdownMenu
-                  aria-label="Event actions"
-                  onAction={(key) => handleMenuAction(key.toString())}
-                >
-                  <DropdownSection title="Actions">
-                    <DropdownItem
-                      key="outputs"
-                      startContent={<Code size={16} />}
+                </Link>
+
+                <Dropdown isOpen={isMenuOpen} onOpenChange={setIsMenuOpen}>
+                  <DropdownTrigger>
+                    <Button
+                      variant="light"
+                      size="sm"
+                      isIconOnly
                     >
-                      View Outputs
-                    </DropdownItem>
-                    <DropdownItem
-                      key="generate"
-                      startContent={<ExternalLink size={16} />}
-                    >
-                      Generate Calendar
-                    </DropdownItem>
-                    <DropdownItem
-                      key="edit"
-                      startContent={<Edit size={16} />}
-                    >
-                      Edit Event
-                    </DropdownItem>
-                    <DropdownItem
-                      key="duplicate"
-                      startContent={<Copy size={16} />}
-                    >
-                      Duplicate
-                    </DropdownItem>
-                  </DropdownSection>
-                  <DropdownSection>
-                    <DropdownItem
-                      key="delete"
-                      className="text-danger"
-                      color="danger"
-                      startContent={<Trash2 size={16} />}
-                    >
-                      Delete
-                    </DropdownItem>
-                  </DropdownSection>
-                </DropdownMenu>
-              </Dropdown>
+                      <MoreVertical size={16} />
+                    </Button>
+                  </DropdownTrigger>
+                  <DropdownMenu
+                    aria-label="Event actions"
+                    onAction={(key) => handleMenuAction(key.toString())}
+                  >
+                    <DropdownSection title="Actions">
+                      <DropdownItem
+                        key="outputs"
+                        startContent={<Code size={16} />}
+                      >
+                        View Outputs
+                      </DropdownItem>
+                      <DropdownItem
+                        key="generate"
+                        startContent={<ExternalLink size={16} />}
+                      >
+                        Generate Calendar
+                      </DropdownItem>
+                      <DropdownItem
+                        key="edit"
+                        startContent={<Edit size={16} />}
+                      >
+                        Edit Event
+                      </DropdownItem>
+                      <DropdownItem
+                        key="duplicate"
+                        startContent={<Copy size={16} />}
+                      >
+                        Duplicate
+                      </DropdownItem>
+                    </DropdownSection>
+                    <DropdownSection>
+                      <DropdownItem
+                        key="delete"
+                        className="text-danger"
+                        color="danger"
+                        startContent={<Trash2 size={16} />}
+                      >
+                        Delete
+                      </DropdownItem>
+                    </DropdownSection>
+                  </DropdownMenu>
+                </Dropdown>
+              </div>
             </div>
           </div>
         </div>
@@ -226,11 +239,11 @@ export default function EventCard({
         <h3 className="text-lg font-semibold text-slate-900 truncate pr-2">
           {event.title || 'Untitled Event'}
         </h3>
-        
+
         <Dropdown isOpen={isMenuOpen} onOpenChange={setIsMenuOpen}>
           <DropdownTrigger>
-            <Button 
-              variant="light" 
+            <Button
+              variant="light"
               size="sm"
               isIconOnly
               className="flex-shrink-0"
@@ -293,7 +306,7 @@ export default function EventCard({
           <Calendar size={16} />
           <span>{formatEventDate(event.startDate, event.startTime, event.isAllDay)}</span>
         </div>
-        
+
         {event.location && (
           <div className="flex items-center gap-2">
             <MapPin size={16} />
@@ -302,7 +315,7 @@ export default function EventCard({
         )}
       </div>
 
-      <div className="flex items-center justify-between text-xs text-slate-500 pt-4 border-t">
+      <div className="flex items-center justify-between text-xs text-slate-500 pt-4 border-t mb-4">
         <span>Created {getTimeAgo(event.created_at)}</span>
         {event.last_used_at ? (
           <span className="text-emerald-600">Used {getTimeAgo(event.last_used_at)}</span>
@@ -310,6 +323,18 @@ export default function EventCard({
           <span>Never used</span>
         )}
       </div>
+
+      {/* Create Event Page CTA — always visible in grid view */}
+      <Link href={createEventPageUrl} className="block">
+        <Button
+          size="sm"
+          variant="bordered"
+          startContent={<LayoutTemplate size={14} />}
+          className="w-full border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+        >
+          Create Event Page
+        </Button>
+      </Link>
 
       {/* Output Modal */}
       <Modal isOpen={isOutputOpen} onClose={onOutputClose} size="2xl" scrollBehavior="inside">
@@ -336,7 +361,6 @@ export default function EventCard({
                     </div>
                     <div className="relative">
                       <pre className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-auto max-h-64 text-xs font-mono">
-                        {/* Would generate actual code here */}
                         {`<!-- Add to Calendar Button -->\n<a href="..." class="add-calendar">Add to Calendar</a>`}
                       </pre>
                       <Button

@@ -25,20 +25,19 @@ const FormTabWrapper: React.FC = () => {
       const result = await saveEvent(eventData);
 
       if (result) {
-        // Event was saved successfully and short links were generated
         setSavedShortLinks(result.shortLinks);
         setSaved(true);
         console.log('Event saved with ID:', result.eventId);
         console.log('Short links set:', result.shortLinks);
 
-        // Redirect to dashboard after 1.5 seconds
+        // Redirect to dashboard after toast has had time to register
         setTimeout(() => {
           router.push('/dashboard');
-        }, 1500);
+        }, 800);
       }
       // Error handling is already done in the useSaveEvent hook
     } else {
-      // User is not authenticated - demo mode (just generate short links)
+      // User is not authenticated - demo mode (just generate calendar links)
       if (!eventData.title?.trim()) {
         import('react-hot-toast').then(({ default: toast }) => {
           toast.error('Please add an event title');
@@ -79,8 +78,8 @@ const FormTabWrapper: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Tabs 
-        aria-label="Event creation steps" 
+      <Tabs
+        aria-label="Event creation steps"
         radius="md"
         className="w-full"
         classNames={{
@@ -93,11 +92,11 @@ const FormTabWrapper: React.FC = () => {
         <Tab key="basic-info" title="Basic Information">
           <BasicInformationSection />
         </Tab>
-        
+
         <Tab key="date-time" title="Date & Time">
           <EventDetailsSection />
         </Tab>
-        
+
         <Tab key="platforms-button" title="Platforms & Button">
           <div className="space-y-8">
             <div>
@@ -124,16 +123,39 @@ const FormTabWrapper: React.FC = () => {
         <button
           onClick={handleCreateEvent}
           disabled={loading || saved}
-          className={`px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-200 ${
+          className={`px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 ${
             saved
               ? 'bg-emerald-100 text-emerald-700 border border-emerald-200 cursor-default'
               : loading
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              ? 'bg-emerald-500 text-white cursor-not-allowed opacity-80'
               : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg hover:shadow-xl'
           }`}
         >
+          {loading && (
+            <svg
+              className="animate-spin h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              />
+            </svg>
+          )}
           {loading
-            ? 'Creating Event...'
+            ? 'Creating your event...'
             : saved
             ? (user ? '✅ Event Saved with Short Links!' : '✅ Calendar Links Ready!')
             : 'Create Event & Generate Links'
