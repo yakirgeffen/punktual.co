@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { Button } from '@heroui/react';
 import { Plus, ExternalLink, Globe, FileText, Pencil } from 'lucide-react';
@@ -10,21 +10,34 @@ import { createClientComponentClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import type { EventPage } from '@/types';
 
+// Safety timeout: if auth resolved but the fetch is still loading after 8s,
+// force-end the spinner so the user sees an empty/error state instead of hanging.
+const LOADING_TIMEOUT_MS = 8000;
+
 // ---------------------------------------------------------------------------
 // Inner component — only rendered when the user is authenticated
 // ---------------------------------------------------------------------------
 
 function EventPagesList() {
-  const { user } = useAuth();
+  const { user, initialized } = useAuth();
   const supabase = createClientComponentClient();
 
   const [pages, setPages] = useState<EventPage[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Start false — only set true when a real fetch is in flight.
+  // The previous `useState(true)` caused the spinner to show immediately on
+  // mount and stay forever when `user` was null (auth still hydrating), because
+  // the early-return in fetchPages exited before the `finally` block that would
+  // have called setLoading(false).
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
 
   const fetchPages = useCallback(async () => {
-    if (!user) return;
+    // Don't act until the auth hook has finished its initial session check.
+    if (!initialized) return;
+    // Auth resolved but no user — nothing to fetch.
+    if (!user) { setLoading(false); return; }
 
     setLoading(true);
     setError(null);
@@ -46,11 +59,35 @@ function EventPagesList() {
     } finally {
       setLoading(false);
     }
-  }, [user, supabase]);
+  }, [user, initialized, supabase]);
 
   useEffect(() => {
     fetchPages();
   }, [fetchPages]);
+
+  // Safety net: arm the timeout once auth is resolved and a fetch is in flight.
+  // If it hasn't resolved in 8s, force-end the spinner so the UI unblocks.
+  const loadingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (initialized && loading && !loadingTimedOut) {
+      loadingTimeoutRef.current = setTimeout(() => {
+        console.warn('[event-pages] loading timed out after 8s');
+        setLoadingTimedOut(true);
+      }, LOADING_TIMEOUT_MS);
+    }
+
+    if (!loading) {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+      setLoadingTimedOut(false);
+    }
+
+    return () => {
+      if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
+    };
+  }, [initialized, loading, loadingTimedOut]);
 
   const togglePublish = async (page: EventPage) => {
     // Guard: don't allow publishing a dateless event — attendees can't save it
@@ -98,8 +135,10 @@ function EventPagesList() {
     }
   };
 
-  // Loading state
-  if (loading) {
+  // Show spinner only while a real fetch is in flight and the timeout hasn't fired.
+  const showSpinner = loading && !loadingTimedOut;
+
+  if (showSpinner) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Calendar, User, LogOut, Settings, } from 'lucide-react';
+import { Calendar, User, LogOut, Settings, LayoutTemplate } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -134,6 +134,13 @@ export default function Navbar() {
                           href="/dashboard"
                         >
                           My Events
+                        </DropdownItem>
+                        <DropdownItem
+                          key="event-pages"
+                          startContent={<LayoutTemplate className="w-4 h-4" />}
+                          href="/dashboard/event-pages"
+                        >
+                          My Event Pages
                         </DropdownItem>
                         <DropdownItem
                           key="settings"

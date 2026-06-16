@@ -332,37 +332,6 @@ function timestampToEventFields(
 }
 
 // ---------------------------------------------------------------------------
-// Calendar icon SVGs (inline)
-// ---------------------------------------------------------------------------
-
-function GoogleIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
-      <path fill="#4285F4" d="M45.525 24.565c0-1.67-.15-3.27-.43-4.81H24v9.1h12.1c-.52 2.8-2.1 5.17-4.47 6.76v5.62h7.23c4.23-3.9 6.67-9.64 6.67-16.67z"/>
-      <path fill="#34A853" d="M24 46c6.08 0 11.18-2.02 14.9-5.48l-7.23-5.62c-2.02 1.35-4.6 2.15-7.67 2.15-5.9 0-10.89-3.98-12.68-9.33H3.88v5.8C7.59 41.04 15.26 46 24 46z"/>
-      <path fill="#FBBC05" d="M11.32 27.72A13.97 13.97 0 0 1 10.8 24c0-1.29.22-2.53.52-3.72v-5.8H3.88A21.98 21.98 0 0 0 2 24c0 3.54.85 6.9 2.3 9.87l5.94-4.59 1.08-1.56z"/>
-      <path fill="#EA4335" d="M24 10.95c3.32 0 6.3 1.14 8.65 3.38l6.48-6.48C35.17 4.15 30.07 2 24 2 15.26 2 7.59 6.96 3.88 14.28l7.44 5.8C13.11 14.93 18.1 10.95 24 10.95z"/>
-    </svg>
-  );
-}
-
-function AppleIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 814 1000" aria-hidden="true">
-      <path fill="currentColor" d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 380.8 43.2 370.2 43.2 350c0-203.4 136.6-311.1 274.4-311.1 69.1 0 126.4 45.7 170.1 45.7 42.1 0 108.2-48.3 185.3-48.3zM611.4 40.1c33.1-38.3 57.3-91.3 57.3-144.3 0-7.4-.6-14.8-1.9-21.5-54.5 2.1-119.1 36.6-158.1 79.7-30.7 34.4-60.2 87.5-60.2 141.4 0 8 1.3 16 1.9 18.5 3.2.6 8.4 1.3 13.6 1.3 49 0 109.4-32.5 147.4-75.1z"/>
-    </svg>
-  );
-}
-
-function OutlookIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-      <path fill="#0078d4" d="M24 7.387v10.478L19.2 21V10.2L24 7.387zM0 8.046V20.77l10.8 1.8V5.4L0 8.046zm11.96-2.646v18l7.04-2.01V7.4l-7.04-1.999z"/>
-    </svg>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -631,7 +600,8 @@ export default async function EventLandingPage(
                         border: `1px solid ${tokens.cardBorderColor}`,
                       }}
                     >
-                      <GoogleIcon />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/icons/platforms/icon-google.svg" alt="" width={20} height={20} aria-hidden="true" />
                       Google Calendar
                     </a>
                   )}
@@ -647,7 +617,8 @@ export default async function EventLandingPage(
                         border: `1px solid ${tokens.cardBorderColor}`,
                       }}
                     >
-                      <AppleIcon />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/icons/platforms/icon-apple.svg" alt="" width={20} height={20} aria-hidden="true" />
                       Apple Calendar
                     </a>
                   )}
@@ -664,7 +635,8 @@ export default async function EventLandingPage(
                         border: `1px solid ${tokens.cardBorderColor}`,
                       }}
                     >
-                      <OutlookIcon />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/icons/platforms/icon-outlook.svg" alt="" width={20} height={20} aria-hidden="true" />
                       Outlook
                     </a>
                   )}
@@ -674,10 +646,10 @@ export default async function EventLandingPage(
                 <div>
                   <div className="flex flex-col sm:flex-row gap-3" aria-hidden="true">
                     {[
-                      { icon: <GoogleIcon />, label: 'Google Calendar' },
-                      { icon: <AppleIcon />, label: 'Apple Calendar' },
-                      { icon: <OutlookIcon />, label: 'Outlook' },
-                    ].map(({ icon, label }) => (
+                      { src: '/icons/platforms/icon-google.svg', label: 'Google Calendar' },
+                      { src: '/icons/platforms/icon-apple.svg', label: 'Apple Calendar' },
+                      { src: '/icons/platforms/icon-outlook.svg', label: 'Outlook' },
+                    ].map(({ src, label }) => (
                       <div
                         key={label}
                         className="flex items-center justify-center gap-2.5 px-5 py-3 rounded-lg font-medium text-sm shadow-sm cursor-not-allowed select-none"
@@ -688,7 +660,8 @@ export default async function EventLandingPage(
                           opacity: 0.6,
                         }}
                       >
-                        {icon}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={src} alt="" width={20} height={20} aria-hidden="true" />
                         {label}
                       </div>
                     ))}
