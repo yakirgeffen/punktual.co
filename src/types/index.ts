@@ -485,8 +485,49 @@ export interface BlogAnalyticsEvent {
 }
 
 // ============================================================================
-// EVENTS PLATFORM TYPES — B-1a (webcal feed) + B-2 (RSVP)
+// EVENTS PLATFORM TYPES — B-1a (webcal feed) + B-2 (RSVP) + customization
 // ============================================================================
+
+/**
+ * Allowed background theme identifiers for event pages.
+ * Maps to a set of bg/text/border token values in the rendering layer.
+ */
+export type EventPageBgTheme = 'white' | 'stone' | 'dark' | 'gradient';
+
+/**
+ * Allowed font choice identifiers for event pages.
+ *   nunito  — Friendly & Round (Nunito, the Punktual default)
+ *   inter   — Clean & Modern (Inter)
+ *   lora    — Refined & Classic (Lora, serif)
+ */
+export type EventPageFontChoice = 'nunito' | 'inter' | 'lora';
+
+/**
+ * Customization fields added in migration 20260616_event_page_customization.sql.
+ * All fields are optional at the TypeScript level (nullable in Postgres, sensible defaults applied by the renderer).
+ */
+export interface EventPageCustomization {
+  /** Hex color string, e.g. '#10b981'. Default: Punktual emerald. */
+  accent_color: string | null;
+  /** Background theme preset. Default: 'white'. */
+  bg_theme: EventPageBgTheme | null;
+  /** Font pairing choice. Default: 'nunito'. */
+  font_choice: EventPageFontChoice | null;
+  /** URL to a cover/hero image (Supabase Storage or external). Null = no image shown. */
+  cover_image_url: string | null;
+  /** Display name for the event organizer/host. */
+  host_name: string | null;
+  /** URL to the organizer's logo image. */
+  host_logo_url: string | null;
+  /** Short subtitle shown under the event title. */
+  tagline: string | null;
+  /** Label for the primary calendar-add CTA. Default: 'Add to calendar'. */
+  cta_label: string | null;
+  /** Hex color for the primary CTA button. Null = use accent_color. */
+  cta_color: string | null;
+  /** Manual OG image URL override. Null = use dynamic /api/og/event route. */
+  og_image_url: string | null;
+}
 
 /**
  * EventPage — public-facing organizer event page.
@@ -495,9 +536,11 @@ export interface BlogAnalyticsEvent {
  * private saved calendar event). An EventPage is the managed-events surface:
  * it has a public slug, a feed_token for webcal distribution, and RSVP state.
  *
- * Mirrors the event_pages table created in migration 20260616_events_platform_b1a.sql.
+ * Mirrors the event_pages table created in migration 20260616_events_platform_b1a.sql
+ * plus datetime columns (20260616120000_event_pages_datetime.sql)
+ * plus customization columns (20260616_event_page_customization.sql).
  */
-export interface EventPage {
+export interface EventPage extends EventPageCustomization {
   id: string;
   /** Auth user id of the organizer */
   user_id: string;
@@ -512,6 +555,12 @@ export interface EventPage {
   feed_token: string;
   /** False = draft; True = publicly visible */
   is_published: boolean;
+  /** Event start timestamp (nullable — null means TBA) */
+  start_at?: string | null;
+  /** Event end timestamp (nullable) */
+  end_at?: string | null;
+  /** True if the event spans full days with no specific time */
+  is_all_day?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -537,4 +586,18 @@ export type CreateEventPageResponse = {
   eventPage: EventPage;
   feedUrl: string; // e.g. 'https://punktual.co/api/feed/[feed_token]'
   webcalUrl: string; // e.g. 'webcal://punktual.co/api/feed/[feed_token]'
+};
+
+/**
+ * PATCH body for updating event page customization fields.
+ * All fields optional — only supplied fields are updated.
+ */
+export type EventPageCustomizationPatch = Partial<EventPageCustomization> & {
+  title?: string;
+  description?: string;
+  location?: string;
+  timezone?: string;
+  start_at?: string | null;
+  end_at?: string | null;
+  is_all_day?: boolean;
 };
