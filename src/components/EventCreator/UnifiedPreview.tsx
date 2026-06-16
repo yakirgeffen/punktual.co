@@ -349,7 +349,7 @@ const UnifiedPreview: React.FC = () => {
             <div className="flex items-center gap-2 text-emerald-900">
               <span className="text-base">✨</span>
               <p className="text-xs font-medium">
-                Ready to save! Click <strong>Create Event</strong> below
+                Your event&apos;s ready — hit <strong>Create Event &amp; Generate Links</strong> to get your calendar links.
               </p>
             </div>
           </div>
