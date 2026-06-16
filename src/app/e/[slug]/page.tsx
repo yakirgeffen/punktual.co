@@ -66,6 +66,7 @@ interface EventPageRow {
   host_logo_url: string | null;
   tagline: string | null;
   cta_label: string | null;
+  cta_color: string | null;
   og_image_url: string | null;
 }
 
@@ -170,7 +171,7 @@ export async function generateMetadata(
       .select('title, description, tagline, host_name, accent_color, bg_theme, og_image_url')
       .eq('slug', slug)
       .eq('is_published', true)
-      .single();
+      .maybeSingle();
 
     if (!data) return { title: 'Event | Punktual' };
 
@@ -378,11 +379,11 @@ export default async function EventLandingPage(
       'id', 'slug', 'title', 'description', 'location', 'timezone',
       'feed_token', 'is_published', 'start_at', 'end_at', 'is_all_day',
       'accent_color', 'bg_theme', 'font_choice', 'cover_image_url',
-      'host_name', 'host_logo_url', 'tagline', 'cta_label', 'og_image_url',
+      'host_name', 'host_logo_url', 'tagline', 'cta_label', 'cta_color', 'og_image_url',
     ].join(', '))
     .eq('slug', slug)
     .eq('is_published', true)
-    .single();
+    .maybeSingle();
 
   if (error || !page) {
     notFound();
@@ -396,6 +397,7 @@ export default async function EventLandingPage(
   const bgTheme = (eventPage.bg_theme as BgTheme) ?? 'white';
   const fontChoice = (eventPage.font_choice as FontChoice) ?? 'nunito';
   const ctaLabel = eventPage.cta_label ?? 'Subscribe — get every update automatically in your calendar';
+  const ctaColor = eventPage.cta_color ?? accentColor;
 
   const tokens = getThemeTokens(bgTheme, accentColor);
   const fontFamily = getFontFamily(fontChoice);
@@ -695,7 +697,7 @@ export default async function EventLandingPage(
                 href={webcalUrl}
                 className="inline-flex items-center justify-center gap-2.5 px-6 py-3 rounded-lg font-semibold text-sm transition-colors shadow-sm w-full sm:w-auto"
                 style={{
-                  backgroundColor: accentColor,
+                  backgroundColor: ctaColor,
                   color: '#ffffff',
                 }}
               >

@@ -31,7 +31,7 @@ function EventPagesList() {
     try {
       const { data, error: dbError } = await supabase
         .from('event_pages')
-        .select('id, user_id, slug, title, description, location, timezone, feed_token, is_published, created_at, updated_at, accent_color, bg_theme, font_choice, cover_image_url, host_name, host_logo_url, tagline, cta_label, cta_color, og_image_url')
+        .select('id, user_id, slug, title, description, location, timezone, start_at, end_at, is_all_day, feed_token, is_published, created_at, updated_at, accent_color, bg_theme, font_choice, cover_image_url, host_name, host_logo_url, tagline, cta_label, cta_color, og_image_url')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -54,9 +54,19 @@ function EventPagesList() {
   const togglePublish = async (page: EventPage) => {
     setTogglingId(page.id);
     try {
+      // Send the bearer token explicitly — consistent with the other authed API
+      // calls; the publish route's requireAuth otherwise depends on the cookie
+      // being present, which can silently 401.
+      const { data: { session } } = await supabase.auth.getSession();
       const response = await fetch(`/api/event-pages/${page.id}/publish`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token
+            ? { Authorization: `Bearer ${session.access_token}` }
+            : {}),
+        },
+        credentials: 'include',
         body: JSON.stringify({ published: !page.is_published }),
       });
 

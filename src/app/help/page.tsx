@@ -89,7 +89,7 @@ export default function HelpPage() {
     }
   ];
 
-  const filteredFaqs: FAQ[] = faqs.filter(faq => 
+  const filteredFaqs: FAQ[] = faqs.filter(faq =>
     searchTerm.length >= 2 && (
       faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
       faq.answer.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -111,7 +111,7 @@ export default function HelpPage() {
         }
       },
       {
-        "@type": "Question", 
+        "@type": "Question",
         "name": "Which calendar platforms does Punktual support?",
         "acceptedAnswer": {
           "@type": "Answer",
@@ -122,7 +122,7 @@ export default function HelpPage() {
         "@type": "Question",
         "name": "How do I add the calendar button to my website?",
         "acceptedAnswer": {
-          "@type": "Answer", 
+          "@type": "Answer",
           "text": "After creating your event, you will get HTML code that you can paste directly into your website: 1) Copy the generated HTML code 2) Paste it into your website HTML where you want the button to appear 3) The button will automatically work - no additional setup needed! The code works with WordPress, Squarespace, Wix, and any website that allows custom HTML."
         }
       },
@@ -144,10 +144,10 @@ export default function HelpPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }}
       />
-      
+
       <div className="min-h-screen bg-gray-50 py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          
+
           {/* SEO-Optimized Header */}
           <header className="text-center mb-12">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
@@ -165,12 +165,13 @@ export default function HelpPage() {
           <section className="mb-12">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Search Help Articles</h2>
-              
+
               {/* Search Input */}
               <div className="relative max-w-lg">
-                <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" aria-hidden="true" />
                 <input
                   type="text"
+                  aria-label="Search help articles"
                   placeholder="Search for help articles..."
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   value={searchTerm}
@@ -184,7 +185,7 @@ export default function HelpPage() {
                   {filteredFaqs.length > 0 ? (
                     <div className="space-y-4">
                       <h3 className="font-medium text-gray-900">
-                        Found {filteredFaqs.length} result{filteredFaqs.length !== 1 ? 's' : ''} for {searchTerm}
+                        Found {filteredFaqs.length} result{filteredFaqs.length !== 1 ? 's' : ''} for &ldquo;{searchTerm}&rdquo;
                       </h3>
                       <div className="space-y-3">
                         {filteredFaqs.map((faq: FAQ) => (
@@ -204,16 +205,16 @@ export default function HelpPage() {
                     </div>
                   ) : (
                     <div className="mt-6 text-center py-8">
-                      <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" aria-hidden="true" />
                       <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
                       <p className="text-gray-600 mb-4">
-                        We could not find any help articles matching {searchTerm}
+                        We could not find any help articles matching &ldquo;{searchTerm}&rdquo;
                       </p>
                       <a
                         href="mailto:hello@punktual.co"
                         className="inline-flex items-center px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
                       >
-                        <Mail className="w-4 h-4 mr-2" />
+                        <Mail className="w-4 h-4 mr-2" aria-hidden="true" />
                         Contact Support
                       </a>
                     </div>
@@ -245,7 +246,7 @@ export default function HelpPage() {
                   Start Creating →
                 </a>
               </div>
-              
+
               <div className="bg-white p-6 rounded-lg border border-gray-200">
                 <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center mb-4">
                   <span className="text-white font-bold">2</span>
@@ -258,7 +259,7 @@ export default function HelpPage() {
                   See Examples →
                 </a>
               </div>
-              
+
               <div className="bg-white p-6 rounded-lg border border-gray-200">
                 <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center mb-4">
                   <span className="text-white font-bold">3</span>
@@ -277,7 +278,7 @@ export default function HelpPage() {
           {/* Static FAQ Content for SEO */}
           <section className="mb-12">
             <h2 className="text-2xl font-semibold text-gray-900 mb-8">Frequently Asked Questions</h2>
-            
+
             {/* Getting Started */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
               <div className="p-6 border-b border-gray-200">
@@ -303,8 +304,8 @@ export default function HelpPage() {
                 <div>
                   <h4 className="text-lg font-medium text-gray-900 mb-3">What are the limits for free accounts?</h4>
                   <p className="text-gray-700">
-                    Free accounts can create up to 5 calendar buttons per month. This limit resets on the 1st of each month. 
-                    If you need more events, you can upgrade to a paid plan for unlimited calendar buttons, plus additional 
+                    Free accounts can create up to 5 calendar buttons per month. This limit resets on the 1st of each month.
+                    If you need more events, you can upgrade to a paid plan for unlimited calendar buttons, plus additional
                     features like custom styling and analytics.
                   </p>
                 </div>
@@ -444,7 +445,7 @@ export default function HelpPage() {
               href="mailto:hello@punktual.co"
               className="inline-flex items-center px-6 py-3 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors font-medium"
             >
-              <Mail className="w-4 h-4 mr-2" />
+              <Mail className="w-4 h-4 mr-2" aria-hidden="true" />
               Contact Support Team
             </a>
           </section>

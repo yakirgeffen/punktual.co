@@ -1,5 +1,5 @@
 /**
- * Hook for checking event creation quota (free tier: 3 events/month)
+ * Hook for checking event creation quota (free tier: 5 events/month)
  * Manages monthly quota reset and quota enforcement
  */
 
@@ -66,7 +66,7 @@ export function useCheckEventQuota() {
           // Return default quota for new profile
           return {
             eventsCreated: 0,
-            eventsRemaining: 3,
+            eventsRemaining: MONTHLY_LIMIT,
             quotaResetDate: new Date().toISOString().split('T')[0],
             canCreateEvent: true,
             isAtLimit: false
@@ -98,12 +98,13 @@ export function useCheckEventQuota() {
         };
       }
 
-      // Check if we need to reset quota (first of month)
-      const today = new Date().toISOString().split('T')[0];
-      const resetDate = new Date(profile.quota_reset_date);
-      const currentMonthStart = new Date();
-      currentMonthStart.setDate(1);
-      const currentMonthStartStr = currentMonthStart.toISOString().split('T')[0];
+      // Check if we need to reset quota (first of the month).
+      // Compute the month start from UTC components so the comparison is stable
+      // regardless of the viewer's timezone — previously this mixed a local
+      // setDate(1) with a UTC toISOString(), which produced the wrong day near
+      // month boundaries and could trigger spurious daily resets for non-UTC users.
+      const now = new Date();
+      const currentMonthStartStr = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`;
 
       // If quota_reset_date is not the first of current month, we need to reset
       if (profile.quota_reset_date !== currentMonthStartStr) {
@@ -146,11 +147,6 @@ export function useCheckEventQuota() {
         eventsRemaining,
         canCreate: eventsRemaining > 0
       });
-
-      // today and resetDate are referenced implicitly via the quota_reset_date
-      // comparison above; they exist for future use in date-math extensions.
-      void today;
-      void resetDate;
 
       return {
         eventsCreated: profile.events_created,

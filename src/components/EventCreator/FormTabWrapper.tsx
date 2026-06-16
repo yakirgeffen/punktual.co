@@ -27,8 +27,6 @@ const FormTabWrapper: React.FC = () => {
       if (result) {
         setSavedShortLinks(result.shortLinks);
         setSaved(true);
-        console.log('Event saved with ID:', result.eventId);
-        console.log('Short links set:', result.shortLinks);
 
         // Redirect to dashboard after toast has had time to register
         setTimeout(() => {
