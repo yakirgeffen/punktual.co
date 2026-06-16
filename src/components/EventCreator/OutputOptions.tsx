@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Copy, Check, Lock } from 'lucide-react';
+import { Copy, Check, Calendar } from 'lucide-react';
 import { Button, Tabs, Tab, Card, CardBody, Tooltip, Badge } from '@heroui/react';
+import Link from 'next/link';
 import { useEventContext } from '@/contexts/EventContext';
 import { useCheckEventQuota } from '@/hooks/useCheckEventQuota';
 import toast from 'react-hot-toast';
@@ -182,7 +183,7 @@ export default function OutputOptions() {
                   <ul className="text-slate-700 space-y-1 list-disc list-inside">
                     <li>Paste the code anywhere in your HTML body</li>
                     <li>The buttons will automatically appear</li>
-                    <li>Customize colors in the EventCreator before copying</li>
+                    <li>Customize the colors in the form above before copying</li>
                   </ul>
                 </div>
               </div>
@@ -190,28 +191,28 @@ export default function OutputOptions() {
           </Card>
         </Tab>
 
-        {/* Event Page Option - Coming Soon */}
-        <Tab
-          key="page"
-          title={
-            <div className="flex items-center gap-2">
-              Event Page
-              <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Coming Soon</span>
-            </div>
-          }
-          isDisabled
-        >
+        {/* Event Page — live; published from a saved event via the dashboard */}
+        <Tab key="page" title="Event Page">
           <Card className="border border-slate-200">
             <CardBody className="space-y-4">
               <div className="text-center py-8">
-                <div className="w-16 h-16 mx-auto rounded-full bg-slate-100 flex items-center justify-center mb-4">
-                  <Lock className="w-8 h-8 text-slate-400" />
+                <div className="w-16 h-16 mx-auto rounded-full bg-emerald-100 flex items-center justify-center mb-4">
+                  <Calendar className="w-8 h-8 text-emerald-500" />
                 </div>
-                <h3 className="font-semibold text-slate-900 mb-2">Event Page - Coming Soon</h3>
-                <p className="text-slate-600 max-w-sm mx-auto">
-                  Create a beautiful public event page with RSVP tracking, social sharing, and event details.
-                  This feature will be available soon!
+                <h3 className="font-semibold text-slate-900 mb-2">Hosted event page</h3>
+                <p className="text-slate-600 max-w-md mx-auto mb-4">
+                  Turn this event into a shareable page with your own colors, fonts, a cover image,
+                  host details, and a one-click subscribe button that keeps attendees&apos; calendars up to date.
                 </p>
+                <p className="text-sm text-slate-500 max-w-md mx-auto mb-5">
+                  Save your event first (button below), then publish its page from your dashboard.
+                </p>
+                <Link
+                  href="/dashboard/event-pages"
+                  className="inline-flex items-center justify-center bg-emerald-500 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-emerald-600 transition-colors"
+                >
+                  Go to event pages
+                </Link>
               </div>
             </CardBody>
           </Card>
