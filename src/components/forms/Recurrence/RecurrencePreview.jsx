@@ -3,62 +3,96 @@
 export default function RecurrencePreview({ eventData }) {
   const getRecurrenceDescription = () => {
     if (!eventData.isRecurring) return '';
-    const { 
-      recurrencePattern, 
-      recurrenceCount = 1, 
+
+    const {
+      recurrencePattern,
+      recurrenceCount,
+      recurrenceEndDate,
       weeklyDays = [],
       monthlyOption = 'date',
-      monthlyWeekday = 0, 
+      monthlyWeekday = 0,
       monthlyWeekdayOrdinal = 0,
       yearlyMonth = 0,
-      recurrenceInterval = 1
+      recurrenceInterval = 1,
     } = eventData;
-    
-    let description = 'Repeats ';
+
     const intervalText = recurrenceInterval > 1 ? `every ${recurrenceInterval} ` : '';
-    
+    let base = '';
+
     switch (recurrencePattern) {
       case 'daily':
-        description += `${intervalText}${recurrenceInterval === 1 ? 'daily' : 'days'}`;
+        base = `${intervalText}${recurrenceInterval === 1 ? 'daily' : 'days'}`;
         break;
-      case 'weekly':
+
+      case 'weekly': {
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const freq = `${intervalText}${recurrenceInterval === 1 ? 'weekly' : 'weeks'}`;
         if (weeklyDays.length > 0) {
-          const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-          const selectedDays = weeklyDays.sort((a, b) => a - b).map(day => dayNames[day]).join(', ');
-          description += `${intervalText}${recurrenceInterval === 1 ? 'weekly' : 'weeks'} on ${selectedDays}`;
+          const selectedDays = weeklyDays
+            .slice()
+            .sort((a, b) => a - b)
+            .map((day) => dayNames[day])
+            .join(', ');
+          base = `${freq} on ${selectedDays}`;
         } else {
-          description += `${intervalText}${recurrenceInterval === 1 ? 'weekly' : 'weeks'}`;
+          base = freq;
         }
         break;
-      case 'monthly':
-        if (monthlyOption === 'date') {
-          description += `${intervalText}${recurrenceInterval === 1 ? 'monthly' : 'months'} on the same date`;
-        } else if (monthlyOption === 'weekday') {
+      }
+
+      case 'monthly': {
+        const freq = `${intervalText}${recurrenceInterval === 1 ? 'monthly' : 'months'}`;
+        if (monthlyOption === 'weekday') {
           const ordinals = ['first', 'second', 'third', 'fourth', 'fifth', 'last'];
           const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-          description += `${intervalText}${recurrenceInterval === 1 ? 'monthly' : 'months'} on the ${ordinals[monthlyWeekdayOrdinal]} ${weekdays[monthlyWeekday]}`;
-        }
-        break;
-      case 'yearly':
-        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-        if (yearlyMonth !== undefined && yearlyMonth >= 0) {
-          description += `${intervalText}${recurrenceInterval === 1 ? 'yearly' : 'years'} in ${months[yearlyMonth]}`;
+          base = `${freq} on the ${ordinals[monthlyWeekdayOrdinal]} ${weekdays[monthlyWeekday]}`;
         } else {
-          description += `${intervalText}${recurrenceInterval === 1 ? 'yearly' : 'years'}`;
+          base = `${freq} on the same date`;
         }
         break;
+      }
+
+      case 'yearly': {
+        const months = [
+          'January', 'February', 'March', 'April', 'May', 'June',
+          'July', 'August', 'September', 'October', 'November', 'December',
+        ];
+        const freq = `${intervalText}${recurrenceInterval === 1 ? 'yearly' : 'years'}`;
+        base =
+          yearlyMonth !== undefined && yearlyMonth >= 0
+            ? `${freq} in ${months[yearlyMonth]}`
+            : freq;
+        break;
+      }
+
       default:
-        description = '';
+        return '';
     }
-    
-    if (recurrenceCount > 1) {
-      description += ` for ${recurrenceCount} occurrence${recurrenceCount > 1 ? 's' : ''}`;
+
+    // Append end condition — count takes priority over end date when both are set.
+    if (recurrenceCount && recurrenceCount > 1) {
+      return `Repeats ${base}, ${recurrenceCount} times.`;
     }
-    return description;
+    if (recurrenceEndDate) {
+      // Format the date in a readable way without importing a library.
+      try {
+        const d = new Date(recurrenceEndDate + 'T00:00:00');
+        const formatted = d.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        });
+        return `Repeats ${base}, until ${formatted}.`;
+      } catch {
+        return `Repeats ${base}, until ${recurrenceEndDate}.`;
+      }
+    }
+
+    return `Repeats ${base}.`;
   };
 
   const description = getRecurrenceDescription();
-  
+
   if (!description) return null;
 
   return (

@@ -87,8 +87,8 @@ export function useCheckEventQuota() {
         return null;
       }
 
-      // For Pro users, no quota limit
-      if (profile.plan === 'pro') {
+      // For Pro and Admin users, no quota limit
+      if (profile.plan === 'pro' || profile.plan === 'admin') {
         return {
           eventsCreated: 0,
           eventsRemaining: Infinity,
@@ -146,6 +146,11 @@ export function useCheckEventQuota() {
         eventsRemaining,
         canCreate: eventsRemaining > 0
       });
+
+      // today and resetDate are referenced implicitly via the quota_reset_date
+      // comparison above; they exist for future use in date-math extensions.
+      void today;
+      void resetDate;
 
       return {
         eventsCreated: profile.events_created,

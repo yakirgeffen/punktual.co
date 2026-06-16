@@ -2,14 +2,15 @@
 import { Input, Select, SelectItem, Switch } from '@heroui/react';
 import { useEventFormLogic } from '@/hooks/useEventFormLogic';
 import EnhancedTimezoneSelector from '@/components/forms/DateTime/EnhancedTimezoneSelector';
+import RecurrencePreview from '@/components/forms/Recurrence/RecurrencePreview';
 
 /**
  * Event Details Section - Date & Time Management
  * Handles dates, times, timezone, all-day toggle, and recurring events
  */
 export default function EventDetailsSection() {
-  const { 
-    eventData, 
+  const {
+    eventData,
     handleFieldChange,
   } = useEventFormLogic();
 
@@ -20,18 +21,18 @@ export default function EventDetailsSection() {
     const today = now.toISOString().split('T')[0];
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
-    
+
     for (let hour = 0; hour < 24; hour++) {
       ['00', '15', '30', '45'].forEach(minute => {
         const timeValue = `${hour.toString().padStart(2, '0')}:${minute}`;
-        
+
         // Skip past times if this is for start time and it's today
         if (isStartTime && eventData.startDate === today) {
           const timeMinutes = hour * 60 + parseInt(minute);
           const nowMinutes = currentHour * 60 + currentMinute;
           if (timeMinutes < nowMinutes) return;
         }
-        
+
         const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
         const ampm = hour >= 12 ? 'PM' : 'AM';
         const timeLabel = `${displayHour.toString().padStart(2, '0')}:${minute} ${ampm}`;
@@ -49,10 +50,10 @@ export default function EventDetailsSection() {
     if (!eventData.startTime || eventData.startDate !== eventData.endDate) {
       return endTimeOptions;
     }
-    
+
     const [startHour, startMin] = eventData.startTime.split(':').map(Number);
     const startTotalMin = startHour * 60 + startMin;
-    
+
     return endTimeOptions.filter(option => {
       const [optionHour, optionMin] = option.value.split(':').map(Number);
       const optionTotalMin = optionHour * 60 + optionMin;
@@ -65,18 +66,18 @@ export default function EventDetailsSection() {
     if (!eventData.startTime || !eventData.endTime || eventData.startDate !== eventData.endDate) {
       return '';
     }
-    
+
     const [startHour, startMin] = eventData.startTime.split(':').map(Number);
     const [endHour, endMin] = eventData.endTime.split(':').map(Number);
     const startTotalMin = startHour * 60 + startMin;
     const endTotalMin = endHour * 60 + endMin;
     const durationMin = endTotalMin - startTotalMin;
-    
+
     if (durationMin <= 0) return '';
-    
+
     const hours = Math.floor(durationMin / 60);
     const minutes = durationMin % 60;
-    
+
     if (hours === 0) return `${minutes}m`;
     if (minutes === 0) return `${hours}h`;
     return `${hours}h ${minutes}m`;
@@ -131,7 +132,7 @@ export default function EventDetailsSection() {
               </div>
             </div>
           )}
-          
+
           <Input
             type="date"
             label="End Date"
@@ -169,7 +170,7 @@ export default function EventDetailsSection() {
                   </SelectItem>
                 ))}
               </Select>
-              
+
               {/* Duration indicator */}
               {getDuration() && (
                 <div className="mt-2 text-xs text-gray-600">
@@ -186,7 +187,7 @@ export default function EventDetailsSection() {
             </div>
           )}
         </div>
-        
+
         <div className="pt-2">
           <Switch
             isSelected={eventData.isAllDay || false}
@@ -199,7 +200,7 @@ export default function EventDetailsSection() {
             All day event
           </Switch>
         </div>
-        
+
         <EnhancedTimezoneSelector
           value={eventData.timezone || 'UTC'}
           onChange={(timezone: string) => handleFieldChange('timezone', timezone)}
@@ -221,7 +222,7 @@ export default function EventDetailsSection() {
         >
           Recurring event
         </Switch>
-        
+
         {eventData.isRecurring && (
           <div className="space-y-4 ml-4 pl-4 border-l-2 border-emerald-400 bg-gray-50 rounded-r-lg py-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -242,7 +243,7 @@ export default function EventDetailsSection() {
                 <SelectItem key="monthly">Monthly</SelectItem>
                 <SelectItem key="yearly">Yearly</SelectItem>
               </Select>
-              
+
               <Input
                 type="number"
                 label="Every"
@@ -259,7 +260,7 @@ export default function EventDetailsSection() {
                   inputWrapper: "h-10"
                 }}
               />
-              
+
               <Input
                 type="number"
                 label="For"
@@ -277,6 +278,9 @@ export default function EventDetailsSection() {
                 }}
               />
             </div>
+
+            {/* Live recurrence summary shown below the controls */}
+            <RecurrencePreview eventData={eventData} />
           </div>
         )}
       </div>
