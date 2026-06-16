@@ -51,7 +51,13 @@ export function useSavedEvents(
   const [events, setEvents] = useState<DatabaseEvent[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [totalCount, setTotalCount] = useState<number>(0);
-  const { user } = useAuth();
+  // 2026-06-16: also consume `initialized` so we gate the query on the auth
+  // hook having completed its full token-validation sequence (getUser() round-
+  // trip), not just on `user` being non-null. `user` can be set from a stale
+  // getSession() result while the access token is still expired — firing a
+  // PostgREST query at that moment sends an expired bearer, RLS treats it as
+  // anonymous, and returns 0 rows with no error (or hangs on token refresh lock).
+  const { user, initialized } = useAuth();
   const supabase = createClientComponentClient();
 
   const defaultOptions = {
@@ -79,9 +85,9 @@ export function useSavedEvents(
     try {
       setLoading(true);
 
-      logger.info('Fetching saved events', 'DASHBOARD', { 
-        userId: user.id, 
-        options: fetchOptions 
+      logger.info('Fetching saved events', 'DASHBOARD', {
+        userId: user.id,
+        options: fetchOptions
       });
 
       // Build query
@@ -128,19 +134,19 @@ export function useSavedEvents(
       setEvents(mapped);
       setTotalCount(count || 0);
 
-      logger.info('Successfully fetched saved events', 'DASHBOARD', { 
-        userId: user.id, 
+      logger.info('Successfully fetched saved events', 'DASHBOARD', {
+        userId: user.id,
         count: data?.length || 0,
         totalCount: count || 0
       });
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to load events';
-      logger.error('Fetch saved events error', 'DASHBOARD', { 
-        userId: user.id, 
-        error: errorMessage 
+      logger.error('Fetch saved events error', 'DASHBOARD', {
+        userId: user.id,
+        error: errorMessage
       });
-      
+
       toast.error(errorMessage);
       setEvents([]);
       setTotalCount(0);
@@ -150,11 +156,18 @@ export function useSavedEvents(
   }, [user, supabase]);
 
   useEffect(() => {
-    // Only fetch if user is available and initialized
-    if (user) {
+    // Gate on both user and initialized. `initialized` means the auth hook has
+    // completed getSession() + getUser() validation, so the browser client's
+    // internal session carries a live access token. Firing the query before
+    // initialized=true risks sending an expired bearer to PostgREST (→ 0 rows
+    // from RLS, no error) or blocking on the token-refresh lock (→ hang).
+    if (user && initialized) {
       fetchSavedEvents(options);
+    } else if (!user && initialized) {
+      // Auth resolved, no user — clear loading state.
+      setLoading(false);
     }
-  }, [user, fetchSavedEvents]);
+  }, [user, initialized, fetchSavedEvents]);
 
   const deleteEvent = async (eventId: string): Promise<boolean> => {
     if (!user) return false;
@@ -181,12 +194,12 @@ export function useSavedEvents(
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to delete event';
-      logger.error('Delete event error', 'DASHBOARD', { 
-        eventId, 
-        userId: user.id, 
-        error: errorMessage 
+      logger.error('Delete event error', 'DASHBOARD', {
+        eventId,
+        userId: user.id,
+        error: errorMessage
       });
-      
+
       toast.error(errorMessage);
       return false;
     }
@@ -239,20 +252,20 @@ export function useSavedEvents(
       }
 
       toast.success(`"${title}" duplicated successfully!`);
-      
+
       // Refresh the events list
       await fetchSavedEvents();
-      
+
       return newEvent as DatabaseEvent;
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to duplicate event';
-      logger.error('Duplicate event error', 'DASHBOARD', { 
-        eventId, 
-        userId: user.id, 
-        error: errorMessage 
+      logger.error('Duplicate event error', 'DASHBOARD', {
+        eventId,
+        userId: user.id,
+        error: errorMessage
       });
-      
+
       toast.error(errorMessage);
       return null;
     }
@@ -269,19 +282,19 @@ export function useSavedEvents(
         .eq('user_id', user.id);
 
       if (error) {
-        logger.error('Update last used error', 'DASHBOARD', { 
-          eventId, 
-          userId: user.id, 
-          error: error.message 
+        logger.error('Update last used error', 'DASHBOARD', {
+          eventId,
+          userId: user.id,
+          error: error.message
         });
       }
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to update last used';
-      logger.error('Update last used error', 'DASHBOARD', { 
-        eventId, 
-        userId: user.id, 
-        error: errorMessage 
+      logger.error('Update last used error', 'DASHBOARD', {
+        eventId,
+        userId: user.id,
+        error: errorMessage
       });
     }
   };
