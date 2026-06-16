@@ -58,7 +58,7 @@ export async function POST(
     // Fetch the page to verify ownership
     const { data: page, error: fetchError } = await supabase
       .from('event_pages')
-      .select('id, user_id, slug, is_published')
+      .select('id, user_id, slug, is_published, start_at')
       .eq('id', id)
       .maybeSingle();
 
@@ -81,6 +81,16 @@ export async function POST(
       return NextResponse.json(
         { error: 'You do not have permission to modify this event page' },
         { status: 403 }
+      );
+    }
+
+    // Require a date before publishing — attendees can't save a dateless event
+    // and the calendar-add buttons would have nothing to point at. Unpublishing
+    // is always allowed. This is the real gate behind the dashboard's toast.
+    if (body.published === true && !page.start_at) {
+      return NextResponse.json(
+        { error: 'Add a start date before publishing this event page.' },
+        { status: 422 }
       );
     }
 

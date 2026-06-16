@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Button } from '@heroui/react';
 import { Plus, ExternalLink, Globe, FileText, Pencil } from 'lucide-react';
+import toast from 'react-hot-toast';
 import ProtectedRoute from '@/components/Auth/ProtectedRoute';
 import { createClientComponentClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -52,6 +53,12 @@ function EventPagesList() {
   }, [fetchPages]);
 
   const togglePublish = async (page: EventPage) => {
+    // Guard: don't allow publishing a dateless event — attendees can't save it
+    if (!page.is_published && !page.start_at) {
+      toast.error('Add a date before publishing. Attendees need it to save the event.');
+      return;
+    }
+
     setTogglingId(page.id);
     try {
       // Send the bearer token explicitly — consistent with the other authed API

@@ -15,6 +15,11 @@
  * All visual properties (accent color, background theme, font) come from the
  * event_pages row. Zero-configuration defaults to Punktual's emerald brand + Nunito.
  *
+ * Font scope: the organizer's font_choice applies ONLY to the event title (h1),
+ * tagline, and the two section headings. Everything else stays in Nunito (the
+ * app's global default) — date, timezone, location, meta text, buttons, CTA,
+ * sub-copy, host name, footer.
+ *
  * OG metadata: reads og_image_url (manual override) or falls back to the
  * dynamic /api/og/event route which generates a branded card.
  *
@@ -396,11 +401,12 @@ export default async function EventLandingPage(
   const accentColor = eventPage.accent_color ?? '#10b981';
   const bgTheme = (eventPage.bg_theme as BgTheme) ?? 'white';
   const fontChoice = (eventPage.font_choice as FontChoice) ?? 'nunito';
-  const ctaLabel = eventPage.cta_label ?? 'Subscribe — get every update automatically in your calendar';
+  // Font applies only to display headings; all other text stays in Nunito
+  const displayFontFamily = getFontFamily(fontChoice);
+  const ctaLabel = eventPage.cta_label ?? 'Subscribe to this event';
   const ctaColor = eventPage.cta_color ?? accentColor;
 
   const tokens = getThemeTokens(bgTheme, accentColor);
-  const fontFamily = getFontFamily(fontChoice);
 
   // Build calendar links
   let calendarLinks: ReturnType<typeof generateCalendarLinks> | null = null;
@@ -430,7 +436,8 @@ export default async function EventLandingPage(
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://punktual.co';
   const webcalUrl = `webcal://${baseUrl.replace(/^https?:\/\//, '')}/api/feed/${eventPage.feed_token}`;
 
-  // Google Fonts URL for the chosen font
+  // Load only the chosen font (needed for the display headings).
+  // Nunito for body is already loaded by the root layout.
   const fontUrl = fontChoice === 'inter'
     ? 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'
     : fontChoice === 'lora'
@@ -455,9 +462,10 @@ export default async function EventLandingPage(
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="stylesheet" href={fontUrl} />
 
+      {/* No fontFamily on <main> — global Nunito handles body text by default */}
       <main
         className={`min-h-screen ${bgTheme === 'white' ? 'bg-gray-50' : ''}`}
-        style={{ fontFamily, ...mainBgStyle }}
+        style={mainBgStyle}
       >
         {/* Cover image — full width, renders ABOVE the hero section */}
         {eventPage.cover_image_url && (
@@ -483,7 +491,7 @@ export default async function EventLandingPage(
         >
           <div className="max-w-2xl mx-auto px-6 py-12 sm:py-16">
 
-            {/* Host row */}
+            {/* Host row — always Nunito */}
             {eventPage.host_name && (
               <div className="flex items-center gap-2.5 mb-5">
                 {eventPage.host_logo_url && (
@@ -500,25 +508,25 @@ export default async function EventLandingPage(
               </div>
             )}
 
-            {/* Title */}
+            {/* Title — display font applies here */}
             <h1
               className="text-3xl sm:text-4xl font-bold leading-tight mb-3"
-              style={{ color: tokens.titleColor, fontFamily }}
+              style={{ color: tokens.titleColor, fontFamily: displayFontFamily }}
             >
               {eventPage.title}
             </h1>
 
-            {/* Tagline */}
+            {/* Tagline — display font applies here */}
             {eventPage.tagline && (
               <p
                 className="text-lg mb-5"
-                style={{ color: tokens.metaColor, fontFamily }}
+                style={{ color: tokens.metaColor, fontFamily: displayFontFamily }}
               >
                 {eventPage.tagline}
               </p>
             )}
 
-            {/* Date / time */}
+            {/* Date / time — always Nunito */}
             {formattedDate ? (
               <div className="flex items-start gap-3 mb-4">
                 <span className="mt-0.5 flex-shrink-0" style={{ color: accentColor }} aria-hidden="true">
@@ -530,7 +538,7 @@ export default async function EventLandingPage(
                   </svg>
                 </span>
                 <div>
-                  <p className="font-semibold text-lg leading-snug" style={{ color: tokens.titleColor, fontFamily }}>
+                  <p className="font-semibold text-lg leading-snug" style={{ color: tokens.titleColor }}>
                     {formattedDate}
                   </p>
                   {timezoneLabel && (
@@ -548,11 +556,11 @@ export default async function EventLandingPage(
                     <line x1="3" y1="10" x2="21" y2="10"/>
                   </svg>
                 </span>
-                <p className="text-base" style={{ color: tokens.metaColor }}>Date to be announced</p>
+                <p className="text-base" style={{ color: tokens.metaColor }}>Date coming soon</p>
               </div>
             )}
 
-            {/* Location */}
+            {/* Location — always Nunito */}
             {eventPage.location && (
               <div className="flex items-start gap-3 mb-4">
                 <span className="mt-0.5 flex-shrink-0" style={{ color: accentColor }} aria-hidden="true">
@@ -561,7 +569,7 @@ export default async function EventLandingPage(
                     <circle cx="12" cy="10" r="3"/>
                   </svg>
                 </span>
-                <p className="font-medium text-base leading-snug" style={{ color: tokens.titleColor, fontFamily }}>
+                <p className="font-medium text-base leading-snug" style={{ color: tokens.titleColor }}>
                   {eventPage.location}
                 </p>
               </div>
@@ -575,7 +583,7 @@ export default async function EventLandingPage(
               >
                 <p
                   className="text-base leading-relaxed whitespace-pre-wrap"
-                  style={{ color: tokens.bodyColor, fontFamily }}
+                  style={{ color: tokens.bodyColor }}
                 >
                   {eventPage.description}
                 </p>
@@ -599,11 +607,12 @@ export default async function EventLandingPage(
               className="px-6 py-5"
               style={{ borderBottom: `1px solid ${tokens.cardBorderColor}` }}
             >
-              <h2 className="text-xl font-bold" style={{ color: tokens.titleColor, fontFamily }}>
+              {/* Section heading — display font applies here */}
+              <h2 className="text-xl font-bold" style={{ color: tokens.titleColor, fontFamily: displayFontFamily }}>
                 Add this event to your calendar
               </h2>
               <p className="text-sm mt-1" style={{ color: tokens.metaColor }}>
-                Choose your calendar app to save a copy of this event.
+                Pick your calendar and it&apos;s in there.
               </p>
             </div>
 
@@ -661,9 +670,33 @@ export default async function EventLandingPage(
                   )}
                 </div>
               ) : (
-                <p className="text-sm italic" style={{ color: tokens.metaColor }}>
-                  Calendar links will appear once the organizer sets the event date and time.
-                </p>
+                /* No date set — show grayed-out placeholder buttons so layout doesn't collapse */
+                <div>
+                  <div className="flex flex-col sm:flex-row gap-3" aria-hidden="true">
+                    {[
+                      { icon: <GoogleIcon />, label: 'Google Calendar' },
+                      { icon: <AppleIcon />, label: 'Apple Calendar' },
+                      { icon: <OutlookIcon />, label: 'Outlook' },
+                    ].map(({ icon, label }) => (
+                      <div
+                        key={label}
+                        className="flex items-center justify-center gap-2.5 px-5 py-3 rounded-lg font-medium text-sm shadow-sm cursor-not-allowed select-none"
+                        style={{
+                          backgroundColor: tokens.isDark ? '#1e293b' : '#f9fafb',
+                          color: tokens.isDark ? '#475569' : '#9ca3af',
+                          border: `1px solid ${tokens.isDark ? '#334155' : '#e5e7eb'}`,
+                          opacity: 0.6,
+                        }}
+                      >
+                        {icon}
+                        {label}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-sm mt-4" style={{ color: tokens.metaColor }}>
+                    Calendar links show up once the organizer adds a date.
+                  </p>
+                </div>
               )}
             </div>
           </div>
@@ -684,8 +717,9 @@ export default async function EventLandingPage(
               className="px-6 py-5"
               style={{ borderBottom: `1px solid ${accentColor}30` }}
             >
-              <h2 className="text-xl font-bold" style={{ color: tokens.titleColor, fontFamily }}>
-                Never miss an update
+              {/* Section heading — display font applies here */}
+              <h2 className="text-xl font-bold" style={{ color: tokens.titleColor, fontFamily: displayFontFamily }}>
+                Stay in the loop automatically
               </h2>
               <p className="text-sm mt-1" style={{ color: tokens.metaColor }}>
                 Subscribe once and your calendar updates automatically whenever details change.
@@ -710,7 +744,7 @@ export default async function EventLandingPage(
               </a>
 
               <p className="text-xs mt-3" style={{ color: tokens.metaColor }}>
-                Your calendar app will ask you to confirm the subscription — that&apos;s it. No account needed.
+                Your calendar app will ask you to confirm. No account needed.
               </p>
             </div>
           </div>
@@ -721,12 +755,12 @@ export default async function EventLandingPage(
         {/* ------------------------------------------------------------------ */}
         <section className="max-w-2xl mx-auto px-6 pb-10">
           <p className="text-sm text-center" style={{ color: tokens.metaColor }}>
-            RSVP is free. Paid ticketing is coming soon.
+            Free to use. Paid ticketing coming soon.
           </p>
         </section>
 
         {/* ------------------------------------------------------------------ */}
-        {/* Footer                                                                */}
+        {/* Footer — always Nunito, no fontFamily override                        */}
         {/* ------------------------------------------------------------------ */}
         <footer
           className="py-6"
