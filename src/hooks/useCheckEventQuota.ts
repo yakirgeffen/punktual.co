@@ -1,12 +1,19 @@
 /**
  * Hook for checking event creation quota (free tier: 5 events/month)
  * Manages monthly quota reset and quota enforcement
+ *
+ * 2026-06-16 — Added makeTimeout() + Promise.race() guards on every Supabase
+ * call so that a stale-token / navigator-lock deadlock cannot block the quota
+ * path forever.  Each DB call has a 6 s hard deadline.  On timeout, the catch
+ * block in checkQuota returns null and the caller (useSaveEvent) skips the
+ * quota check rather than hanging the save flow.
  */
 
 import { useCallback } from 'react';
 import { createClientComponentClient } from '@/lib/supabase/client';
 import { useAuth } from './useAuth';
 import { logger } from '@/lib/logger';
+import { makeTimeout } from '@/lib/supabase/ensure-live-session';
 
 interface QuotaStatus {
   eventsCreated: number;
@@ -15,6 +22,9 @@ interface QuotaStatus {
   canCreateEvent: boolean;
   isAtLimit: boolean;
 }
+
+/** Hard deadline for any single Supabase call inside this hook. */
+const DB_TIMEOUT_MS = 6_000;
 
 export function useCheckEventQuota() {
   const { user } = useAuth();
@@ -34,12 +44,16 @@ export function useCheckEventQuota() {
     }
 
     try {
-      // Use maybeSingle instead of single to handle missing profiles gracefully
-      const { data: profile, error } = await supabase
-        .from('user_profiles')
-        .select('events_created, quota_reset_date, plan')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      // Use Promise.race so a navigator-lock deadlock on the PostgREST call
+      // cannot stall the quota check (and the whole save flow) indefinitely.
+      const { data: profile, error } = await Promise.race([
+        supabase
+          .from('user_profiles')
+          .select('events_created, quota_reset_date, plan')
+          .eq('user_id', user.id)
+          .maybeSingle(),
+        makeTimeout(DB_TIMEOUT_MS, 'checkQuota → user_profiles select')
+      ]);
 
       if (error) {
         logger.error('Failed to fetch quota status', 'QUOTA', {
@@ -50,16 +64,19 @@ export function useCheckEventQuota() {
         logger.info('Profile not found, creating new one', 'QUOTA', { userId: user.id });
 
         try {
-          const newProfile = await supabase.from('user_profiles').insert([
-            {
-              user_id: user.id,
-              email: user.email || '',
-              full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
-              plan: 'free',
-              events_created: 0,
-              quota_reset_date: new Date().toISOString().split('T')[0]
-            }
-          ]).select().single();
+          const newProfile = await Promise.race([
+            supabase.from('user_profiles').insert([
+              {
+                user_id: user.id,
+                email: user.email || '',
+                full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
+                plan: 'free',
+                events_created: 0,
+                quota_reset_date: new Date().toISOString().split('T')[0]
+              }
+            ]).select().single(),
+            makeTimeout(DB_TIMEOUT_MS, 'checkQuota → user_profiles insert')
+          ]);
 
           if (newProfile.error) throw newProfile.error;
 
@@ -100,9 +117,7 @@ export function useCheckEventQuota() {
 
       // Check if we need to reset quota (first of the month).
       // Compute the month start from UTC components so the comparison is stable
-      // regardless of the viewer's timezone — previously this mixed a local
-      // setDate(1) with a UTC toISOString(), which produced the wrong day near
-      // month boundaries and could trigger spurious daily resets for non-UTC users.
+      // regardless of the viewer's timezone.
       const now = new Date();
       const currentMonthStartStr = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`;
 
@@ -115,13 +130,16 @@ export function useCheckEventQuota() {
         });
 
         // Reset quota in database
-        const { error: updateError } = await supabase
-          .from('user_profiles')
-          .update({
-            events_created: 0,
-            quota_reset_date: currentMonthStartStr
-          })
-          .eq('user_id', user.id);
+        const { error: updateError } = await Promise.race([
+          supabase
+            .from('user_profiles')
+            .update({
+              events_created: 0,
+              quota_reset_date: currentMonthStartStr
+            })
+            .eq('user_id', user.id),
+          makeTimeout(DB_TIMEOUT_MS, 'checkQuota → quota_reset update')
+        ]);
 
         if (updateError) {
           logger.error('Failed to reset quota', 'QUOTA', {
@@ -183,10 +201,14 @@ export function useCheckEventQuota() {
         return false;
       }
 
-      // Increment counter
-      const { error } = await supabase.rpc('increment_event_count', {
-        user_id_param: user.id
-      });
+      // Increment counter via RPC. If the RPC doesn't exist yet, this will
+      // error and return false (non-fatal — the event was already saved).
+      const { error } = await Promise.race([
+        supabase.rpc('increment_event_count', {
+          user_id_param: user.id
+        }),
+        makeTimeout(DB_TIMEOUT_MS, 'incrementEventCount → increment_event_count RPC')
+      ]);
 
       if (error) {
         logger.error('Failed to increment event count', 'QUOTA', {
